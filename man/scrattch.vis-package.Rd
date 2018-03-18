@@ -1,24 +1,24 @@
-\name{scrattch-package}
-\alias{scrattch-package}
-\alias{scrattch}
+\name{scrattch.vis-package}
+\alias{scrattch.vis-package}
+\alias{scrattch.vis}
 \docType{package}
 \title{
-\packageTitle{scrattch}
+\packageTitle{scrattch.vis}
 }
 \description{
-\packageDescription{scrattch}
+\packageDescription{scrattch.vis}
 }
 \details{
 
 The DESCRIPTION file:
-\packageDESCRIPTION{scrattch}
-\packageIndices{scrattch}
+\packageDESCRIPTION{scrattch.vis}
+\packageIndices{scrattch.vis}
 ~~ An overview of how to use the package, including the most important functions ~~
 }
 \author{
-\packageAuthor{scrattch}
+\packageAuthor{scrattch.vis}
 
-Maintainer: \packageMaintainer{scrattch}
+Maintainer: \packageMaintainer{scrattch.vis}
 }
 \references{
 ~~ Literature or other references for background information ~~

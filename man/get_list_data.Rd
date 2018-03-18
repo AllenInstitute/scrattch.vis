@@ -4,7 +4,7 @@
 \alias{get_list_data}
 \title{Format data provided in list format for scrattch plots}
 \usage{
-get_list_data(datalist, genes, group_by, clusters)
+get_list_data(data_list, genes, group_by, group_ids)
 }
 \description{
 Currently only compatible with data from feather_to_list()

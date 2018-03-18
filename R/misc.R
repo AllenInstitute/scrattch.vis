@@ -15,39 +15,6 @@ chr_to_sql <- function(in_chr) {
   return(result)
 }
 
-flip_table <- function(df, gene_col = "gene", id_col = "sample_id") {
-  
-  if(gene_col %in% names(df)) {
-    genes <- unlist(df[,gene_col])
-    df_t <- t(df[,names(df) != gene_col])
-    samples <- rownames(df_t)
-    df_out <- cbind(samples, as.data.frame(df_t))
-    names(df_out) <- c(id_col,genes)
-    rownames(df_out) <- NULL
-    
-    print("(╯°□°）╯︵ ┻━┻")
-    
-    df_out
-    
-  } else if(id_col %in% names(df)) {
-    
-    samples <- unlist(df[,id_col])
-    df_t <- t(df[,names(df) != id_col])
-    genes <- rownames(df_t)
-    df_out <- cbind(genes, as.data.frame(df_t))
-    names(df_out) <- c(gene_col, samples)
-    rownames(df_out) <- NULL
-    
-    print("(╯°□°）╯︵ ┻━┻")
-    
-    df_out
-    
-  } else {
-    print(paste("No column named",gene_col,"or",id_col,"found."))
-  }
-    
-}
-
 #' Evaluate a character string to a numeric vector
 #' 
 #' @param in_chr a character string

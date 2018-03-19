@@ -4,15 +4,20 @@
 \alias{sci_label}
 \title{Convert integers to scientific notation labels}
 \usage{
-sci_label(in_num, sig_figs = 2, type = "plot")
+sci_label(in_num, sig_figs = 2, type = "ggplot2")
 }
 \arguments{
 \item{in_num}{a numeric vector}
 
 \item{sig_figs}{a number indicating how many significant figures should be displayed.}
+
+\item{type}{Either "ggplot2", "DT", or "text", which will set how the values are returned. 
+"ggplot2" gives formatting good for ggplot2 labels, e.g. 4.7\%*\%10^-4. "DT" returns 
+formatting good for use with the DT package, e.g. 4.7\\u271510<sup>-4</sup>. "text" returns 
+basic text formatting, e.g. 4.7E-4}
 }
 \value{
-a character vector with numeric values reformatted in 1.2E3 format
+a character vector with numeric values reformatted for display
 }
 \description{
 Convert integers to scientific notation labels
@@ -22,5 +27,5 @@ my_numbers <- c(100,15.359,32687,.000468)
 
 sci_label(my_numbers)
 
-sci_label(my_numbers,sig_figs=3)
+sci_label(my_numbers, sig_figs = 3)
 }

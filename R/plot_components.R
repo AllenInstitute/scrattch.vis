@@ -2,19 +2,32 @@
 #' 
 #' @param in_num a numeric vector
 #' @param sig_figs a number indicating how many significant figures should be displayed.
-#' @return a character vector with numeric values reformatted in 1.2E3 format
+#' @param type Either "ggplot2", "DT", or "text", which will set how the values are returned. 
+#' "ggplot2" gives formatting good for ggplot2 labels, e.g. 4.7\%*\%10^-4. "DT" returns 
+#' formatting good for use with the DT package, e.g. 4.7\\u271510<sup>-4</sup>. "text" returns 
+#' basic text formatting, e.g. 4.7E-4
+#' 
+#' @return a character vector with numeric values reformatted for display
 #' 
 #' @examples
 #' my_numbers <- c(100,15.359,32687,.000468)
 #' 
 #' sci_label(my_numbers)
 #' 
-#' sci_label(my_numbers,sig_figs=3)
-sci_label <- function(in_num, sig_figs = 2, type = "plot") {
+#' sci_label(my_numbers, sig_figs = 3)
+sci_label <- function(in_num, sig_figs = 2, type = "ggplot2") {
   labels <- character()
   for(i in 1:length(in_num)) {
     x <- in_num[i]
+    if(x < 0) {
+      neg <- "-"
+      x <- abs(x)
+    } else {
+      neg <- ""
+    }
+    # Format the string to adjust for number of sig_figs
     if(x == 0) {
+      # If the value is 0, build 0.(0)N based on the number of sig figs requested.
       first <- paste0("0", ".", paste0(rep("0", sig_figs - 1), collapse="") )
     } else if(log10(x) %% 1 == 0) {
       first <- substr(x, 1, 1)
@@ -23,20 +36,30 @@ sci_label <- function(in_num, sig_figs = 2, type = "plot") {
       }
     } else {
       first <- round(x / (10 ^ floor(log10(x))), sig_figs - 1)
+      if(nchar(first) < sig_figs + 1) {
+        # +1 because of decimal place
+        first <- paste0(first, paste0(rep("0",sig_figs + 1 - nchar(first)), collapse = ""))
+      }
     }
+    # Add suffixes based on type parameter
     if(x == 0) {
-      if(type == "plot") {
+      if(type == "text") {
+        label <- paste0(first,"E0")
+      } else if(type == "ggplot2") {
         label <- paste0(first, "%*%10^0" )
-      } else if(type == "datatable") {
+      } else if(type == "DT") {
         label <- paste0(first, "\u271510<sup>0</sup>" )
       }
     } else {
-      if(type == "plot") {
+      if(type == "text") {
+        label <- paste0(first,"E",floor(log10(x)))
+      } else if(type == "ggplot2") {
         label <- paste0(first, "%*%10^", floor(log10(x)))
-      } else if(type == "datatable") {
+      } else if(type == "DT") {
         label <- paste0(first, "\u271510<sup>", floor(log10(x)),"</sup>")
       }
     }
+    label <- paste0(neg, label)
     labels <- c(labels, label)
   }
   return(labels)
@@ -69,7 +92,20 @@ theme_no_x <- function(base_size = 12, base_family = "") {
 
 #' Build polygons from plot data for fancy headers built into the plot area
 #' 
-build_header_polygons <- function(data, ngenes, nsamples, nclust, labelheight = 25, labeltype = "angle") {
+#' @param data A data.frame containing joined annotations and expression data
+#' @param grouping The base to use for grouping samples.
+#' @param ymin The minimum y value for the bottom of the headers. In gene plot contexts, this will usually be the number of genes + 1
+#' @param labelheight Percentage of the plot area that the headers should take up. Default = 25. 
+#' @param poly_type Either "angle" or "square". Angle will scale the header bars to be equal width, with a layer of 
+#' angled polygons connecting them to the data. Square will construct headers with rectangular bars that match the width 
+#' of the samples in each group.
+#' 
+#' 
+build_header_polygons <- function(data, 
+                                  grouping,
+                                  ymin, 
+                                  labelheight = 25, 
+                                  poly_type = "angle") {
   # Two label types: 
   # "angle" will draw a polygon with the base lined up with samples, and the top
   # divided evenly for each cluster.
@@ -77,25 +113,30 @@ build_header_polygons <- function(data, ngenes, nsamples, nclust, labelheight = 
   
   library(dplyr)
   
+  group_id <- paste0(grouping, "_id")
+  group_color <- paste0(grouping, "_color")
+  n_groups <- length(unique(data[[group_id]]))
+  n_samples <- nrow(data)
+  
   ## Note on plot dimensions
   # The range of the plot area (not including labels) will be
-  # y-axis: 1:(ngenes + 1)
-  # x-axis: 0:(nsamples)
+  # y-axis: 1:ymin (ngenes + 1)
+  # x-axis: 0:(n_samples)
   
   # Calculate the height of the label in plot dimensions:
-  labheight <- ngenes*(labelheight/100)/(1-labelheight/100)
+  labheight <- (ymin - 1) * (labelheight / 100) / (1 - labelheight / 100)
   
   # Build cell type label polygons
   # polygon points are built in this order: 1 = bottom-right, 2 = bottom-left, 3 = top-left, 4 = top-right
   # For angled labels, the bottom two x positions are calculated based on the number of samples
   # in each cluster. The top positions are evenly spaced based on the number of clusters.
   poly.data <- data %>% 
-    group_by(plot_id) %>%
-    summarise(color = plot_color[1],
+    group_by_(group_id) %>%
+    summarise(color = .[[group_color]][1],
               x1 = max(xpos),
               x2 = min(xpos) - 1) %>%
-    mutate(x3 = (nsamples) * (1:nclust - 1) / nclust,
-           x4 = (nsamples) * (1:nclust) / nclust,
+    mutate(x3 = (n_samples) * (1:n_groups - 1) / n_groups,
+           x4 = (n_samples) * (1:n_groups) / n_groups,
            # ngenes + 1 is the top of the plot body
            y1 = ngenes + 1,
            y2 = ngenes + 1,
@@ -104,7 +145,7 @@ build_header_polygons <- function(data, ngenes, nsamples, nclust, labelheight = 
            y4 = ngenes + 1 + labheight * 0.1)
   
   # For a simpler square label, set the top and bottom x-positions to be the same
-  if(labeltype == "square") {
+  if(poly_type == "square") {
     poly.data <- poly.data %>%
       mutate(x3 = x2,
              x4 = x1)
@@ -112,22 +153,45 @@ build_header_polygons <- function(data, ngenes, nsamples, nclust, labelheight = 
   
   # Restructure the polygons for ggplot2's geom_poly().
   # The data should have a single x and y column in order, with id and color for each polygon
-  poly <- data.frame(id = rep(poly.data$plot_id, each = 4),
-                     color = rep(poly.data$color, each = 4))
+  poly <- data.frame(id = rep(poly.data[[group_id]], each = 4),
+                     color = rep(poly.data[[group_color]], each = 4))
   poly.x <- numeric()
   poly.y <- numeric()
   for(i in 1:nrow(poly.data)) {
-    poly.x <- c(poly.x,poly.data$x1[i],poly.data$x2[i],poly.data$x3[i],poly.data$x4[i])
-    poly.y <- c(poly.y,poly.data$y1[i],poly.data$y2[i],poly.data$y3[i],poly.data$y4[i])
+    poly.x <- c(poly.x,
+                poly.data$x1[i],
+                poly.data$x2[i],
+                poly.data$x3[i],
+                poly.data$x4[i])
+    poly.y <- c(poly.y,
+                poly.data$y1[i],
+                poly.data$y2[i],
+                poly.data$y3[i],
+                poly.data$y4[i])
   }
-  poly <- cbind(poly,poly.x=poly.x,poly.y=poly.y)
+  poly <- cbind(poly,
+                poly.x = poly.x,
+                poly.y = poly.y)
   
   poly
 }
 
 #' Build colorful, rectangular labels for plot headers in plot space
 #' 
-build_header_labels <- function(data, ngenes, nsamples, nclust, labelheight = 25, labeltype = "simple") {
+#' @param data A data.frame containing joined annotations and expression data
+#' @param grouping The base to use for grouping samples.
+#' @param ymin The minimum y value for the bottom of the headers. In gene plot contexts, this will usually be the number of genes + 1
+#' @param labelheight Percentage of the plot area that the headers should take up. Default = 25. 
+#' @param label_type Either "simple", "angle", or "square". Simple is for use with grouped plots. 
+#' Angle will scale the header bars to be equal width, with a layer of 
+#' angled polygons connecting them to the data. Square will construct headers with rectangular bars that match the width 
+#' of the samples in each group.
+#' 
+build_header_labels <- function(data, 
+                                grouping, 
+                                ymin,  
+                                labelheight = 25, 
+                                label_type = "simple") {
   
   # Three label types: 
   # simple, which is for use with cluster-based plots
@@ -140,40 +204,48 @@ build_header_labels <- function(data, ngenes, nsamples, nclust, labelheight = 25
   # x-axis: 0:(nsamples) (for cell-based plots)
   # x-axis: 1:(nclust + 1) (for cluster-based plots)
   
-  labheight <- ngenes*(labelheight/100)/(1-labelheight/100)
+  labheight <- (ymin - 1)*(labelheight/100)/(1-labelheight/100)
+  
+  group_id <- paste0(grouping, "_id")
+  group_label <- paste0(grouping, "_label")
+  group_color <- paste0(grouping, "_color")
+  
+  n_samples <- nrow(data)
+  n_clust <- length(unique(data[[group_id]]))
   
   data <- data %>%
-    group_by(plot_id,plot_label,plot_color) %>%
+    arrange_(group_id) %>%
+    mutate(xpos = 1:n())
+  
+  data <- data %>%
+    group_by_(group_id, group_label, group_color) %>%
     summarise(minx = min(xpos),
               maxx = max(xpos))
   
-  if(labeltype == "simple") {
-    xlab.rect <- data.frame(xmin = 1:nclust - 0.5,
-                            xmax = 1:nclust + 0.5,
-                            ymin = ngenes + 1,
-                            ymax = ngenes + 1 + labheight,
-                            color = data$plot_color,
-                            label = data$plot_label )
-  }
-  
-  if(labeltype == "angle") {
-    xlab.rect <- data.frame(xmin = (nsamples) * (1:nclust - 1) / nclust,
-                            xmax = (nsamples) * (1:nclust) / nclust,
+  if(label_type == "simple") {
+    xlab.rect <- data.frame(xmin = 1:n_clust - 0.5,
+                            xmax = 1:n_clust + 0.5,
+                            ymin = ymin,
+                            ymax = ymin + labheight,
+                            color = data[[group_color]],
+                            label = data[[group_label]] )
+  } else if(label_type == "angle") {
+    xlab.rect <- data.frame(xmin = (n_samples) * (1:n_clust - 1) / n_clust,
+                            xmax = (n_samples) * (1:n_clust) / n_clust,
                             # 10% of the label height is reserved for angled polygons
-                            ymin = ngenes + 1 + labheight*0.1,
-                            ymax = ngenes + 1 + labheight,
-                            color = data$plot_color,
-                            label = data$plot_label )
-  }
-  if(labeltype == "square") {
+                            ymin = ymin + labheight * 0.1,
+                            ymax = ymin + labheight,
+                            color = data[[group_color]],
+                            label = data[[group_label]] )
+  } else if(label_type == "square") {
     xlab.rect <- data %>% 
-      group_by(plot_id) %>%
+      group_by_(group_id) %>%
       summarise(xmin = minx - 1,
                 xmax = maxx,
-                ymin = ngenes + 1 + labheight * 0.1,
-                ymax = ngenes + 1 + labheight,
-                color = plot_color[1],
-                label = plot_label[1])
+                ymin = ymin + labheight * 0.1,
+                ymax = ymin + labheight,
+                color = .[[group_color]][1],
+                label = .[[group_label]][1])
   }
 
   xlab.rect  

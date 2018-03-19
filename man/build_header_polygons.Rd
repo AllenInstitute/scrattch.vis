@@ -4,8 +4,21 @@
 \alias{build_header_polygons}
 \title{Build polygons from plot data for fancy headers built into the plot area}
 \usage{
-build_header_polygons(data, ngenes, nsamples, nclust, labelheight = 25,
-  labeltype = "angle")
+build_header_polygons(data, grouping, ymin, labelheight = 25,
+  poly_type = "angle")
+}
+\arguments{
+\item{data}{A data.frame containing joined annotations and expression data}
+
+\item{grouping}{The base to use for grouping samples.}
+
+\item{ymin}{The minimum y value for the bottom of the headers. In gene plot contexts, this will usually be the number of genes + 1}
+
+\item{labelheight}{Percentage of the plot area that the headers should take up. Default = 25.}
+
+\item{poly_type}{Either "angle" or "square". Angle will scale the header bars to be equal width, with a layer of 
+angled polygons connecting them to the data. Square will construct headers with rectangular bars that match the width 
+of the samples in each group.}
 }
 \description{
 Build polygons from plot data for fancy headers built into the plot area

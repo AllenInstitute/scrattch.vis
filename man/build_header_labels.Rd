@@ -4,8 +4,22 @@
 \alias{build_header_labels}
 \title{Build colorful, rectangular labels for plot headers in plot space}
 \usage{
-build_header_labels(data, ngenes, nsamples, nclust, labelheight = 25,
-  labeltype = "simple")
+build_header_labels(data, grouping, ymin, labelheight = 25,
+  label_type = "simple")
+}
+\arguments{
+\item{data}{A data.frame containing joined annotations and expression data}
+
+\item{grouping}{The base to use for grouping samples.}
+
+\item{ymin}{The minimum y value for the bottom of the headers. In gene plot contexts, this will usually be the number of genes + 1}
+
+\item{labelheight}{Percentage of the plot area that the headers should take up. Default = 25.}
+
+\item{label_type}{Either "simple", "angle", or "square". Simple is for use with grouped plots. 
+Angle will scale the header bars to be equal width, with a layer of 
+angled polygons connecting them to the data. Square will construct headers with rectangular bars that match the width 
+of the samples in each group.}
 }
 \description{
 Build colorful, rectangular labels for plot headers in plot space

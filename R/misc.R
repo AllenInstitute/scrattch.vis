@@ -1,3 +1,48 @@
+#' Check input genes against a vector of gene names
+#' 
+#' @param genes An input character vector of gene symbols
+#' @param gene_reference A reference character vector of gene symbols
+#' @param result Whether to return a vector of matched or unmatched genes, or a list of both. Options are "matched" (default), "unmatched", or "both".
+#' 
+check_genes <- function(genes, 
+                        gene_reference,
+                        result = "matched") {
+  
+  raw_genes <- unique(split_cst(genes))
+  
+  # Convert gene_reference to lowercase and remove "-" and " " for matching
+  match_genes <- tolower(gsub("[- .]+","_",gene_reference))
+  
+  # Remove leading X from Riken genes
+  match_genes[grepl("x[0-9]+.+rik",match_genes)] <- sub("^x","",match_genes[grepl("x[0-9]+.+rik",match_genes)])
+  
+  # for loop will retain the order of the genes.
+  good_genes <- character()
+  bad_genes <- character()
+  
+  for(x in raw_genes) {
+    this_gene <- tolower(gsub("[- .]+","_", x))
+    
+    if(this_gene %in% match_genes) {
+      good_genes <- c(good_genes, gene_reference[match_genes == this_gene][1])
+    } else {
+      bad_genes <- c(bad_genes, x)
+    }
+  }
+  
+  if(result == "matched") {
+    unique(good_genes)
+  } else if (result == "not_matched") {
+    unique(bad_genes)
+  } else if (result == "both") {
+    
+    list(matched = unique(good_genes),
+         not_matched = unique(bad_genes))
+    
+  }
+  
+}
+
 #' Convert a character object to a format compatible with SQL SELECT
 #' 
 #' @param in_chr a character vector

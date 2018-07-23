@@ -1,4 +1,190 @@
+#' Convert a matrix to a data.frame for plotting
+#' 
+#' @param mat a matrix or sparse matrix object from the Matrix package.
+#' @param cols_are Whether columns are "gene_names" (default) or "sample_names".
+#' 
+mat_to_data_df <- function(mat,
+                           cols_are = "gene_names") {
+  library(Matrix)
+  
+  if(grepl("sample", cols_are)) {
+    if(class(mat) == "matrix") {
+      mat <- t(mat)
+    } else {
+      mat <- Matrix::t(mat)
+    }
+  }
+  
+  df <- cbind(sample_name = rownames(mat),
+              data.frame(mat))
+  rownames(df) <- NULL
+  
+  df
+  
+}
 
+#' Melt a data_df to prepare for plot parameters
+#' 
+#' @param data_df a data.frame with sample_name or grouping as well as value columns
+#' @param grouping grouping for the samples. Default = "sample_name", but if this is output from group_stats, provide the same grouping.
+#' @param value_cols The value columns to include. If NULL (default), will automatically choose all non-grouping columns.
+#' 
+melt_data_df <- function(data_df, grouping = "sample_name", value_cols = NULL) {
+  library(reshape2)
+  
+  if(is.null(value_cols)) {
+    value_cols <- names(data_df)[!names(data_df) %in% grouping]
+  }
+  
+  melted <- melt(data_df, id.vars = grouping, measure.vars = value_cols)
+  
+  names(melted)[names(melted) == "variable"] <- "gene_name"
+  
+  return(melted)
+  
+}
+
+#' Compute stats for samples grouped by one or more annotations
+#' 
+#' @param data_df a data.frame with sample_name and expression values
+#' @param value_cols The values to use for computation. If NULL (default), will select all columns in data_df except sample_name.
+#' @param anno a data.frame sample_name and sample annotations
+#' @param grouping one or more column names of anno to use for sample grouping
+#' @param stat Which statistic to compute for grouped samples. \cr
+#' options are: 
+#' \itemize{
+#'   \item "median"
+#'   \item "mean"
+#'   \item "tmean" (25\% trimmed mean)
+#'   \item "prop_gt0" (proportion of samples > 0)
+#'   \item "prop_gt1" (proportion of samples > 1)
+#'   \item "min"
+#'   \item "max"
+#'   }
+group_stats <- function(data_df,
+                        value_cols = NULL,
+                        anno,
+                        grouping,
+                        stat = c("median","mean","tmean","prop_gt0","prop_gt1","min","max")) {
+  library(dplyr)
+  library(purrr)
+  
+  if(is.character(grouping)) {
+    grouping_quo <- syms(grouping)
+  } else {
+    grouping_quo <- quo(grouping)
+  }
+  
+  if(is.null(value_cols)) {
+    value_cols <- names(data_df)[-1]
+  }
+  
+  data_df <- data_df %>%
+    select(one_of(c("sample_name", value_cols)))
+  
+  anno_data_df <- anno %>%
+    select(one_of(c("sample_name", grouping))) %>%
+    left_join(data_df)
+  
+  group_stats <- map_dfc(value_cols,
+                          function(v) {
+                            val_col <- sym(v)
+                            val_df <- anno_data_df %>%
+                              group_by(!!!grouping_quo) %>%
+                              summarise(val_stat = text_stat(!!val_col, stat))
+                            names(val_df)[names(val_df) == "val_stat"] <- v
+                            val_df[, v]
+                          })
+  
+  result <- anno %>%
+    select(!!!grouping_quo) %>%
+    unique() %>%
+    cbind(group_stats)
+  
+  rownames(result) <- NULL
+  
+  return(result)
+}
+
+#' Convert expression data to heatmap colors for plotting
+#' 
+#' @param df data.frame with sample_name and expression values
+#' @param value_cols The value columns to convert. Default is (null), which will use all columns except sample_name
+#' @param colorset A set of colors to use for the heatmap palette. NULL will use the default for values_to_colors()
+#' @param scale color value scaling, passed to values_to_colors(). Default = "linear".
+#' @param per_col Logical, whether or not to normalize the colorscale per-value, or across all values
+#' @param min_val Minimum value for color scale. If NULL, will be automatically computed from values. Default = 0.
+#' @param max_val Maximum value for color scale. If NULL, will be automatically computed from values. Default = 0.
+#' 
+data_df_to_colors <- function(df,
+                              value_cols = NULL,
+                              colorset = NULL,
+                              scale = "linear",
+                              per_col = FALSE,
+                              min_val = 0,
+                              max_val = NULL) {
+  
+  library(purrr)
+  
+  if(is.null(value_cols)) {
+    value_cols <- names(df)[-1]
+  }
+  
+  if(scale == "log2") {
+    df[[value_cols]] <- log2(df[[value_cols]])
+  } else if(scale == "log10") {
+    df[[value_cols]] <- log10(df[[value_cols]])
+  }
+  
+  df[,value_cols] <- map(value_cols, 
+                          function(x) {
+                            vals <- unlist(df[[x]])
+                            
+                            if(is.null(colorset)) {
+                              values_to_colors(vals,
+                                               min_val = min_val,
+                                               max_val = max_val)
+                            } else {
+                              values_to_colors(vals,
+                                               min_val = min_val,
+                                               max_val = max_val)
+                            }
+                            
+                            
+                          })
+  
+  return(df)
+  
+}
+
+#' Build plot positions for a character vector
+#' 
+#' @param vec a character vector
+#' @param sort how to resort the vector, if necessary. Default is "none", which keeps input order. 
+#' Options: "none","rev","random","alpha".
+#' @param axis_name which axis to use. Default is "y"
+#' 
+#' @return a data.frame with columns for gene_name and axis values
+build_vec_pos <- function(vec,
+                          vec_name = "gene_name",
+                          sort = "none",
+                          axis_name = "y") {
+  
+  if(sort == "rev") {
+    vec <- rev(vec)
+  } else if (sort == "random") {
+    vec <- sample(vec, size = length(vec), replace = FALSE)
+  } else if (sort == "alpha") {
+    vec <- vec[order(vec)]
+  }
+  
+  pos_df <- data.frame(vec_name = vec,
+                       pos = 1:length(vec))
+  
+  names(pos_df) <- c(vec_name, axis_name)
+
+  return(pos_df)
+}
 
 #' Format data provided in list format for scrattch plots
 #' 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{chr_to_num}
 \alias{chr_to_num}
-\title{Evaluate a character string to a numeric vector}
+\title{Evaluate a character string specifying integer values to a numeric vector}
 \usage{
 chr_to_num(in_chr)
 }
@@ -13,7 +13,7 @@ chr_to_num(in_chr)
 a numeric object
 }
 \description{
-Evaluate a character string to a numeric vector
+Evaluate a character string specifying integer values to a numeric vector
 }
 \examples{
 test <- "1:5"

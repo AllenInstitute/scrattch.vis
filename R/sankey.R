@@ -1,9 +1,10 @@
-# library(ggplot2)
-# library(dplyr)
-# library(feather)
-
 # Error function
 # used to generate sigmoidal curve
+
+#' Simple error function
+#' 
+#' @param x input for error function
+#' 
 erf <- function(x) {
   2 * pnorm(x * sqrt(2)) - 1
 }
@@ -12,6 +13,18 @@ erf <- function(x) {
 # the given number of steps.
 # additional arguments define what curve to use
 # and how far in the x-direction to use it
+
+#' Build a sigmoidal line using sigfun
+#' 
+#' @param x starting x position. Default = 0
+#' @param xend ending x position. Default = 1
+#' @param y starting y position. Default = 0
+#' @param yend ending y position. Default = 1
+#' @param steps Number of points in the line. Default = 50
+#' @param sigfun The sigmoidal function to use. Currently only supports "erf"
+#' @param sigx Will generate values for -sigx to +sigx using sigfun, then rescale to x and y params.
+#' 
+#' @return a data.frame with x and y coordinates for the sigmoidal line
 sigline <- function(x = 0, xend = 1, 
                     y = 0, yend = 1, 
                     steps = 50,
@@ -35,9 +48,13 @@ sigline <- function(x = 0, xend = 1,
   
 }
 
-# expands a sigline into a ribbon by adding a height
-# can expand using original line as the top, bottom, or mid-point 
-# of the ribbon
+#' Expand a sigmoidal line to a ribbon by adding ymin
+#' 
+#' @param signline a data.frame with x and y coordinates for a sigmoidal line
+#' @param height The desired height of the ribbon
+#' @param from Whether the line should be treated as the "top", "bot"(tom), or "mid"(dle) of the ribbon
+#' 
+#' @return a data.frame with coordinates x, y, and ymin for the ribbon.
 sigribbon <- function(sigline, height, from = "top") {
   library(dplyr)
   
@@ -51,16 +68,21 @@ sigribbon <- function(sigline, height, from = "top") {
   } else if(from == "mid") {
     ribbon <- sigline %>%
       mutate(y = y + height/2,
-             ymin = y - height)
+             ymin = y - height/2)
   }
   
   ribbon
   
 }
 
+#' Make group nodes for categorical data
+#' 
+#' @param anno sample annotations
+#' @param group_by which columns of anno to use for sample grouping
 make_group_nodes <- function(anno,
-                        group_by,
-                        xpos = NULL) {
+                             group_by,
+                             value_col,
+                             xpos = NULL) {
   
   library(dplyr)
   

@@ -200,18 +200,48 @@ values_to_colors <- function(x,
   colors
 }
 
+#' Compute Trimmed Mean of a numeric vector
+#' 
+#' This is a simple wrapper around mean(x, trim)
+#' 
+#' @param x A numeric vector
+#' @param trim the amount to trim
+#' 
 tmean <- function(x, trim = 0.25) {
   mean(x, trim = trim, na.rm = TRUE)
 }
 
+#' Compute the proportion/fraction of values > 0 in a numeric vector
+#' 
+#' @param x A numeric vector
+#' 
 prop_gt0 <- function(x) {
   sum(x > 0)/length(x)
 }
 
+#' Compute the proportion/fraction of values > 1 in a numeric vector
+#' 
+#' @param x A numeric vector
+#' 
 prop_gt1 <- function(x) {
   sum(x > 1)/length(x)
 }
 
+#' Compute statistics for a numeric vector, selected with a simple text string
+#' 
+#' This is useful for computation based on parameters passed by other functions.
+#' 
+#' @param x A numeric vector
+#' @param stat The statistic to compute. Options are:
+#' \itemize{
+#'   \item "median"
+#'   \item "mean"
+#'   \item "tmean" (25\% trimmed mean)
+#'   \item "prop_gt0" (proportion of samples > 0)
+#'   \item "prop_gt1" (proportion of samples > 1)
+#'   \item "min"
+#'   \item "max"
+#'   }
 text_stat <- function(x, stat) {
   if(stat == "mean") {
     mean(x)

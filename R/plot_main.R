@@ -5,10 +5,10 @@
 #' Extension to user-supplied datasets will come soon.
 #' See Examples for sensible PDF output options.
 #' 
-#' @param genes A character vector containing gene symbols to be plotted
-#' @param group_by A character vector specifying the desc base that should be used to group cells
-#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
-#' @param data_source A character object defining where the data is stored. Currently only works with "internal"
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
 #' @param sort Logical object, determines if cells will be sorted within their clusters (this means that each column will no longer represent a single cell)
 #' @param logscale Logical object, determines if data is log scaled before plotting.
 #' @param fontsize numeric object, the font size (in pts) used to make the plot.
@@ -17,115 +17,112 @@
 #' @return a ggplot2 plot object
 #' 
 #' @examples
-#' barcell_plot()
 #' 
 #' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
 #' my_clusters <- c(1,5,9,10,24,37)
 #' my_barcell_plot <- barcell_plot(my_genes,my_clusters,sort=T)
 #' 
 #' ggsave("plot_output.pdf",my_barcell_plot,height=0.2*length(my_genes)+2,width=4)
-sample_bar_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
-                         group_by = "final", clusters = 1:10,
-                         data_source = "internal",
-                         sort = F, logscale = F,
-                         fontsize = 7, labelheight = 25, labeltype = "angle",
-                         max_width = 10,
-                         bgcolor = "#ADCFE0") {
+sample_bar_plot <- function(data,
+                            anno,
+                            genes,
+                            grouping,
+                            group_order = NULL,
+                            log_scale = F,
+                            font_size = 7, 
+                            label_height = 25, 
+                            label_type = "angle",
+                            max_width = 10,
+                            bg_color = "#ADCFE0") {
   
   library(dplyr)
   library(ggplot2)
+  library(purrr)
   
   genes <- rev(genes)
   
-  if(data_source == "internal") {
+  group_id <- paste0(grouping, "_id")
+  group_label <- paste0(grouping, "_label")
+  group_color <- paste0(grouping, "_color")
+  
+  gene_data <- data %>%
+    select(one_of(c("sample_name",genes)))
+  
+  # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
+  plot_data <- left_join(anno, gene_data, by = "sample_name")
+  
+  if(log_scale) {
+    plot_data[,genes] <- log10(plot_data[,genes] + 1)
+  }
+  
+  # Add an x position to each sample.
+  if(!is.null(group_order)) {
+    group_order_df <- data.frame(group = group_order) %>%
+      mutate(.plot_order = 1:n())
+    names(group_order_df)[1] <- group_id
     
-    # get_internal_data() from data_formatting.R
-    data <- get_internal_data(genes,group_by,clusters)
-    
-  } else if (is.list(data_source)) {
-    
-    # get_list_data() from data_formatting.R
-    data <- get_list_data(data_source,genes,group_by,clusters)
-    
-  } else if (grepl("\\.db$",data_source)) {
-    
-    # get_db_data() from data_formatting.R
-    data <- get_db_data(data_source,genes,group_by,clusters)
-    
-  } else if (file.exists(paste0(data_source,"/anno.feather"))) {
-    
-    # get_feather_data() from data_formatting.R
-    data <- get_feather_data(data_source,genes,group_by,clusters)
-    
+    plot_data <- plot_data %>%
+      left_join(group_order_df, by = group_id) %>%
+      arrange(.plot_order) %>%
+      mutate(xpos = 1:n()) %>%
+      select(-.plot_order)
   } else {
-    stop("Cannot identify data_source.")
+    # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
+    plot_data <- plot_data %>%
+      arrange_(group_id) %>%
+      mutate(xpos = 1:n())
   }
   
-  genes <- sub("-",".",genes)
-  genes[grepl("^[0-9]",genes)] <- paste0("X",genes[grepl("^[0-9]",genes)])
-  names(data)[grepl("^[0-9]",genes)] <- paste0("X",names(data)[grepl("^[0-9]",genes)])
-  
-  genes <- genes[genes %in% names(data)]
-  
-  # Calculate the number of genes and clusters for use as plot dimensions
-  ngenes <- length(genes)
-  nclust <- length(unique(data$plot_id))
-  nsamples <- nrow(data)
-  
-  # Get maximum values for each gene before rescaling to plot space.
-  max_vals <- data %>% 
-    select(one_of(genes)) %>%
-    summarise_all(max) %>% 
-    unlist()
-  
-  # Scale the data based on the logscale option
-  # and scale the y-axis values from i to i*0.9 to separate each gene to a row
-  for(i in 1:ngenes) {
-    gene <- genes[i]
-    
-    if(logscale) {
-      data[gene] <- log10(data[gene] + 1)
-    } 
-    
-    data[gene] <- data[gene] / max(data[gene]) * 0.9 + i
-    
-  }
+  # Calculate the number of genes and samples for use as plot dimensions
+  n_genes <- length(genes)
+  n_clust <- length(unique(plot_data[[group_id]]))
+  n_samples <- nrow(plot_data)
 
+  # Get maximum values for each gene before rescaling to plot space.
+  max_vals <- map_dbl(genes, function(x) { max(plot_data[[x]]) })
   
   # build_header_polygons from plot_components.R
-  header_polygons <- build_header_polygons(data = data, ngenes = ngenes, nsamples = nsamples, nclust = nclust, labelheight = labelheight, labeltype = labeltype)
+  header_polygons <- build_header_polygons(data = plot_data, 
+                                           grouping = grouping,
+                                           ymin = n_genes + 1, 
+                                           label_height = label_height, 
+                                           poly_type = label_type)
   
-  # Build the cell type label rectangles
-  header_labels <- build_header_labels(data = data, ngenes = ngenes, nsamples = nsamples, nclust = nclust, labelheight = labelheight, labeltype = labeltype)
+  # Build the cell type label rectangles from plot_components.R
+  header_labels <-build_header_labels(data = plot_data, 
+                                      grouping = grouping,
+                                      ymin = n_genes + 1, 
+                                      label_height = label_height, 
+                                      label_type = label_type)
   
   # Calculate Plot Scale bars
   scale_bars <- data.frame(gene = genes,
-                           ymin = 1:ngenes,
-                           ymid = 1:ngenes + 0.45,
-                           ymax = 1:ngenes + 0.9,
-                           xmin = -nrow(data) * 0.01,
+                           ymin = 1:n_genes,
+                           ymid = 1:n_genes + 0.45,
+                           ymax = 1:n_genes + 0.9,
+                           xmin = -nrow(plot_data) * 0.01,
                            xmax = 0)
   
   # Calculate segments for cluster sepration lines
-  segment_lines <- data %>%
-    group_by(plot_id) %>%
+  segment_lines <- plot_data %>%
+    group_by_(group_id) %>%
     summarise(x = max(xpos) )
 
   # Build the maximum value labels for the right edge
-  max_labels <- data.frame(x = nsamples * 1.01,
-                           y = 1:ngenes + 0.5,
-                           label = sci_label(max_vals) )
-  max_header <- data.frame(x = nsamples * 1.01,
-                           y = ngenes + 1,
+  max_labels <- data.frame(x = n_samples * 1.01,
+                           y = 1:n_genes + 0.5,
+                           label = sci_label(max_vals))
+  max_header <- data.frame(x = n_samples * 1.01,
+                           y = n_genes + 1,
                            label = "Max value")
-  max_width <- nsamples*(max_width/100)/(1-max_width/100)
+  max_width <- n_samples*(max_width/100)/(1-max_width/100)
 
   # The background of the plot is a rectangular object.
   background_data <- data.frame(xmin = 0, 
-                                xmax = nsamples, 
+                                xmax = n_samples, 
                                 ymin = 1, 
-                                ymax = ngenes + 1, 
-                                fill = bgcolor)
+                                ymax = n_genes + 1, 
+                                fill = bg_color)
   
   # pt2mm function is used for text labels, from plot_components.R
   
@@ -133,63 +130,119 @@ sample_bar_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
   p <- ggplot() +
     scale_fill_identity() +
     scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0), breaks = 1:ngenes + 0.45, labels = genes) +
-    theme_classic(base_size = fontsize) +
+    scale_y_continuous(expand = c(0, 0), 
+                       breaks = 1:n_genes + 0.45, 
+                       labels = genes) +
+    theme_classic(base_size = font_size) +
     theme(axis.text = element_text(size=rel(1)),
           axis.ticks = element_blank(),
           axis.line = element_blank(),
           axis.title = element_blank(),
           axis.text.x = element_blank()) +
     geom_rect(data = background_data,
-              aes(xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,fill=fill)) +
+              aes(xmin = xmin,
+                  xmax = xmax,
+                  ymin = ymin,
+                  ymax = ymax,
+                  fill = fill)) +
     geom_segment(data = segment_lines,
-                 aes(x = x, xend = x, y = 1, yend = ngenes + 1),
-                 size = 0.2, color = "gray60", linetype = "dashed")
+                 aes(x = x, 
+                     xend = x, 
+                     y = 1, 
+                     yend = n_genes + 1),
+                 size = 0.2, 
+                 color = "gray60", 
+                 linetype = "dashed")
   
   # plot the bars for each gene
   for(i in 1:length(genes)) {
     # if sort is true, arrange the values within each row from high to low.
-    if(sort) {
-      data <- data %>% arrange_("plot_id",paste0("-",genes[i])) %>% mutate(xpos=1:n())
-    }
+    # if(sort) {
+    #   plot_data <- plot_data %>% 
+    #     arrange_(group_id, paste0("-",genes[i])) %>% 
+    #     mutate(xpos = 1:n())
+    # }
+    # 
+    plot_data[[genes[i]]] <- i + plot_data[[genes[i]]]/max(plot_data[[genes[i]]]) * 0.9
     
     # plot the rectangles for the barplots
-    p <- p + geom_rect(data=data,aes_string(xmin="xpos-1",xmax="xpos",ymin=i,ymax=genes[i],fill="plot_color"))
+    p <- p + 
+      geom_rect(data = plot_data,
+                aes_string(xmin = "xpos - 1",
+                           xmax = "xpos",
+                           ymin = i,
+                           ymax = genes[i],
+                           fill = group_color))
     
   }
   
   p <- p + 
     # Cluster labels at the top of the plot
     geom_rect(data = header_labels,
-              aes(xmin = xmin , xmax = xmax, ymin = ymin, ymax = ymax, fill = color) ) +
+              aes(xmin = xmin , 
+                  xmax = xmax, 
+                  ymin = ymin, 
+                  ymax = ymax, 
+                  fill = color) ) +
     geom_text(data = header_labels, 
-              aes(x = (xmin + xmax) / 2, y = ymin + 0.05, label = label),
-              angle = 90, vjust = 0.35, hjust = 0, size = pt2mm(fontsize)) +
+              aes(x = (xmin + xmax) / 2, 
+                  y = ymin + 0.05, 
+                  label = label),
+              angle = 90, 
+              vjust = 0.35, 
+              hjust = 0, 
+              size = pt2mm(font_size)) +
     geom_polygon(data = header_polygons,
-                 aes(x = poly.x, y = poly.y, fill = color, group = id) ) +
+                 aes(x = poly.x, 
+                     y = poly.y, 
+                     fill = color, 
+                     group = id) ) +
     # Scale bar elements
     geom_hline(data = scale_bars,
-               aes(yintercept = ymin), size = 0.2) +
+               aes(yintercept = ymin), 
+               size = 0.2) +
     geom_segment(data = scale_bars, 
-                 aes(x = xmin, xend = xmax,y = ymid, yend = ymid),
+                 aes(x = xmin,
+                     xend = xmax,
+                     y = ymid, 
+                     yend = ymid),
                  size = 0.2) +
     geom_segment(data = scale_bars,
-                 aes(x = xmin, xend = xmax, y = ymax, yend = ymax),
+                 aes(x = xmin, 
+                     xend = xmax, 
+                     y = ymax, 
+                     yend = ymax),
                  size = 0.2) +
     geom_segment(data = scale_bars,
-                 aes(x = xmax, xend = xmax, y = ymin, yend = ymax),
+                 aes(x = xmax, 
+                     xend = xmax, 
+                     y = ymin, 
+                     yend = ymax),
                  size = 0.2) +
     # Maximum value labels at the right edge of the plot
-    geom_rect(aes(xmin = nsamples + 1, xmax = nsamples + max_width, ymin = 1, ymax = max(header_labels$ymax)), 
+    geom_rect(aes(xmin = n_samples + 1, 
+                  xmax = n_samples + max_width, 
+                  ymin = 1, 
+                  ymax = max(header_labels$ymax)), 
               fill = "#FFFFFF") +
     geom_text(data = max_header,
-              aes(x = x, y = y, label = label),
-              angle = 90, hjust = 0, vjust = 0.5, size = pt2mm(fontsize) ) +
+              aes(x = x, 
+                  y = y, 
+                  label = label),
+              angle = 90, 
+              hjust = 0, 
+              vjust = 0.5, 
+              size = pt2mm(font_size) ) +
     geom_text(data = max_labels,
-              aes(x = x, y = y, label = label),
-              hjust = 0, vjust = 0.5, size = pt2mm(fontsize) , parse = TRUE)
+              aes(x = x, 
+                  y = y, 
+                  label = label),
+              hjust = 0, 
+              vjust = 0.5, 
+              size = pt2mm(font_size) , 
+              parse = TRUE)
   
-  p
+  return(p)
   
 }
 
@@ -226,93 +279,89 @@ sample_bar_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
 #' cluster_fix <- chr_to_num(cluster_text)
 #' 
 #' my_heatcell_plot_2 <- heatcell_plot(gene_fix, clust = cluster_fix, font=12)
-sample_heatmap_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
-                          clusters = 1:10, group_by = "final",
-                          data_source = "internal",
-                          logscale = T, normalize_rows = F,
-                          fontsize = 7, labelheight = 25,
-                          max_width = 10,
-                          labeltype = "angle") {
+sample_heatmap_plot <- function(data,
+                                anno,
+                                genes,
+                                grouping,
+                                group_order = NULL,
+                                log_scale = T, 
+                                normalize_rows = F,
+                                font_size = 7, 
+                                label_height = 25,
+                                max_width = 10,
+                                label_type = "angle") {
   
   library(dplyr)
   library(ggplot2)
   
   genes <- rev(genes)
   
-  if(data_source == "internal") {
-    
-    # get_internal_data() from data_formatting.R
-    data <- get_internal_data(genes,group_by,clusters)
-    
-  } else if (is.list(data_source)) {
-    
-    # get_list_data() from data_formatting.R
-    data <- get_list_data(data_source,genes,group_by,clusters)
-    
-  } else if (grepl("\\.db$",data_source)) {
-    
-    # get_db_data() from data_formatting.R
-    data <- get_db_data(data_source,genes,group_by,clusters)
-    
-  } else if (file.exists(paste0(data_source,"/anno.feather"))) {
-    
-    # get_feather_data() from data_formatting.R
-    data <- get_feather_data(data_source,genes,group_by,clusters)
-    
-  } else {
-    stop("Cannot identify data_source.")
+  group_id <- paste0(grouping, "_id")
+  group_label <- paste0(grouping, "_label")
+  group_color <- paste0(grouping, "_color")
+  
+  gene_data <- data[,c("sample_name",genes)]
+  
+  if(log_scale) {
+    gene_data[,genes] <- log10(gene_data[,genes] + 1)
   }
-  
-  genes <- sub("-",".",genes)
-  genes[grepl("^[0-9]",genes)] <- paste0("X",genes[grepl("^[0-9]",genes)])
-  names(data)[grepl("^[0-9]",genes)] <- paste0("X",names(data)[grepl("^[0-9]",genes)])
-  
-  genes <- genes[genes %in% names(data)]
-  
-  # Calculate the number of genes and clusters for use as plot dimensions
-  ngenes <- length(genes)
-  nclust <- length(unique(data$plot_id))
-  nsamples <- nrow(data)
   
   # Get maximum values for each gene before rescaling to plot space.
-  max_vals <- data %>% 
-    select(one_of(genes)) %>% 
-    summarise_all(max) %>% 
-    unlist()
-  # Calculate the overall maximum value of gene expression
-  data_max <- max(max_vals)
-  
-  # Scale the data and the max based on the logscale option
-  if(logscale) {
-    data[genes] <- log10(data[genes] + 1)
-    data_max <- log10(data_max + 1)
-  }
+  max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
   
   # Convert the data values to heatmap colors
-  # values_to_colors() is from plot_components.R
-  for(gene in genes) {
-    if(normalize_rows == T) {
-      data[gene] <- values_to_colors(x = data[gene])
-    } else {
-      data[gene] <- values_to_colors(x = data[gene], maxval = data_max)
-    }
+  gene_data <- data_df_to_colors(gene_data,
+                                 value_cols = genes,
+                                 per_col = normalize_rows)
+  
+  # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
+  plot_data <- left_join(anno, gene_data, by = "sample_name")
+  
+  # Add an x position to each sample.
+  if(!is.null(group_order)) {
+    group_order_df <- data.frame(group = group_order) %>%
+      mutate(.plot_order = 1:n())
+    names(group_order_df)[1] <- group_id
+    
+    plot_data <- plot_data %>%
+      left_join(group_order_df, by = group_id) %>%
+      arrange(.plot_order) %>%
+      mutate(xpos = 1:n()) %>%
+      select(-.plot_order)
+  } else {
+    # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
+    plot_data <- plot_data %>%
+      arrange_(group_id) %>%
+      mutate(xpos = 1:n())
   }
   
-  # build_header_polygons from plot_components.R
-  header_polygons <- build_header_polygons(data = data, ngenes = ngenes, nsamples = nsamples, nclust = nclust, labelheight = labelheight, labeltype = labeltype)
+  # Calculate the number of genes and samples for use as plot dimensions
+  n_genes <- length(genes)
+  n_clust <- length(unique(plot_data[[group_id]]))
+  n_samples <- nrow(plot_data)
   
-  # Build the cell type label rectangles
-  # build_header_labels from plot_components.R
-  header_labels <- build_header_labels(data = data, ngenes = ngenes, nsamples = nsamples, nclust = nclust, labelheight = labelheight, labeltype = labeltype)
-
+  # build_header_polygons from plot_components.R
+  header_polygons <- build_header_polygons(data = plot_data, 
+                                           grouping = grouping,
+                                           ymin = n_genes + 1, 
+                                           label_height = label_height, 
+                                           poly_type = label_type)
+  
+  # Build the cell type label rectangles from plot_components.R
+  header_labels <-build_header_labels(data = plot_data, 
+                                      grouping = grouping,
+                                      ymin = n_genes + 1, 
+                                      label_height = label_height, 
+                                      label_type = label_type)
+  
   # Build the maximum value labels for the right edge
-  max_labels <- data.frame(x = nsamples * 1.01,
-                           y = 1:ngenes + 0.5,
+  max_labels <- data.frame(x = n_samples * 1.01,
+                           y = 1:n_genes + 0.5,
                            label = sci_label(max_vals) )
-  max_header <- data.frame(x = nsamples * 1.01,
-                           y = ngenes + 1,
+  max_header <- data.frame(x = n_samples * 1.01,
+                           y = n_genes + 1,
                            label = "Max value")
-  max_width <- nsamples*(max_width/100)/(1-max_width/100)
+  max_width <- n_samples*(max_width/100)/(1-max_width/100)
   
   # Plot setup
   p <- ggplot(data) +
@@ -324,22 +373,26 @@ sample_heatmap_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
           axis.title = element_blank(),
           axis.text.x = element_blank()) +
     scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0), breaks = 1:ngenes + 0.45, labels = genes)
+    scale_y_continuous(expand = c(0, 0), breaks = 1:n_genes + 0.45, labels = genes)
 
   # plot the rectangles for each gene
-  for(i in 1:length(genes)) {
+  for(i in seq_along(genes)) {
     
     # Explicit specification of rectangle components
     # prevents overplotting and makes the function faster.
-    plot_data <- data.frame(xmin = data$xpos - 1,
-                            xmax = data$xpos,
+    rect_data <- data.frame(xmin = plot_data$xpos - 1,
+                            xmax = plot_data$xpos,
                             ymin = i,
                             ymax = i + 1,
-                            fill = data[[genes[i]]])
+                            fill = plot_data[[genes[i]]])
     
     # plot the rectangles for the heatmap
-    p <- p + geom_rect(data = plot_data,
-                       aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax + 1, fill = fill))
+    p <- p + geom_rect(data = rect_data,
+                       aes(xmin = xmin, 
+                           xmax = xmax, 
+                           ymin = ymin, 
+                           ymax = ymax + 1, 
+                           fill = fill))
     
   }
   
@@ -348,21 +401,36 @@ sample_heatmap_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
   p <- p + 
     # Cluster labels at the top of the plot
     geom_rect(data = header_labels,
-              aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = color)) +
+              aes(xmin = xmin, xmax = xmax, 
+                  ymin = ymin, ymax = ymax, 
+                  fill = color)) +
     geom_text(data = header_labels,
-              aes(x = (xmin + xmax) / 2, y = ymin + 0.05, label = label),
-              angle = 90, vjust = 0.35, hjust = 0, size = pt2mm(fontsize)) +
+              aes(x = (xmin + xmax) / 2, 
+                  y = ymin + 0.05, 
+                  label = label),
+              angle = 90, 
+              vjust = 0.35, hjust = 0, 
+              size = pt2mm(fontsize)) +
     geom_polygon(data = header_polygons,
-                 aes(x = poly.x, y = poly.y, fill = color, group = id)) +
+                 aes(x = poly.x, 
+                     y = poly.y, 
+                     fill = color, 
+                     group = id)) +
     # Maximum value labels at the right edge of the plot
-    geom_rect(aes(xmin = nsamples + 1, xmax = nsamples + max_width, ymin = 1, ymax = max(header_labels$ymax)), 
+    geom_rect(aes(xmin = n_samples + 1, xmax = n_samples + max_width, 
+                  ymin = 1, ymax = max(header_labels$ymax)), 
               fill = "#FFFFFF") +
     geom_text(data = max_header,
-              aes(x = x, y = y, label = label),
-              angle = 90, hjust = 0, vjust = 0.5, size = pt2mm(fontsize)) +
+              aes(x = x, y = y, 
+                  label = label),
+              angle = 90, 
+              hjust = 0, vjust = 0.5, 
+              size = pt2mm(fontsize)) +
     geom_text(data = max_labels,
-              aes(x = x, y = y, label = label),
-              hjust = 0, vjust = 0.5, size = pt2mm(fontsize), parse = TRUE)
+              aes(x = x, y = y, 
+                  label = label),
+              hjust = 0, vjust = 0.5, 
+              size = pt2mm(fontsize), parse = TRUE)
   
   p
   
@@ -435,9 +503,9 @@ group_violin_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
   genes[grepl("^[0-9]",genes)] <- paste0("X",genes[grepl("^[0-9]",genes)])
   names(data)[grepl("^[0-9]",genes)] <- paste0("X",names(data)[grepl("^[0-9]",genes)])
   
-  ngenes <- length(genes)
-  nclust <- length(unique(data$plot_id))
-  nsamples <- nrow(data)
+  n_genes <- length(genes)
+  n_groups <- length(unique(data$plot_id))
+  n_samples <- nrow(data)
   
   # Compute maximum values before scaling to plot space
   max_vals <- data %>% 
@@ -460,16 +528,16 @@ group_violin_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
     }
   }
   
-  header_labels <- build_header_labels(data = data, ngenes = ngenes, nsamples = 1, nclust = nclust, labelheight = labelheight, labeltype = "simple")
+  header_labels <- build_header_labels(data = data, n_genes = n_genes, n_samples = 1, n_groups = n_groups, labelheight = labelheight, labeltype = "simple")
   
   # Build the maximum value labels for the right edge
-  max_labels <- data.frame(x = (nclust + 0.5) * 1.01,
-                           y = 1:ngenes + 0.5,
+  max_labels <- data.frame(x = (n_groups + 0.5) * 1.01,
+                           y = 1:n_genes + 0.5,
                            label = sci_label(max_vals) )
-  max_header <- data.frame(x = (nclust + 0.5) * 1.01,
-                           y = ngenes + 1,
+  max_header <- data.frame(x = (n_groups + 0.5) * 1.01,
+                           y = n_genes + 1,
                            label = "Max value")
-  max_width <- nclust*(max_width/100)/(1-max_width/100)
+  max_width <- n_groups*(max_width/100)/(1-max_width/100)
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
@@ -478,7 +546,7 @@ group_violin_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
     summarise(cn=n()) %>%
     as.data.frame(stringsAsFactors=F) %>%
     arrange(plot_id) %>%
-    mutate(labely = ngenes + label_y_size*0.05,
+    mutate(labely = n_genes + label_y_size*0.05,
            cny = max(header_labels$ymax) - 0.1*label_y_size,
            xpos = plot_id)
   
@@ -492,7 +560,7 @@ group_violin_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "none") +
-    geom_hline(aes(yintercept = 1:(ngenes)), size = 0.2)
+    geom_hline(aes(yintercept = 1:(n_genes)), size = 0.2)
     
   # plot the violins for each gene
   for(i in 1:length(genes)) {
@@ -513,7 +581,7 @@ group_violin_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
               aes(x = (xmin + xmax) / 2, y = ymin + 0.05, label = label),
               angle = 90, vjust = 0.35, hjust = 0, size = pt2mm(fontsize)) +
     # Maximum value labels on right side of plot
-    geom_rect(aes(xmin = nclust + 0.5, xmax = nclust + 0.5 + max_width, ymin = 1, ymax = max(header_labels$ymax)),
+    geom_rect(aes(xmin = n_groups + 0.5, xmax = n_groups + 0.5 + max_width, ymin = 1, ymax = max(header_labels$ymax)),
               fill = "white") +
     geom_text(data = max_header,
               aes(x = x, y = y, label = label),
@@ -608,9 +676,9 @@ group_box_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
   
   genes <- genes[genes %in% names(data)]
   
-  ngenes <- length(genes)
-  nclust <- length(unique(data$plot_id))
-  nsamples <- nrow(data)
+  n_genes <- length(genes)
+  n_groups <- length(unique(data$plot_id))
+  n_samples <- nrow(data)
   
   # Compute maximum values before scaling to plot space
   max_vals <- data %>% 
@@ -629,16 +697,16 @@ group_box_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
     }
   }
   
-  header_labels <- build_header_labels(data = data, ngenes = ngenes, nsamples = 1, nclust = nclust, labelheight = labelheight, labeltype = "simple")
+  header_labels <- build_header_labels(data = data, n_genes = n_genes, n_samples = 1, n_groups = n_groups, labelheight = labelheight, labeltype = "simple")
   
   # Build the maximum value labels for the right edge
-  max_labels <- data.frame(x = (nclust + 0.5) * 1.01,
-                           y = 1:ngenes + 0.5,
+  max_labels <- data.frame(x = (n_groups + 0.5) * 1.01,
+                           y = 1:n_genes + 0.5,
                            label = sci_label(max_vals) )
-  max_header <- data.frame(x = (nclust + 0.5) * 1.01,
-                           y = ngenes + 1,
+  max_header <- data.frame(x = (n_groups + 0.5) * 1.01,
+                           y = n_genes + 1,
                            label = "Max value")
-  max_width <- nclust*(max_width/100)/(1-max_width/100)
+  max_width <- n_groups*(max_width/100)/(1-max_width/100)
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
@@ -647,7 +715,7 @@ group_box_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
     summarise(cn=n()) %>%
     as.data.frame(stringsAsFactors=F) %>%
     arrange(plot_id) %>%
-    mutate(labely = ngenes + label_y_size*0.05,
+    mutate(labely = n_genes + label_y_size*0.05,
            cny = max(header_labels$ymax) - 0.1*label_y_size,
            xpos = plot_id)
   
@@ -661,7 +729,7 @@ group_box_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "none") +
-    geom_hline(aes(yintercept = 1:(ngenes)), size = 0.2)
+    geom_hline(aes(yintercept = 1:(n_genes)), size = 0.2)
   
   # plot the boxplots for each gene
   for(i in 1:length(genes)) {
@@ -679,7 +747,7 @@ group_box_plot <- function(genes = c("Hspa8","Snap25","Gad2","Vip"),
               aes(x = (xmin + xmax) / 2, y = ymin + 0.05, label = label),
               angle = 90, vjust = 0.35, hjust = 0, size = pt2mm(fontsize)) +
     # Maximum value labels on right side of plot
-    geom_rect(aes(xmin = nclust + 0.5, xmax = nclust + 0.5 + max_width, ymin = 1, ymax = max(header_labels$ymax)),
+    geom_rect(aes(xmin = n_groups + 0.5, xmax = n_groups + 0.5 + max_width, ymin = 1, ymax = max(header_labels$ymax)),
               fill = "white") +
     geom_text(data = max_header,
               aes(x = x, y = y, label = label),
@@ -776,11 +844,11 @@ group_heatmap_plot <- function(genes=c("Hspa8","Snap25","Gad2","Vip"),clusters=1
   
   genes <- genes[genes %in% names(data)]
   
-  ngenes <- length(genes)
-  nclust <- length(unique(data$plot_id))
-  nsamples <- nrow(data)
+  n_genes <- length(genes)
+  n_groups <- length(unique(data$plot_id))
+  n_samples <- nrow(data)
   
-  header_labels <- build_header_labels(data = data, ngenes = ngenes, nsamples = 1, nclust = nclust, labelheight = labelheight, labeltype = "simple")
+  header_labels <- build_header_labels(data = data, n_genes = n_genes, n_samples = 1, n_groups = n_groups, labelheight = labelheight, labeltype = "simple")
   
   heat_data <- data %>% select(plot_id,xpos)
   
@@ -820,13 +888,13 @@ group_heatmap_plot <- function(genes=c("Hspa8","Snap25","Gad2","Vip"),clusters=1
     summarise_all(max) %>% 
     unlist()
   
-  max_labels <- data.frame(x = (nclust + 0.5) * 1.01,
-                           y = 1:ngenes + 0.5,
+  max_labels <- data.frame(x = (n_groups + 0.5) * 1.01,
+                           y = 1:n_genes + 0.5,
                            label = sci_label(max_vals) )
-  max_header <- data.frame(x = (nclust + 0.5) * 1.01,
-                           y = ngenes + 1,
+  max_header <- data.frame(x = (n_groups + 0.5) * 1.01,
+                           y = n_genes + 1,
                            label = "Max value")
-  max_width <- nclust*(max_width/100)/(1-max_width/100)
+  max_width <- n_groups*(max_width/100)/(1-max_width/100)
   
   
   if(logscale) {
@@ -860,7 +928,7 @@ group_heatmap_plot <- function(genes=c("Hspa8","Snap25","Gad2","Vip"),clusters=1
     summarise(cn=n()) %>%
     as.data.frame(stringsAsFactors=F) %>%
     arrange(plot_id) %>%
-    mutate(labely = ngenes + label_y_size*0.05,
+    mutate(labely = n_genes + label_y_size*0.05,
            cny = max(header_labels$ymax) - 0.1*label_y_size,
            xpos = plot_id)
 
@@ -890,7 +958,7 @@ group_heatmap_plot <- function(genes=c("Hspa8","Snap25","Gad2","Vip"),clusters=1
               aes(x = (xmin + xmax) / 2, y = ymin + 0.05, label = label),
               angle = 90, vjust = 0.35, hjust = 0, size = pt2mm(fontsize)) +
     # Maximum value labels on right side of plot
-    geom_rect(aes(xmin = nclust + 0.5, xmax = nclust + 0.5 + max_width, ymin = 1, ymax = max(header_labels$ymax)),
+    geom_rect(aes(xmin = n_groups + 0.5, xmax = n_groups + 0.5 + max_width, ymin = 1, ymax = max(header_labels$ymax)),
               fill = "white") +
     geom_text(data = max_header,
               aes(x = x, y = y, label = label),

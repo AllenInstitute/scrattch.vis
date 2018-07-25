@@ -95,7 +95,7 @@ theme_no_x <- function(base_size = 12, base_family = "") {
 #' @param data A data.frame containing joined annotations and expression data
 #' @param grouping The base to use for grouping samples.
 #' @param ymin The minimum y value for the bottom of the headers. In gene plot contexts, this will usually be the number of genes + 1
-#' @param labelheight Percentage of the plot area that the headers should take up. Default = 25. 
+#' @param label_height Percentage of the plot area that the headers should take up. Default = 25. 
 #' @param poly_type Either "angle" or "square". Angle will scale the header bars to be equal width, with a layer of 
 #' angled polygons connecting them to the data. Square will construct headers with rectangular bars that match the width 
 #' of the samples in each group.
@@ -104,7 +104,7 @@ theme_no_x <- function(base_size = 12, base_family = "") {
 build_header_polygons <- function(data, 
                                   grouping,
                                   ymin, 
-                                  labelheight = 25, 
+                                  label_height = 25, 
                                   poly_type = "angle") {
   # Two label types: 
   # "angle" will draw a polygon with the base lined up with samples, and the top
@@ -124,7 +124,7 @@ build_header_polygons <- function(data,
   # x-axis: 0:(n_samples)
   
   # Calculate the height of the label in plot dimensions:
-  labheight <- (ymin - 1) * (labelheight / 100) / (1 - labelheight / 100)
+  labheight <- (ymin - 1) * (label_height / 100) / (1 - label_height / 100)
   
   # Build cell type label polygons
   # polygon points are built in this order: 1 = bottom-right, 2 = bottom-left, 3 = top-left, 4 = top-right
@@ -132,17 +132,17 @@ build_header_polygons <- function(data,
   # in each cluster. The top positions are evenly spaced based on the number of clusters.
   poly.data <- data %>% 
     group_by_(group_id) %>%
-    summarise(color = .[[group_color]][1],
+    summarise(color = .data[[group_color]][1],
               x1 = max(xpos),
               x2 = min(xpos) - 1) %>%
     mutate(x3 = (n_samples) * (1:n_groups - 1) / n_groups,
            x4 = (n_samples) * (1:n_groups) / n_groups,
-           # ngenes + 1 is the top of the plot body
-           y1 = ngenes + 1,
-           y2 = ngenes + 1,
+           # ymin is the top of the plot body
+           y1 = ymin,
+           y2 = ymin,
            # The angled portion of the label will be 10% of the total label height 
-           y3 = ngenes + 1 + labheight * 0.1,
-           y4 = ngenes + 1 + labheight * 0.1)
+           y3 = ymin + labheight * 0.1,
+           y4 = ymin + labheight * 0.1)
   
   # For a simpler square label, set the top and bottom x-positions to be the same
   if(poly_type == "square") {
@@ -154,7 +154,7 @@ build_header_polygons <- function(data,
   # Restructure the polygons for ggplot2's geom_poly().
   # The data should have a single x and y column in order, with id and color for each polygon
   poly <- data.frame(id = rep(poly.data[[group_id]], each = 4),
-                     color = rep(poly.data[[group_color]], each = 4))
+                     color = rep(poly.data$color, each = 4))
   poly.x <- numeric()
   poly.y <- numeric()
   for(i in 1:nrow(poly.data)) {
@@ -181,7 +181,7 @@ build_header_polygons <- function(data,
 #' @param data A data.frame containing joined annotations and expression data
 #' @param grouping The base to use for grouping samples.
 #' @param ymin The minimum y value for the bottom of the headers. In gene plot contexts, this will usually be the number of genes + 1
-#' @param labelheight Percentage of the plot area that the headers should take up. Default = 25. 
+#' @param label_height Percentage of the plot area that the headers should take up. Default = 25. 
 #' @param label_type Either "simple", "angle", or "square". Simple is for use with grouped plots. 
 #' Angle will scale the header bars to be equal width, with a layer of 
 #' angled polygons connecting them to the data. Square will construct headers with rectangular bars that match the width 
@@ -190,7 +190,7 @@ build_header_polygons <- function(data,
 build_header_labels <- function(data, 
                                 grouping, 
                                 ymin,  
-                                labelheight = 25, 
+                                label_height = 25, 
                                 label_type = "simple") {
   
   # Three label types: 
@@ -204,7 +204,7 @@ build_header_labels <- function(data,
   # x-axis: 0:(nsamples) (for cell-based plots)
   # x-axis: 1:(nclust + 1) (for cluster-based plots)
   
-  labheight <- (ymin - 1)*(labelheight/100)/(1-labelheight/100)
+  labheight <- (ymin - 1)*(label_height/100)/(1-label_height/100)
   
   group_id <- paste0(grouping, "_id")
   group_label <- paste0(grouping, "_label")

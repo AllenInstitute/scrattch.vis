@@ -4,27 +4,26 @@
 \alias{sample_bar_plot}
 \title{Barplots of gene expression of individual cells}
 \usage{
-sample_bar_plot(genes = c("Hspa8", "Snap25", "Gad2", "Vip"),
-  group_by = "final", clusters = 1:10, data_source = "internal",
-  sort = F, logscale = F, fontsize = 7, labelheight = 25,
-  labeltype = "angle", max_width = 10, bgcolor = "#ADCFE0")
+sample_bar_plot(data, anno, genes, group_by, sort = F, fontsize = 7,
+  labelheight = 25, labeltype = "angle", max_width = 10,
+  bgcolor = "#ADCFE0")
 }
 \arguments{
-\item{genes}{A character vector containing gene symbols to be plotted}
+\item{data}{A data frame containing gene expression values. The first column should be sample_name}
+
+\item{anno}{Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns}
+
+\item{genes}{A character vector containing gene symbols to be plotted.}
 
 \item{group_by}{A character vector specifying the desc base that should be used to group cells}
 
-\item{clusters}{A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)}
-
-\item{data_source}{A character object defining where the data is stored. Currently only works with "internal"}
-
 \item{sort}{Logical object, determines if cells will be sorted within their clusters (this means that each column will no longer represent a single cell)}
-
-\item{logscale}{Logical object, determines if data is log scaled before plotting.}
 
 \item{fontsize}{numeric object, the font size (in pts) used to make the plot.}
 
 \item{labelheight}{numeric object, Percent of the plot height that should be used for the labels (0 to 100).}
+
+\item{logscale}{Logical object, determines if data is log scaled before plotting.}
 }
 \value{
 a ggplot2 plot object
@@ -36,7 +35,6 @@ Extension to user-supplied datasets will come soon.
 See Examples for sensible PDF output options.
 }
 \examples{
-barcell_plot()
 
 my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
 my_clusters <- c(1,5,9,10,24,37)

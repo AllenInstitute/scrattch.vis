@@ -11,7 +11,7 @@
 #' @param grouping A character vector specifying the desc base that should be used to group cells
 #' @param sort Logical object, determines if cells will be sorted within their clusters (this means that each column will no longer represent a single cell)
 #' @param logscale Logical object, determines if data is log scaled before plotting.
-#' @param fontsize numeric object, the font size (in pts) used to make the plot.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
 #' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
 #' 
 #' @return a ggplot2 plot object
@@ -75,7 +75,7 @@ sample_bar_plot <- function(data,
   
   # Calculate the number of genes and samples for use as plot dimensions
   n_genes <- length(genes)
-  n_clust <- length(unique(plot_data[[group_id]]))
+  n_groups <- length(unique(plot_data[[group_id]]))
   n_samples <- nrow(plot_data)
   
   # Get maximum values for each gene before rescaling to plot space.
@@ -258,7 +258,7 @@ sample_bar_plot <- function(data,
 #' @param data_source A character object defining where the data is stored. Can be a Sqlite3 database file or "internal".
 #' @param normalize_rows Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.
 #' @param logscale Logical object, determines if data is log scaled before plotting.
-#' @param fontsize numeric object, the font size (in pts) used to make the plot.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
 #' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
 #' @param labeltype A character object, either "angle" or "square".
 #' 
@@ -337,7 +337,7 @@ sample_heatmap_plot <- function(data,
   
   # Calculate the number of genes and samples for use as plot dimensions
   n_genes <- length(genes)
-  n_clust <- length(unique(plot_data[[group_id]]))
+  n_groups <- length(unique(plot_data[[group_id]]))
   n_samples <- nrow(plot_data)
   
   # build_header_polygons from plot_components.R
@@ -366,7 +366,7 @@ sample_heatmap_plot <- function(data,
   # Plot setup
   p <- ggplot(data) +
     scale_fill_identity() +
-    theme_classic(base_size = fontsize) +
+    theme_classic(base_size = font_size) +
     theme(axis.text = element_text(size=rel(1)),
           axis.ticks = element_blank(),
           axis.line = element_blank(),
@@ -410,7 +410,7 @@ sample_heatmap_plot <- function(data,
                   label = label),
               angle = 90, 
               vjust = 0.35, hjust = 0, 
-              size = pt2mm(fontsize)) +
+              size = pt2mm(font_size)) +
     geom_polygon(data = header_polygons,
                  aes(x = poly.x, 
                      y = poly.y, 
@@ -425,12 +425,218 @@ sample_heatmap_plot <- function(data,
                   label = label),
               angle = 90, 
               hjust = 0, vjust = 0.5, 
-              size = pt2mm(fontsize)) +
+              size = pt2mm(font_size)) +
     geom_text(data = max_labels,
               aes(x = x, y = y, 
                   label = label),
               hjust = 0, vjust = 0.5, 
-              size = pt2mm(fontsize), parse = TRUE)
+              size = pt2mm(font_size), parse = TRUE)
+  
+  p
+  
+}
+
+
+#' Fire Heatmaps of gene expression of individual cells
+#' 
+#' This function will generate plots similar to those in the shiny heatmap geneterator.
+#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
+#' Extension to user-supplied datasets will come soon.
+#' 
+#' @param genes A character vector containing gene symbols to be plotted
+#' @param group_by A character object containing the annotation to group data by
+#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
+#' @param data_source A character object defining where the data is stored. Can be a Sqlite3 database file or "internal".
+#' @param normalize_rows Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.
+#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
+#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
+#' @param labeltype A character object, either "angle" or "square".
+#' 
+#' @return a ggplot2 plot object
+#' 
+#' @examples
+#' heatcell_plot()
+#' 
+#' my_genes <- c("Ercc6", "Ercc8", "Trp53", "Pgbd5")
+#' my_clusters <- c(1, 5, 9, 10, 24, 37)
+#' my_heatcell_plot <- heatcell_plot(my_genes, my_clusters, norm=T, font=12)
+#' 
+#' ggsave("plot_output.pdf", heatcell_plot, height = 0.2 * length(my_genes) + 2, width = 4)
+#' 
+#' gene_text <- "Slc17a6 gad2 tac1,RBP4"
+#' gene_fix <- fix_mouse_genes(split_cst(gene_text))
+#' cluster_text <- "18:22,3,8"
+#' cluster_fix <- chr_to_num(cluster_text)
+#' 
+#' my_heatcell_plot_2 <- heatcell_plot(gene_fix, clust = cluster_fix, font=12)
+sample_fire_plot <- function(data,
+                                anno,
+                                genes,
+                                grouping,
+                                group_order = NULL,
+                                log_scale = T, 
+                                normalize_rows = F,
+                                top_values = "lowest",
+                                font_size = 7, 
+                                label_height = 25,
+                                max_width = 10,
+                                label_type = "simple") {
+  
+  library(dplyr)
+  library(ggplot2)
+  
+  genes <- rev(genes)
+  
+  group_id <- paste0(grouping, "_id")
+  group_label <- paste0(grouping, "_label")
+  group_color <- paste0(grouping, "_color")
+  
+  gene_data <- data[,c("sample_name",genes)]
+  
+  # Get maximum values for each gene before rescaling to plot space.
+  max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
+  
+  if(log_scale) {
+    gene_data[,genes] <- log10(gene_data[,genes] + 1)
+  }
+  
+
+  # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
+  plot_data <- left_join(anno, gene_data, by = "sample_name")
+  
+  # Add an x position to each group
+  if(!is.null(group_order)) {
+    group_order_df <- data.frame(group = group_order) %>%
+      mutate(xpos = 1:n())
+    names(group_order_df)[1] <- group_id
+    
+    plot_data <- plot_data %>%
+      left_join(group_order_df, by = group_id)
+    
+  } else {
+    # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
+    group_order_df <- plot_data %>%
+      select(one_of(group_id)) %>%
+      unique() %>%
+      arrange_(group_id) %>%
+      mutate(xpos = 1:n())
+    
+    plot_data <- plot_data %>%
+      left_join(group_order_df, by = group_id)
+  }
+  
+  # Calculate the number of genes and samples for use as plot dimensions
+  n_genes <- length(genes)
+  n_groups <- length(unique(plot_data[[group_id]]))
+  n_samples <- nrow(plot_data)
+  
+  # Build the cell type label rectangles from plot_components.R
+  header_labels <-build_header_labels(data = plot_data, 
+                                      grouping = grouping,
+                                      ymin = n_genes + 1, 
+                                      label_height = label_height, 
+                                      label_type = label_type)
+  
+  # Build the maximum value labels for the right edge
+  max_labels <- data.frame(x = n_groups * 1.01,
+                           y = 1:n_genes + 0.5,
+                           label = sci_label(max_vals) )
+  max_header <- data.frame(x = n_groups * 1.01,
+                           y = n_genes + 1,
+                           label = "Max value")
+  max_width <- n_groups*(max_width/100)/(1-max_width/100)
+  
+  # Plot setup
+  p <- ggplot(data) +
+    scale_fill_identity() +
+    theme_classic(base_size = font_size) +
+    theme(axis.text = element_text(size=rel(1)),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          axis.title = element_blank(),
+          axis.text.x = element_blank()) +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0), breaks = 1:n_genes + 0.45, labels = genes)
+  
+  # plot the rectangles for each gene
+  for(i in seq_along(genes)) {
+    
+    gene <- genes[i]
+    
+    gene_values <- plot_data %>%
+      select(one_of("sample_name", gene))
+    
+    gene_colors <- data_df_to_colors(gene_values,
+                                     value_cols = gene,
+                                     per_col = normalize_rows)
+    
+    names(gene_colors)[names(gene_colors) == gene] <- "plot_fill"
+    
+    if(top_values == "highest") {
+      rect_data <- plot_data %>%
+        left_join(gene_colors, by = "sample_name") %>%
+        arrange_(gene) %>%
+        group_by(xpos) %>%
+        mutate(group_n = n()) %>%
+        mutate(xmin = xpos - 0.5,
+               xmax = xpos + 0.5,
+               ymin = seq(i, i + 1*((group_n[1] + 1)/group_n[1]), length.out = group_n[1] + 1)[-group_n[1]],
+               ymax = seq(i, i + 1*((group_n[1] + 1)/group_n[1]), length.out = group_n[1] + 1)[-1])
+    } else {
+      arr_gene <- paste0("-",gene)
+      rect_data <- plot_data %>%
+        left_join(gene_colors, by = "sample_name") %>%
+        arrange_(arr_gene) %>%
+        group_by(xpos) %>%
+        mutate(group_n = n()) %>%
+        mutate(xmin = xpos - 0.5,
+               xmax = xpos + 0.5,
+               ymin = seq(i, i + 1*((group_n[1] + 1)/group_n[1]), length.out = group_n[1] + 1)[-group_n[1]],
+               ymax = seq(i, i + 1*((group_n[1] + 1)/group_n[1]), length.out = group_n[1] + 1)[-1])
+    }
+
+             
+    # plot the rectangles for the heatmap
+    p <- p + geom_rect(data = rect_data,
+                       aes(xmin = xmin, 
+                           xmax = xmax, 
+                           ymin = ymin, 
+                           ymax = ymax, 
+                           fill = plot_fill))
+    
+  }
+  
+  # Label elements
+  # pt2mm() is in plot_components.R
+  p <- p + 
+    # Cluster labels at the top of the plot
+    geom_rect(data = header_labels,
+              aes(xmin = xmin, xmax = xmax, 
+                  ymin = ymin, ymax = ymax, 
+                  fill = color)) +
+    geom_text(data = header_labels,
+              aes(x = (xmin + xmax) / 2, 
+                  y = ymin + 0.05, 
+                  label = label),
+              angle = 90, 
+              vjust = 0.35, hjust = 0, 
+              size = pt2mm(font_size)) +
+    # Maximum value labels at the right edge of the plot
+    geom_rect(aes(xmin = n_groups + 1, xmax = n_groups + max_width, 
+                  ymin = 1, ymax = max(header_labels$ymax)), 
+              fill = "#FFFFFF") +
+    geom_text(data = max_header,
+              aes(x = x, y = y, 
+                  label = label),
+              angle = 90, 
+              hjust = 0, vjust = 0.5, 
+              size = pt2mm(font_size)) +
+    geom_text(data = max_labels,
+              aes(x = x, y = y, 
+                  label = label),
+              hjust = 0, vjust = 0.5, 
+              size = pt2mm(font_size), parse = TRUE)
   
   p
   
@@ -447,7 +653,7 @@ sample_heatmap_plot <- function(data,
 #' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
 #' @param data_source A character object defining where the data is stored. Currently only works with "internal"
 #' @param logscale Logical object, determines if data is log scaled before plotting.
-#' @param fontsize numeric object, the font size (in pts) used to make the plot.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
 #' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
 #' 
 #' @return a ggplot2 plot object
@@ -457,7 +663,7 @@ sample_heatmap_plot <- function(data,
 #' 
 #' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
 #' my_clusters <- c(1,5,9,10,24,37)
-#' pottery_plot(my_genes,my_clusters,logscale=T,fontsize=14)
+#' pottery_plot(my_genes,my_clusters,logscale=T,font_size=14)
 group_violin_plot <- function(data,
                               anno,
                               genes,
@@ -652,7 +858,7 @@ group_violin_plot <- function(data,
 #' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
 #' @param data_source A character object defining where the data is stored. Currently only works with "internal"
 #' @param logscale Logical object, determines if data is log scaled before plotting.
-#' @param fontsize numeric object, the font size (in pts) used to make the plot.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
 #' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
 #' 
 #' @return a ggplot2 plot object
@@ -662,7 +868,7 @@ group_violin_plot <- function(data,
 #' 
 #' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
 #' my_clusters <- c(1,5,9,10,24,37)
-#' pottery_plot(my_genes,my_clusters,logscale=T,fontsize=14)
+#' pottery_plot(my_genes,my_clusters,logscale=T,font_size=14)
 group_quasirandom_plot <- function(data,
                                    anno,
                                    genes,
@@ -850,7 +1056,7 @@ group_quasirandom_plot <- function(data,
 #' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
 #' @param data_source A character object defining where the data is stored. Currently only works with "internal"
 #' @param logscale Logical object, determines if data is log scaled before plotting.
-#' @param fontsize numeric object, the font size (in pts) used to make the plot.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
 #' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
 #' 
 #' @return a ggplot2 plot object
@@ -860,7 +1066,7 @@ group_quasirandom_plot <- function(data,
 #' 
 #' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
 #' my_clusters <- c(1,5,9,10,24,37)
-#' pottery_plot(my_genes,my_clusters,logscale=T,fontsize=14)
+#' pottery_plot(my_genes,my_clusters,logscale=T,font_size=14)
 group_box_plot <- function(data,
                            anno,
                            genes,
@@ -1049,7 +1255,7 @@ group_box_plot <- function(data,
 #' @param data_source A character object defining where the data is stored. Currently only works with "internal"
 #' @param normalize_rows Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.
 #' @param logscale Logical object, determines if data is log scaled before plotting.
-#' @param fontsize numeric object, the font size (in pts) used to make the plot.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
 #' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
 #' 
 #' @return a ggplot2 plot object
@@ -1059,7 +1265,7 @@ group_box_plot <- function(data,
 #' 
 #' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
 #' my_clusters <- c(1,5,9,10,24,37)
-#' heater_plot(my_genes,my_clusters,logscale=T,fontsize=14)
+#' heater_plot(my_genes,my_clusters,logscale=T,font_size=14)
 group_heatmap_plot <- function(data,
                                anno,
                                genes,
@@ -1254,7 +1460,7 @@ group_heatmap_plot <- function(data,
 #' @param data_source A character object defining where the data is stored. Currently only works with "internal"
 #' @param normalize_rows Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.
 #' @param logscale Logical object, determines if data is log scaled before plotting.
-#' @param fontsize numeric object, the font size (in pts) used to make the plot.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
 #' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
 #' 
 #' @return a ggplot2 plot object
@@ -1264,7 +1470,7 @@ group_heatmap_plot <- function(data,
 #' 
 #' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
 #' my_clusters <- c(1,5,9,10,24,37)
-#' heater_plot(my_genes,my_clusters,logscale=T,fontsize=14)
+#' heater_plot(my_genes,my_clusters,logscale=T,font_size=14)
 group_dot_plot <- function(data,
                            anno,
                            genes,

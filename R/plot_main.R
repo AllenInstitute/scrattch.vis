@@ -1107,6 +1107,10 @@ group_heatmap_plot <- function(data,
     select(one_of(group_id, group_label, group_color)) %>%
     unique()
   
+  group_n <- anno %>%
+    group_by_(group_id) %>%
+    summarise(group_n = n())
+  
   plot_data <- left_join(plot_anno, gene_stats, by = group_label)
   
   # Add an x position to each group
@@ -1114,20 +1118,21 @@ group_heatmap_plot <- function(data,
     group_order_df <- data.frame(group = group_order) %>%
       mutate(xpos = 1:n())
     names(group_order_df)[1] <- group_id
-    
+
     plot_data <- plot_data %>%
-      left_join(group_order_df, by = group_id)
+      left_join(group_order_df, by = group_id) %>%
+      left_join(group_n, by = group_id)
     
   } else {
     # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
     group_order_df <- plot_data %>%
       select(one_of(group_id)) %>%
-      unique() %>%
       arrange_(group_id) %>%
       mutate(xpos = 1:n())
     
     plot_data <- plot_data %>%
-      left_join(group_order_df, by = group_id)
+      left_join(group_order_df, by = group_id) %>%
+      left_join(group_n, by = group_id)
   }
   
   n_genes <- length(genes)
@@ -1152,8 +1157,7 @@ group_heatmap_plot <- function(data,
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
   group_data <- plot_data %>%
-    group_by(xpos) %>%
-    summarise(group_n = n()) %>%
+    select(xpos, group_n) %>%
     mutate(label_y = n_genes + label_y_size * 0.05,
            group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
   

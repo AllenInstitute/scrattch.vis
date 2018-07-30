@@ -18,7 +18,7 @@ Once installed, `scrattch.vis` provides a variety of functions for visualizing s
 ### Sample-centric plots:
 
 sample_bar_plot()
-![](blob/master/man/figures/sample_bar_plot.png?raw=true)  
+![](man/figures/sample_bar_plot.png?raw=true)  
 
 sample_heatmap_plot()
 ![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_heatmap_plot.png)  

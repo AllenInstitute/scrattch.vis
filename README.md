@@ -11,12 +11,35 @@ install.packages("devtools")
 devtools::install_github("AllenInstitute/scrattch.vis")
 ```
 
-## One installed, `scrattch.vis` provides a variety of helper functions for visualizing scRNA-seq data based on sample annotations:
+## One installed, `scrattch.vis` provides a variety of functions for visualizing scRNA-seq data based on sample annotations. Each of these returns a `ggplot2` plot object:
 
 ### Sample-centric plots:
 
-build_sample_barplot()  
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_box_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)
+sample_bar_plot()  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_bar_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+
+sample_heatmap_plot()  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_heatmap_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+
+sample_fire_plot()  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_fire_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)
+
+### Group-centric plots:
+
+group_violing_plot()
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_violin_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+
+group_quasirandom_plot()
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_quasirandom_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+
+group_dot_plot()
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_dot_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+
+group_box_plot()
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_box_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+
+group_heatmap_plot()
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_heatmap_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
 
 ## The `scrattch` suite
 

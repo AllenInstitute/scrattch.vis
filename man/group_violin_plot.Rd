@@ -2,38 +2,38 @@
 % Please edit documentation in R/plot_main.R
 \name{group_violin_plot}
 \alias{group_violin_plot}
-\title{Violin plots of gene expression for clusters}
+\title{Violing plots of gene expression for grouped samples}
 \usage{
-group_violin_plot(genes = c("Hspa8", "Snap25", "Gad2", "Vip"),
-  group_by = "final", clusters = 1:10, data_source = "internal",
-  sort = F, logscale = F, showcounts = T, rotatecounts = F,
-  fontsize = 7, labelheight = 25, max_width = 10)
+group_violin_plot(data, anno, genes, grouping, group_order = NULL,
+  log_scale = TRUE, font_size = 7, label_height = 25,
+  show_counts = TRUE, rotate_counts = FALSE, max_width = 10)
 }
 \arguments{
-\item{genes}{A character vector containing gene symbols to be plotted}
+\item{data}{A data frame containing gene expression values. The first column should be sample_name}
 
-\item{clusters}{A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)}
+\item{anno}{Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns}
 
-\item{data_source}{A character object defining where the data is stored. Currently only works with "internal"}
+\item{genes}{A character vector containing gene symbols to be plotted.}
 
-\item{logscale}{Logical object, determines if data is log scaled before plotting.}
+\item{grouping}{A character vector specifying the desc base that should be used to group cells}
 
-\item{fontsize}{numeric object, the font size (in pts) used to make the plot.}
+\item{group_order}{Optional: Explicit specification of group order by supplying a vector of group_ids.}
 
-\item{labelheight}{numeric object, Percent of the plot height that should be used for the labels (0 to 100).}
+\item{log_scale}{Logical , determines if data is log scaled before plotting. Default = FALSE.}
+
+\item{font_size}{numeric object, the font size (in pts) used to make the plot.}
+
+\item{label_height}{numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.}
+
+\item{show_counts}{Logical, whether or not to display sample counts at the top of labels. Default = TRUE.}
+
+\item{rotate_counts}{Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.}
+
+\item{max_width}{numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.}
 }
 \value{
 a ggplot2 plot object
 }
 \description{
-This function will generate plots similar to Figure 1c of Tasic, et al. (2015).
-Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-Extension to user-supplied datasets will come soon.
-}
-\examples{
-pottery_plot()
-
-my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-my_clusters <- c(1,5,9,10,24,37)
-pottery_plot(my_genes,my_clusters,logscale=T,fontsize=14)
+Violing plots of gene expression for grouped samples
 }

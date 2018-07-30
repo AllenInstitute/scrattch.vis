@@ -2,11 +2,11 @@
 % Please edit documentation in R/plot_main.R
 \name{sample_bar_plot}
 \alias{sample_bar_plot}
-\title{Barplots of gene expression of individual cells}
+\title{Barplots of gene expression of individual samples}
 \usage{
-sample_bar_plot(data, anno, genes, group_by, sort = F, fontsize = 7,
-  labelheight = 25, labeltype = "angle", max_width = 10,
-  bgcolor = "#ADCFE0")
+sample_bar_plot(data, anno, genes, grouping, group_order = NULL,
+  log_scale = FALSE, font_size = 7, label_height = 25,
+  label_type = "angle", max_width = 10, bg_color = "#ADCFE0")
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}
@@ -15,30 +15,25 @@ sample_bar_plot(data, anno, genes, group_by, sort = F, fontsize = 7,
 
 \item{genes}{A character vector containing gene symbols to be plotted.}
 
-\item{group_by}{A character vector specifying the desc base that should be used to group cells}
+\item{grouping}{A character vector specifying the desc base that should be used to group cells}
 
-\item{sort}{Logical object, determines if cells will be sorted within their clusters (this means that each column will no longer represent a single cell)}
+\item{group_order}{Optional: Explicit specification of group order by supplying a vector of group_ids.}
 
-\item{fontsize}{numeric object, the font size (in pts) used to make the plot.}
+\item{log_scale}{Logical , determines if data is log scaled before plotting. Default = FALSE.}
 
-\item{labelheight}{numeric object, Percent of the plot height that should be used for the labels (0 to 100).}
+\item{font_size}{numeric object, the font size (in pts) used to make the plot.}
 
-\item{logscale}{Logical object, determines if data is log scaled before plotting.}
+\item{label_height}{numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.}
+
+\item{label_type}{Label shape, "angle" or "square"}
+
+\item{max_width}{numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.}
+
+\item{bg_color}{plot background color. Default is a light blue ("#ADCFE0")}
 }
 \value{
 a ggplot2 plot object
 }
 \description{
-This function will generate plots similar to those in Figure 3a-c of Tasic, et al. (2015).
-Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-Extension to user-supplied datasets will come soon.
-See Examples for sensible PDF output options.
-}
-\examples{
-
-my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-my_clusters <- c(1,5,9,10,24,37)
-my_barcell_plot <- barcell_plot(my_genes,my_clusters,sort=T)
-
-ggsave("plot_output.pdf",my_barcell_plot,height=0.2*length(my_genes)+2,width=4)
+This function will generate plots similar to those in Figure 3a-c of Tasic, et al. (2016).
 }

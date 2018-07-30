@@ -2,44 +2,52 @@
 % Please edit documentation in R/plot_main.R
 \name{group_heatmap_plot}
 \alias{group_heatmap_plot}
-\title{Heatmaps of gene expression for clusters}
+\title{Heatmap plots of group summary statistics}
 \usage{
-group_heatmap_plot(genes = c("Hspa8", "Snap25", "Gad2", "Vip"),
-  clusters = 1:10, group_by = "final", calculation = "mean",
-  data_source = "internal", normalize_rows = FALSE, logscale = T,
-  fontsize = 7, labelheight = 25, max_width = 10, showcounts = T,
-  rotatecounts = F, maxval = "auto", colorset = c("darkblue",
-  "dodgerblue", "gray80", "orange", "orangered"))
+group_heatmap_plot(data, anno, genes, grouping, group_order = NULL,
+  stat = "median", log_scale = TRUE, normalize_rows = FALSE,
+  font_size = 7, label_height = 25, show_counts = TRUE,
+  rotate_counts = FALSE, max_width = 10)
 }
 \arguments{
-\item{genes}{A character vector containing gene symbols to be plotted}
+\item{data}{A data frame containing gene expression values. The first column should be sample_name}
 
-\item{clusters}{A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)}
+\item{anno}{Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns}
 
-\item{calculation}{A character object stating which calculation to perform for each heatmap cell. Options: "mean" and "trimmed_mean"}
+\item{genes}{A character vector containing gene symbols to be plotted.}
 
-\item{data_source}{A character object defining where the data is stored. Currently only works with "internal"}
+\item{grouping}{A character vector specifying the desc base that should be used to group cells}
 
-\item{normalize_rows}{Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.}
+\item{group_order}{Optional: Explicit specification of group order by supplying a vector of group_ids.}
 
-\item{logscale}{Logical object, determines if data is log scaled before plotting.}
+\item{stat}{The statistic to apply to each group. Options are: 
+\itemize{
+  \item "median"
+  \item "mean"
+  \item "tmean" (25\% trimmed mean)
+  \item "prop_gt0" (proportion of samples > 0)
+  \item "prop_gt1" (proportion of samples > 1)
+  \item "min"
+  \item "max"
+  }}
 
-\item{fontsize}{numeric object, the font size (in pts) used to make the plot.}
+\item{log_scale}{Logical , determines if data is log scaled before plotting. Default = FALSE.}
 
-\item{labelheight}{numeric object, Percent of the plot height that should be used for the labels (0 to 100).}
+\item{normalize_rows}{Logical, whether or not to rescale data within each row of the plot. Default = FALSE.}
+
+\item{font_size}{numeric object, the font size (in pts) used to make the plot.}
+
+\item{label_height}{numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.}
+
+\item{show_counts}{Logical, whether or not to display sample counts at the top of labels. Default = TRUE.}
+
+\item{rotate_counts}{Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.}
+
+\item{max_width}{numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.}
 }
 \value{
 a ggplot2 plot object
 }
 \description{
-Generates heatmaps for each gene and each cluster based on mean gene expression (more functions will be added later).
-Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-Extension to user-supplied datasets will come soon.
-}
-\examples{
-heater_plot()
-
-my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-my_clusters <- c(1,5,9,10,24,37)
-heater_plot(my_genes,my_clusters,logscale=T,fontsize=14)
+Heatmap plots of group summary statistics
 }

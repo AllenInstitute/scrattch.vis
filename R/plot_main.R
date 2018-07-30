@@ -1,34 +1,27 @@
-#' Barplots of gene expression of individual cells
+#' Barplots of gene expression of individual samples
 #' 
-#' This function will generate plots similar to those in Figure 3a-c of Tasic, et al. (2015).
-#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-#' Extension to user-supplied datasets will come soon.
-#' See Examples for sensible PDF output options.
+#' This function will generate plots similar to those in Figure 3a-c of Tasic, et al. (2016).
 #' 
 #' @param data A data frame containing gene expression values. The first column should be sample_name
 #' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
 #' @param genes A character vector containing gene symbols to be plotted. 
 #' @param grouping A character vector specifying the desc base that should be used to group cells
-#' @param sort Logical object, determines if cells will be sorted within their clusters (this means that each column will no longer represent a single cell)
-#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
-#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param label_type Label shape, "angle" or "square"
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
+#' @param bg_color plot background color. Default is a light blue ("#ADCFE0")
 #' 
 #' @return a ggplot2 plot object
-#' 
-#' @examples
-#' 
-#' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-#' my_clusters <- c(1,5,9,10,24,37)
-#' my_barcell_plot <- barcell_plot(my_genes,my_clusters,sort=T)
-#' 
-#' ggsave("plot_output.pdf",my_barcell_plot,height=0.2*length(my_genes)+2,width=4)
+#'
 sample_bar_plot <- function(data,
                             anno,
                             genes,
                             grouping,
                             group_order = NULL,
-                            log_scale = F,
+                            log_scale = FALSE,
                             font_size = 7, 
                             label_height = 25, 
                             label_type = "angle",
@@ -246,50 +239,33 @@ sample_bar_plot <- function(data,
   
 }
 
-#' Heatmaps of gene expression of individual cells
+#' Heatmaps of gene expression for individual samples
 #' 
-#' This function will generate plots similar to those in the shiny heatmap geneterator.
-#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-#' Extension to user-supplied datasets will come soon.
-#' 
-#' @param genes A character vector containing gene symbols to be plotted
-#' @param group_by A character object containing the annotation to group data by
-#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
-#' @param data_source A character object defining where the data is stored. Can be a Sqlite3 database file or "internal".
-#' @param normalize_rows Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.
-#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
+#' @param normalize_rows Logical, determines if heatmaps will be normalized for each gene. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
-#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
-#' @param labeltype A character object, either "angle" or "square".
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param label_type Label shape, "angle" or "square"
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
 #' 
 #' @return a ggplot2 plot object
-#' 
-#' @examples
-#' heatcell_plot()
-#' 
-#' my_genes <- c("Ercc6", "Ercc8", "Trp53", "Pgbd5")
-#' my_clusters <- c(1, 5, 9, 10, 24, 37)
-#' my_heatcell_plot <- heatcell_plot(my_genes, my_clusters, norm=T, font=12)
-#' 
-#' ggsave("plot_output.pdf", heatcell_plot, height = 0.2 * length(my_genes) + 2, width = 4)
-#' 
-#' gene_text <- "Slc17a6 gad2 tac1,RBP4"
-#' gene_fix <- fix_mouse_genes(split_cst(gene_text))
-#' cluster_text <- "18:22,3,8"
-#' cluster_fix <- chr_to_num(cluster_text)
-#' 
-#' my_heatcell_plot_2 <- heatcell_plot(gene_fix, clust = cluster_fix, font=12)
+#'
 sample_heatmap_plot <- function(data,
                                 anno,
                                 genes,
                                 grouping,
                                 group_order = NULL,
-                                log_scale = T, 
-                                normalize_rows = F,
+                                log_scale = TRUE, 
+                                normalize_rows = FALSE,
                                 font_size = 7, 
                                 label_height = 25,
-                                max_width = 10,
-                                label_type = "angle") {
+                                label_type = "angle",
+                                max_width = 10) {
   
   library(dplyr)
   library(ggplot2)
@@ -437,51 +413,32 @@ sample_heatmap_plot <- function(data,
 }
 
 
-#' Fire Heatmaps of gene expression of individual cells
+#' Fire Heatmaps of gene expression for individual samples
 #' 
-#' This function will generate plots similar to those in the shiny heatmap geneterator.
-#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-#' Extension to user-supplied datasets will come soon.
-#' 
-#' @param genes A character vector containing gene symbols to be plotted
-#' @param group_by A character object containing the annotation to group data by
-#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
-#' @param data_source A character object defining where the data is stored. Can be a Sqlite3 database file or "internal".
-#' @param normalize_rows Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.
-#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
+#' @param normalize_rows Logical, determines if heatmaps will be normalized for each gene. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
-#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
-#' @param labeltype A character object, either "angle" or "square".
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
 #' 
 #' @return a ggplot2 plot object
-#' 
-#' @examples
-#' heatcell_plot()
-#' 
-#' my_genes <- c("Ercc6", "Ercc8", "Trp53", "Pgbd5")
-#' my_clusters <- c(1, 5, 9, 10, 24, 37)
-#' my_heatcell_plot <- heatcell_plot(my_genes, my_clusters, norm=T, font=12)
-#' 
-#' ggsave("plot_output.pdf", heatcell_plot, height = 0.2 * length(my_genes) + 2, width = 4)
-#' 
-#' gene_text <- "Slc17a6 gad2 tac1,RBP4"
-#' gene_fix <- fix_mouse_genes(split_cst(gene_text))
-#' cluster_text <- "18:22,3,8"
-#' cluster_fix <- chr_to_num(cluster_text)
-#' 
-#' my_heatcell_plot_2 <- heatcell_plot(gene_fix, clust = cluster_fix, font=12)
+#'
 sample_fire_plot <- function(data,
                                 anno,
                                 genes,
                                 grouping,
                                 group_order = NULL,
-                                log_scale = T, 
-                                normalize_rows = F,
+                                log_scale = TRUE, 
+                                normalize_rows = FALSE,
                                 top_values = "lowest",
                                 font_size = 7, 
                                 label_height = 25,
-                                max_width = 10,
-                                label_type = "simple") {
+                                max_width = 10) {
   
   library(dplyr)
   library(ggplot2)
@@ -536,7 +493,7 @@ sample_fire_plot <- function(data,
                                       grouping = grouping,
                                       ymin = n_genes + 1, 
                                       label_height = label_height, 
-                                      label_type = label_type)
+                                      label_type = "simple")
   
   # Build the maximum value labels for the right edge
   max_labels <- data.frame(x = n_groups * 1.01,
@@ -643,37 +600,32 @@ sample_fire_plot <- function(data,
 }
 
 
-#' Violin plots of gene expression for clusters
+#' Violing plots of gene expression for grouped samples
 #' 
-#' This function will generate plots similar to Figure 1c of Tasic, et al. (2015).
-#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-#' Extension to user-supplied datasets will come soon.
-#' 
-#' @param genes A character vector containing gene symbols to be plotted
-#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
-#' @param data_source A character object defining where the data is stored. Currently only works with "internal"
-#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
-#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param show_counts Logical, whether or not to display sample counts at the top of labels. Default = TRUE.
+#' @param rotate_counts Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
 #' 
 #' @return a ggplot2 plot object
-#' 
-#' @examples
-#' pottery_plot()
-#' 
-#' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-#' my_clusters <- c(1,5,9,10,24,37)
-#' pottery_plot(my_genes,my_clusters,logscale=T,font_size=14)
+#'
 group_violin_plot <- function(data,
                               anno,
                               genes,
                               grouping,
                               group_order = NULL,
-                              log_scale = T,
-                              show_counts = T, 
-                              rotate_counts = F,
+                              log_scale = TRUE,
                               font_size = 7, 
                               label_height = 25,
+                              show_counts = TRUE, 
+                              rotate_counts = FALSE,
                               max_width = 10) {
   library(dplyr)
   library(ggplot2)
@@ -848,37 +800,32 @@ group_violin_plot <- function(data,
 }
 
 
-#' Quasirandom jittered plots of gene expression for clusters
+#' Quasirandom jittered plots of gene expression for grouped samples
 #' 
-#' This function will generate plots similar to Figure 1c of Tasic, et al. (2015).
-#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-#' Extension to user-supplied datasets will come soon.
-#' 
-#' @param genes A character vector containing gene symbols to be plotted
-#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
-#' @param data_source A character object defining where the data is stored. Currently only works with "internal"
-#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
-#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param show_counts Logical, whether or not to display sample counts at the top of labels. Default = TRUE.
+#' @param rotate_counts Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
 #' 
 #' @return a ggplot2 plot object
-#' 
-#' @examples
-#' pottery_plot()
-#' 
-#' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-#' my_clusters <- c(1,5,9,10,24,37)
-#' pottery_plot(my_genes,my_clusters,logscale=T,font_size=14)
+#'
 group_quasirandom_plot <- function(data,
                                    anno,
                                    genes,
                                    grouping,
                                    group_order = NULL,
-                                   log_scale = T,
-                                   show_counts = T, 
-                                   rotate_counts = F,
+                                   log_scale = TRUE,
                                    font_size = 7, 
                                    label_height = 25,
+                                   show_counts = TRUE, 
+                                   rotate_counts = FALSE,
                                    max_width = 10) {
   library(dplyr)
   library(ggplot2)
@@ -1046,37 +993,32 @@ group_quasirandom_plot <- function(data,
   return(p)
 }
 
-#' Box plots of gene expression for clusters
+#' Box Plots plots of gene expression for grouped samples
 #' 
-#' This function will generate plots similar to Figure 1c of Tasic, et al. (2015).
-#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-#' Extension to user-supplied datasets will come soon.
-#' 
-#' @param genes A character vector containing gene symbols to be plotted
-#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
-#' @param data_source A character object defining where the data is stored. Currently only works with "internal"
-#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
-#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param show_counts Logical, whether or not to display sample counts at the top of labels. Default = TRUE.
+#' @param rotate_counts Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
 #' 
 #' @return a ggplot2 plot object
-#' 
-#' @examples
-#' pottery_plot()
-#' 
-#' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-#' my_clusters <- c(1,5,9,10,24,37)
-#' pottery_plot(my_genes,my_clusters,logscale=T,font_size=14)
+#'
 group_box_plot <- function(data,
                            anno,
                            genes,
                            grouping,
                            group_order = NULL,
-                           log_scale = T,
-                           show_counts = T, 
-                           rotate_counts = F,
+                           log_scale = TRUE,
                            font_size = 7, 
                            label_height = 25,
+                           show_counts = TRUE, 
+                           rotate_counts = FALSE,
                            max_width = 10) {
   library(dplyr)
   library(ggplot2)
@@ -1243,41 +1185,45 @@ group_box_plot <- function(data,
 }
 
 
-#' Heatmaps of gene expression for clusters
+#' Heatmap plots of group summary statistics
 #' 
-#' Generates heatmaps for each gene and each cluster based on mean gene expression (more functions will be added later).
-#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-#' Extension to user-supplied datasets will come soon.
-#' 
-#' @param genes A character vector containing gene symbols to be plotted
-#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
-#' @param calculation A character object stating which calculation to perform for each heatmap cell. Options: "mean" and "trimmed_mean"
-#' @param data_source A character object defining where the data is stored. Currently only works with "internal"
-#' @param normalize_rows Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.
-#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param stat The statistic to apply to each group. Options are: 
+#' \itemize{
+#'   \item "median"
+#'   \item "mean"
+#'   \item "tmean" (25\% trimmed mean)
+#'   \item "prop_gt0" (proportion of samples > 0)
+#'   \item "prop_gt1" (proportion of samples > 1)
+#'   \item "min"
+#'   \item "max"
+#'   }
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
+#' @param normalize_rows Logical, whether or not to rescale data within each row of the plot. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
-#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param show_counts Logical, whether or not to display sample counts at the top of labels. Default = TRUE.
+#' @param rotate_counts Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
 #' 
 #' @return a ggplot2 plot object
-#' 
-#' @examples
-#' heater_plot()
-#' 
-#' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-#' my_clusters <- c(1,5,9,10,24,37)
-#' heater_plot(my_genes,my_clusters,logscale=T,font_size=14)
+#'
 group_heatmap_plot <- function(data,
                                anno,
                                genes,
                                grouping,
                                group_order = NULL,
                                stat = "median",
-                               log_scale = T,
-                               normalize_rows = F,
-                               show_counts = T, 
-                               rotate_counts = F,
+                               log_scale = TRUE,
+                               normalize_rows = FALSE,
                                font_size = 7, 
                                label_height = 25,
+                               show_counts = TRUE, 
+                               rotate_counts = FALSE,
                                max_width = 10) {
   library(dplyr)
   library(ggplot2)
@@ -1448,29 +1394,34 @@ group_heatmap_plot <- function(data,
   return(p)
 }
 
-#' Heatmaps of gene expression for clusters
+#' Dot-plot Heatmap plots of group summary statistics
 #' 
-#' Generates heatmaps for each gene and each cluster based on mean gene expression (more functions will be added later).
-#' Warning: this is currently only able to work with internally-supplied datasets (v1_data and v1_anno).
-#' Extension to user-supplied datasets will come soon.
-#' 
-#' @param genes A character vector containing gene symbols to be plotted
-#' @param clusters A numeric vector containing clusters to plot (for v1_anno, the range is 1:49)
-#' @param calculation A character object stating which calculation to perform for each heatmap cell. Options: "mean" and "trimmed_mean"
-#' @param data_source A character object defining where the data is stored. Currently only works with "internal"
-#' @param normalize_rows Logical object, determines if data are normalized to the maximum value for each gene. If FALSE, the heatmap is normalized to the maximum value across all genes.
-#' @param logscale Logical object, determines if data is log scaled before plotting.
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param fill_stat The statistic to apply to each group for use as dot fill color. Default = "median". Options are: 
+#' \itemize{
+#'   \item "median"
+#'   \item "mean"
+#'   \item "tmean" (25\% trimmed mean)
+#'   \item "prop_gt0" (proportion of samples > 0)
+#'   \item "prop_gt1" (proportion of samples > 1)
+#'   \item "min"
+#'   \item "max"
+#'   }
+#' @param size_stat The statistic to apply to each group for scaling dot size. Same options as fill_stat. Default = "prop_gt0".
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
+#' @param normalize_rows Logical, whether or not to rescale data within each row of the plot. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
-#' @param labelheight numeric object, Percent of the plot height that should be used for the labels (0 to 100).
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param show_counts Logical, whether or not to display sample counts at the top of labels. Default = TRUE.
+#' @param rotate_counts Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
 #' 
 #' @return a ggplot2 plot object
-#' 
-#' @examples
-#' heater_plot()
-#' 
-#' my_genes <- c("Ercc6","Ercc8","Trp53","Pgbd5")
-#' my_clusters <- c(1,5,9,10,24,37)
-#' heater_plot(my_genes,my_clusters,logscale=T,font_size=14)
+#'
 group_dot_plot <- function(data,
                            anno,
                            genes,
@@ -1478,12 +1429,12 @@ group_dot_plot <- function(data,
                            group_order = NULL,
                            fill_stat = "median",
                            size_stat = "prop_gt0",
-                           log_scale = T,
-                           normalize_rows = F,
-                           show_counts = T, 
-                           rotate_counts = F,
+                           log_scale = TRUE,
+                           normalize_rows = FALSE,
                            font_size = 7, 
                            label_height = 25,
+                           show_counts = TRUE, 
+                           rotate_counts = FALSE,
                            max_width = 10) {
   library(dplyr)
   library(ggplot2)

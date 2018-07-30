@@ -11,6 +11,13 @@ install.packages("devtools")
 devtools::install_github("AllenInstitute/scrattch.vis")
 ```
 
+## One installed, `scrattch.vis` provides a variety of helper functions for visualizing scRNA-seq data based on sample annotations:
+
+### Sample-centric plots:
+
+build_sample_barplot()  
+![](https://github.com/AllenInstitute/scrattch.vis/tree/master/man/sample_bar_plot.png)
+
 ## The `scrattch` suite
 
 `scrattch.vis` is one component of the [scrattch](https://github.com/AllenInstitute/scrattch/) suite of packages for Single Cell RNA-seq Analysis for Transcriptomic Type CHaracterization from the Allen Institute.

@@ -1464,7 +1464,7 @@ group_dot_plot <- function(data,
                                  stat = size_stat)
   
   if(log_scale) {
-    gene_fill_stats[,genes] <- log10(gene_stats[,genes] + 1)
+    gene_fill_stats[,genes] <- log10(gene_fill_stats[,genes] + 1)
   }
   
   # Convert the data values to heatmap colors

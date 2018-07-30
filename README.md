@@ -16,30 +16,30 @@ devtools::install_github("AllenInstitute/scrattch.vis")
 ### Sample-centric plots:
 
 sample_bar_plot()  
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_bar_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_bar_plot.png)  
 
 sample_heatmap_plot()  
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_heatmap_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_heatmap_plot.png)  
 
 sample_fire_plot()  
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_fire_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_fire_plot.png)
 
 ### Group-centric plots:
 
 group_violing_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_violin_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_violin_plot.png)  
 
 group_quasirandom_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_quasirandom_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_quasirandom_plot.png)  
 
 group_dot_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_dot_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_dot_plot.png)  
 
 group_box_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_box_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_box_plot.png)  
 
 group_heatmap_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_heatmap_plot.png?token=AGjL0pLo4IoF0cbEZx7s3rc4hvEFtLOoks5bZ9YXwA%3D%3D)  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_heatmap_plot.png)  
 
 ## The `scrattch` suite
 

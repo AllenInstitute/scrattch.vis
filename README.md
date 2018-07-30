@@ -24,7 +24,7 @@ sample_heatmap_plot()
 ![](man/figures/sample_heatmap_plot.png?raw=true)  
 
 sample_fire_plot()
-![]man/figures/sample_fire_plot.png?raw=true)
+![](man/figures/sample_fire_plot.png?raw=true)
 
 ### Group-centric plots:
 

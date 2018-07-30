@@ -21,27 +21,27 @@ sample_bar_plot()
 ![](man/figures/sample_bar_plot.png?raw=true)  
 
 sample_heatmap_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_heatmap_plot.png)  
+![](man/figures/sample_heatmap_plot.png?raw=true)  
 
 sample_fire_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_fire_plot.png)
+![]man/figures/sample_fire_plot.png?raw=true)
 
 ### Group-centric plots:
 
 group_violing_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_violin_plot.png)  
+![](man/figures/group_violin_plot.png?raw=true)  
 
 group_quasirandom_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_quasirandom_plot.png)  
+![](man/figures/group_quasirandom_plot.png?raw=true)  
 
 group_dot_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_dot_plot.png)  
+![](man/figures/group_dot_plot.png?raw=true)  
 
 group_box_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_box_plot.png?token=AGjL0uL4jjMaGRD_nIBfcbXfyOe14NiPks5bZ9kBwA%3D%3D)  
+![](man/figures/group_box_plot.png?raw=true)  
 
 group_heatmap_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_heatmap_plot.png)  
+![](man/figures/group_heatmap_plot.png?raw=true)  
 
 ## The `scrattch` suite
 

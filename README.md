@@ -15,13 +15,13 @@ devtools::install_github("AllenInstitute/scrattch.vis")
 
 ### Sample-centric plots:
 
-sample_bar_plot()  
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_bar_plot.png)  
+sample_bar_plot()
+![](../blob/master/man/figures/sample_bar_plot.png?raw=true)  
 
-sample_heatmap_plot()  
+sample_heatmap_plot()
 ![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_heatmap_plot.png)  
 
-sample_fire_plot()  
+sample_fire_plot()
 ![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_fire_plot.png)
 
 ### Group-centric plots:
@@ -36,7 +36,7 @@ group_dot_plot()
 ![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_dot_plot.png)  
 
 group_box_plot()
-![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_box_plot.png)  
+![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_box_plot.png?token=AGjL0uL4jjMaGRD_nIBfcbXfyOe14NiPks5bZ9kBwA%3D%3D)  
 
 group_heatmap_plot()
 ![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/group_heatmap_plot.png)  

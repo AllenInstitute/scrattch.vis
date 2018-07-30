@@ -16,7 +16,7 @@ devtools::install_github("AllenInstitute/scrattch.vis")
 ### Sample-centric plots:
 
 build_sample_barplot()  
-![](https://github.com/AllenInstitute/scrattch.vis/tree/master/man/sample_bar_plot.png)
+![](https://github.com/AllenInstitute/scrattch.vis/tree/master/man/figures/sample_bar_plot.png)
 
 ## The `scrattch` suite
 

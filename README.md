@@ -11,12 +11,14 @@ install.packages("devtools")
 devtools::install_github("AllenInstitute/scrattch.vis")
 ```
 
-## One installed, `scrattch.vis` provides a variety of functions for visualizing scRNA-seq data based on sample annotations. Each of these returns a `ggplot2` plot object:
+## Plot Types
+
+Once installed, `scrattch.vis` provides a variety of functions for visualizing scRNA-seq data based on sample annotations. Each of these returns a `ggplot2` plot object:
 
 ### Sample-centric plots:
 
 sample_bar_plot()
-![](../blob/master/man/figures/sample_bar_plot.png?raw=true)  
+![](blob/master/man/figures/sample_bar_plot.png?raw=true)  
 
 sample_heatmap_plot()
 ![](https://raw.githubusercontent.com/AllenInstitute/scrattch.vis/master/man/figures/sample_heatmap_plot.png)  

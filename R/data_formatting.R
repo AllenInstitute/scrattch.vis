@@ -70,7 +70,7 @@ group_stats <- function(data_df,
   library(purrr)
   
   if(is.character(grouping)) {
-    grouping_quo <- syms(grouping)
+    grouping_quo <- rlang::syms(grouping)
   } else {
     grouping_quo <- quo(grouping)
   }

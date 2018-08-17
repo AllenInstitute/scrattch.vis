@@ -151,7 +151,7 @@ title_case <- function(in_chr) {
 #' 
 #' @param x a numeric vector to be converted to colors
 #' @param min_val a number that's used to set the low end of the color scale (default = 0)
-#' @param maxval a number that's used to set the high end of the color scale. If NULL (default), 
+#' @param max_val a number that's used to set the high end of the color scale. If NULL (default), 
 #' use the highest value in x
 #' @param colorset a set of colors to interpolate between using colorRampPalette 
 #' (default = c("darkblue","dodgerblue","gray80","orangered","red"))
@@ -167,9 +167,9 @@ values_to_colors <- function(x,
   heat_colors <- colorRampPalette(colorset)(1001)
   
   if(is.null(max_val)) {
-    maxval <- max(x, na.rm = T)
+    max_val <- max(x, na.rm = T)
   } else {
-    x[x > maxval] <- maxval
+    x[x > max_val] <- max_val
   }
   if (is.null(min_val)) {
     min_val <- min(x, na.rm = T)
@@ -184,7 +184,7 @@ values_to_colors <- function(x,
       if(var(x, na.rm = TRUE) == 0) {
         colors <- rep(heat_colors[500], length(x))
       } else {
-        heat_positions <- unlist(round((x - min_val) / (maxval - min_val) * 1000 + 1, 0))
+        heat_positions <- unlist(round((x - min_val) / (max_val - min_val) * 1000 + 1, 0))
         
         colors <- heat_colors[heat_positions]
       }

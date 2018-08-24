@@ -8,7 +8,7 @@ check_genes <- function(genes,
                         gene_reference,
                         result = "matched") {
   
-  raw_genes <- unique(split_cst(genes))
+  raw_genes <- unique(split_text(genes))
   
   # Convert gene_reference to lowercase and remove "-" and " " for matching
   match_genes <- tolower(gsub("[- .]+","_",gene_reference))

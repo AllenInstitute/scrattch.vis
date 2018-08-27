@@ -299,12 +299,12 @@ build_river_plot <- function(anno,
     node_labels <- plot_nodes %>%
       left_join(align_df) %>%
       group_by(group, name) %>%
-      summarise(label_xpos = case_when(align[1] == "left" ~ xpos[1] - 0.075,
-                                       align[1] == "center" ~ xpos[1],
-                                       align[1] == "right" ~ xpos[1] + 0.075),
-                label_hjust = case_when(align[1] == "left" ~ 1,
-                                        align[1] == "center" ~ 0.5,
-                                        align[1] == "right" ~ 0),
+      summarise(label_xpos = case_when(label_pos[1] == "left" ~ xpos[1] - 0.075,
+                                       label_pos[1] == "center" ~ xpos[1],
+                                       label_pos[1] == "right" ~ xpos[1] + 0.075),
+                label_hjust = case_when(label_pos[1] == "left" ~ 1,
+                                        label_pos[1] == "center" ~ 0.5,
+                                        label_pos[1] == "right" ~ 0),
                 label_ypos = (ymin[1] + ymax[1]) / 2)
     
   }

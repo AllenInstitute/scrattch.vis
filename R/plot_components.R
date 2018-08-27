@@ -37,8 +37,13 @@ sci_label <- function(in_num, sig_figs = 2, type = "ggplot2") {
     } else {
       first <- round(x / (10 ^ floor(log10(x))), sig_figs - 1)
       if(nchar(first) < sig_figs + 1) {
-        # +1 because of decimal place
-        first <- paste0(first, paste0(rep("0",sig_figs + 1 - nchar(first)), collapse = ""))
+        if(first %% 1 == 0) {
+          first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse=""))
+        } else {
+          # +1 because of decimal place
+          first <- paste0(first, paste0(rep("0",sig_figs + 1 - nchar(first)), collapse = ""))
+        }
+        
       }
     }
     # Add suffixes based on type parameter

@@ -264,14 +264,52 @@ make_plot_links <- function(group_links,
   
 }
 
-build_river_plot <- function(anno, group_by, pad = 0.1, fill_group = NULL) {
+#' Build river plots for annotations
+#' 
+#' @param anno The sample annotations to use. Must have _id, _label, and _color columns for each grouping.
+#' @param group_by The bases to use for the river plot, from left to right.
+#' @param show_labels Logical, whether or not to show labels. Default is TRUE.
+#' @param label_pos Label position - "left", "center", or "right". Can be specified for each entry in group_by. Default = "center".
+#' @param pad The fraction of vertical space to use as padding between groups. Default = 0.1.
+#' @param fill_group One group to use as a source for ribbon colors. Default is NULL.
+#' 
+#' @return A ggplot2 plot object.
+#' 
+build_river_plot <- function(anno, 
+                             grouping, 
+                             show_labels = TRUE,
+                             label_pos = "center",
+                             pad = 0.1, 
+                             fill_group = NULL) {
   
+  library(dplyr)
   library(ggplot2)
   
-  group_nodes <- make_group_nodes(anno, group_by)
+  group_nodes <- make_group_nodes(anno, grouping)
   plot_nodes <- make_plot_nodes(group_nodes, pad = pad)
   
-  group_links <- make_group_links(anno, group_by, plot_nodes)
+  if(show_labels) {
+    if(length(label_pos) == 1) {
+      label_pos <- rep(label_pos, length(grouping))
+    }
+    
+    align_df <- data.frame(group = grouping,
+                           label_pos = label_pos)
+    
+    node_labels <- plot_nodes %>%
+      left_join(align_df) %>%
+      group_by(group, name) %>%
+      summarise(label_xpos = case_when(align[1] == "left" ~ xpos[1] - 0.075,
+                                       align[1] == "center" ~ xpos[1],
+                                       align[1] == "right" ~ xpos[1] + 0.075),
+                label_hjust = case_when(align[1] == "left" ~ 1,
+                                        align[1] == "center" ~ 0.5,
+                                        align[1] == "right" ~ 0),
+                label_ypos = (ymin[1] + ymax[1]) / 2)
+    
+  }
+  
+  group_links <- make_group_links(anno, grouping, plot_nodes)
   plot_links <- make_plot_links(group_links, fill = fill_group)
   
   p <- ggplot() +
@@ -290,6 +328,16 @@ build_river_plot <- function(anno, group_by, pad = 0.1, fill_group = NULL) {
     scale_fill_identity() +
     scale_y_reverse() +
     theme_void()
+  
+  if(show_labels) {
+    p <- p +
+      geom_text(data = node_labels,
+                aes(x = label_xpos,
+                    y = label_ypos,
+                    hjust = label_hjust,
+                    label = name),
+                vjust = 0.3)
+  }
   
   p
   

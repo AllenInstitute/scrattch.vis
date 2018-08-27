@@ -41,6 +41,9 @@ sample_bar_plot <- function(data,
   gene_data <- data %>%
     select(one_of(c("sample_name",genes)))
   
+  # Get maximum values for each gene before rescaling to plot space.
+  max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
+  
   # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
   plot_data <- left_join(anno, gene_data, by = "sample_name")
   
@@ -55,6 +58,7 @@ sample_bar_plot <- function(data,
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
       left_join(group_order_df, by = group_id) %>%
       arrange(.plot_order) %>%
       mutate(xpos = 1:n()) %>%
@@ -71,8 +75,7 @@ sample_bar_plot <- function(data,
   n_groups <- length(unique(plot_data[[group_id]]))
   n_samples <- nrow(plot_data)
   
-  # Get maximum values for each gene before rescaling to plot space.
-  max_vals <- map_dbl(genes, function(x) { max(plot_data[[x]]) })
+
   
   # build_header_polygons from plot_components.R
   header_polygons <- build_header_polygons(data = plot_data, 
@@ -300,6 +303,7 @@ sample_heatmap_plot <- function(data,
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
       left_join(group_order_df, by = group_id) %>%
       arrange(.plot_order) %>%
       mutate(xpos = 1:n()) %>%
@@ -469,6 +473,7 @@ sample_fire_plot <- function(data,
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
       left_join(group_order_df, by = group_id)
     
   } else {
@@ -656,6 +661,7 @@ group_violin_plot <- function(data,
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
       left_join(group_order_df, by = group_id)
     
   } else {
@@ -857,6 +863,7 @@ group_quasirandom_plot <- function(data,
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
       left_join(group_order_df, by = group_id)
     
   } else {
@@ -1049,6 +1056,7 @@ group_box_plot <- function(data,
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
       left_join(group_order_df, by = group_id)
     
   } else {
@@ -1272,6 +1280,7 @@ group_heatmap_plot <- function(data,
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
       left_join(group_order_df, by = group_id) %>%
       left_join(group_n, by = group_id)
     
@@ -1495,6 +1504,7 @@ group_dot_plot <- function(data,
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
       left_join(group_order_df, by = group_id) %>%
       left_join(group_n, by = group_id)
     

@@ -86,24 +86,22 @@ group_stats <- function(data_df,
     select(one_of(c("sample_name", grouping))) %>%
     left_join(data_df)
   
-  group_stats <- map_dfc(value_cols,
-                          function(v) {
-                            val_col <- sym(v)
-                            val_df <- anno_data_df %>%
-                              group_by(!!!grouping_quo) %>%
-                              summarise(val_stat = text_stat(!!val_col, stat))
-                            names(val_df)[names(val_df) == "val_stat"] <- v
-                            val_df[, v]
-                          })
+  results_df <- anno_data_df %>%
+    select(one_of(grouping)) %>%
+    unique()
   
-  result <- anno %>%
-    select(!!!grouping_quo) %>%
-    unique() %>%
-    cbind(group_stats)
+  for(v in value_cols) {
+    val_col <- sym(v)
+    val_df <- anno_data_df %>%
+      group_by(!!!grouping_quo) %>%
+      summarise(val_stat = text_stat(!!val_col, stat))
+    names(val_df)[names(val_df) == "val_stat"] <- v
+    results_df <- left_join(results_df, val_df, by = grouping)
+  }
   
-  rownames(result) <- NULL
+  rownames(results_df) <- NULL
   
-  return(result)
+  return(results_df)
 }
 
 #' Convert expression data to heatmap colors for plotting

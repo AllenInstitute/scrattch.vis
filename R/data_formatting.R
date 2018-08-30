@@ -134,22 +134,26 @@ data_df_to_colors <- function(df,
     df[[value_cols]] <- log10(df[[value_cols]])
   }
   
+  if(is.null(max_val) & per_col == FALSE) {
+    max_val <- max(unlist(df[, value_cols]), na.rm = TRUE)
+  }
+  
   df[,value_cols] <- map(value_cols, 
-                          function(x) {
-                            vals <- unlist(df[[x]])
-                            
-                            if(is.null(colorset)) {
-                              values_to_colors(vals,
-                                               min_val = min_val,
-                                               max_val = max_val)
-                            } else {
-                              values_to_colors(vals,
-                                               min_val = min_val,
-                                               max_val = max_val)
-                            }
-                            
-                            
-                          })
+                         function(x) {
+                           vals <- unlist(df[[x]])
+                           
+                           if(is.null(colorset)) {
+                             values_to_colors(vals,
+                                              min_val = min_val,
+                                              max_val = max_val)
+                           } else {
+                             values_to_colors(vals,
+                                              min_val = min_val,
+                                              max_val = max_val)
+                           }
+                           
+                           
+                         })
   
   return(df)
   

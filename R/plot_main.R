@@ -38,8 +38,8 @@ sample_bar_plot <- function(data,
   group_label <- paste0(grouping, "_label")
   group_color <- paste0(grouping, "_color")
   
-  gene_data <- data %>%
-    select(one_of(c("sample_name",genes)))
+  gene_data <- data[, c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
@@ -280,6 +280,7 @@ sample_heatmap_plot <- function(data,
   group_color <- paste0(grouping, "_color")
   
   gene_data <- data[,c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
@@ -454,6 +455,7 @@ sample_fire_plot <- function(data,
   group_color <- paste0(grouping, "_color")
   
   gene_data <- data[,c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
@@ -642,6 +644,7 @@ group_violin_plot <- function(data,
   group_color <- paste0(grouping, "_color")
   
   gene_data <- data[,c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
@@ -844,6 +847,7 @@ group_quasirandom_plot <- function(data,
   group_color <- paste0(grouping, "_color")
   
   gene_data <- data[,c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
@@ -1037,6 +1041,7 @@ group_box_plot <- function(data,
   group_color <- paste0(grouping, "_color")
   
   gene_data <- data[,c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
@@ -1242,7 +1247,8 @@ group_heatmap_plot <- function(data,
   group_label <- paste0(grouping, "_label")
   group_color <- paste0(grouping, "_color")
   
-  gene_data <- data[,c("sample_name",genes)]
+  gene_data <- data[match(anno$sample_name, data$sample_name), c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
@@ -1455,6 +1461,7 @@ group_dot_plot <- function(data,
   group_color <- paste0(grouping, "_color")
   
   gene_data <- data[,c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })

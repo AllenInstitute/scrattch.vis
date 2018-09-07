@@ -161,7 +161,7 @@ title_case <- function(in_chr) {
 values_to_colors <- function(x, 
                              min_val = NULL, 
                              max_val = NULL, 
-                             colorset = c("darkblue","dodgerblue","gray80","orangered","red"),
+                             colorset = c("darkblue","dodgerblue","gray80","orange","orangered"),
                              missing_color = "black") {
   
   heat_colors <- colorRampPalette(colorset)(1001)

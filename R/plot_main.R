@@ -1250,15 +1250,17 @@ group_heatmap_plot <- function(data,
   gene_data <- data[match(anno$sample_name, data$sample_name), c("sample_name",genes)]
   gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
   
-  # Get maximum values for each gene before rescaling to plot space.
-  max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
-  names(max_vals) <- genes
   
   gene_stats <- group_stats(gene_data,
                             value_cols = genes,
                             anno = anno,
                             grouping = group_label,
                             stat = stat)
+  
+  # Get maximum values for each gene before rescaling to plot space.
+  max_vals <- map_dbl(genes, function(x) { max(gene_stats[[x]]) })
+  names(max_vals) <- genes
+  
   if(log_scale) {
     gene_stats[,genes] <- log10(gene_stats[,genes] + 1)
   }

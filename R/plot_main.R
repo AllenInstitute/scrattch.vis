@@ -265,6 +265,7 @@ sample_heatmap_plot <- function(data,
                                 group_order = NULL,
                                 log_scale = TRUE, 
                                 normalize_rows = FALSE,
+                                colorset = NULL,
                                 font_size = 7, 
                                 label_height = 25,
                                 label_type = "angle",
@@ -292,8 +293,9 @@ sample_heatmap_plot <- function(data,
   # Convert the data values to heatmap colors
   gene_data <- data_df_to_colors(gene_data,
                                  value_cols = genes,
-                                 per_col = normalize_rows)
-  
+                                 per_col = normalize_rows,
+                                 colorset = colorset)
+
   # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
   plot_data <- left_join(anno, gene_data, by = "sample_name")
   
@@ -434,16 +436,17 @@ sample_heatmap_plot <- function(data,
 #' @return a ggplot2 plot object
 #'
 sample_fire_plot <- function(data,
-                                anno,
-                                genes,
-                                grouping,
-                                group_order = NULL,
-                                log_scale = TRUE, 
-                                normalize_rows = FALSE,
-                                top_values = "lowest",
-                                font_size = 7, 
-                                label_height = 25,
-                                max_width = 10) {
+                             anno,
+                             genes,
+                             grouping,
+                             group_order = NULL,
+                             log_scale = TRUE, 
+                             normalize_rows = FALSE,
+                             colorset = NULL,
+                             top_values = "lowest",
+                             font_size = 7, 
+                             label_height = 25,
+                             max_width = 10) {
   
   library(dplyr)
   library(ggplot2)
@@ -464,7 +467,6 @@ sample_fire_plot <- function(data,
     gene_data[,genes] <- log10(gene_data[,genes] + 1)
   }
   
-
   # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
   plot_data <- left_join(anno, gene_data, by = "sample_name")
   
@@ -533,7 +535,8 @@ sample_fire_plot <- function(data,
     
     gene_colors <- data_df_to_colors(gene_values,
                                      value_cols = gene,
-                                     per_col = normalize_rows)
+                                     per_col = normalize_rows,
+                                     colorset = colorset)
     
     names(gene_colors)[names(gene_colors) == gene] <- "plot_fill"
     
@@ -1233,6 +1236,7 @@ group_heatmap_plot <- function(data,
                                stat = "median",
                                log_scale = TRUE,
                                normalize_rows = FALSE,
+                               colorset = NULL,
                                font_size = 7, 
                                label_height = 25,
                                show_counts = TRUE, 
@@ -1268,7 +1272,8 @@ group_heatmap_plot <- function(data,
   # Convert the data values to heatmap colors
   gene_stats <- data_df_to_colors(gene_stats,
                                   value_cols = genes,
-                                  per_col = normalize_rows)
+                                  per_col = normalize_rows,
+                                  colorset = colorset)
   
   # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
   plot_anno <- anno %>%
@@ -1448,6 +1453,7 @@ group_dot_plot <- function(data,
                            size_stat = "prop_gt0",
                            log_scale = TRUE,
                            normalize_rows = FALSE,
+                           colorset = NULL,
                            font_size = 7, 
                            label_height = 25,
                            show_counts = TRUE, 
@@ -1487,8 +1493,9 @@ group_dot_plot <- function(data,
   
   # Convert the data values to heatmap colors
   gene_fill_data <- data_df_to_colors(gene_fill_stats,
-                                       value_cols = genes,
-                                       per_col = normalize_rows)
+                                      value_cols = genes,
+                                      per_col = normalize_rows,
+                                      colorset = colorset)
   
   names(gene_fill_data)[match(genes, names(gene_fill_data))] <- paste0(genes, "_fill")
   names(gene_size_stats)[match(genes, names(gene_size_stats))] <- paste0(genes, "_size")

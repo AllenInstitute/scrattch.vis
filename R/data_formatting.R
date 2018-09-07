@@ -149,7 +149,8 @@ data_df_to_colors <- function(df,
                            } else {
                              values_to_colors(vals,
                                               min_val = min_val,
-                                              max_val = max_val)
+                                              max_val = max_val,
+                                              colorset = colorset)
                            }
                            
                            

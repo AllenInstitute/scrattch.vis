@@ -53,6 +53,10 @@ sample_bar_plot <- function(data,
   
   # Add an x position to each sample.
   if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
     group_order_df <- data.frame(group = group_order) %>%
       mutate(.plot_order = 1:n())
     names(group_order_df)[1] <- group_id
@@ -80,6 +84,7 @@ sample_bar_plot <- function(data,
   # build_header_polygons from plot_components.R
   header_polygons <- build_header_polygons(data = plot_data, 
                                            grouping = grouping,
+                                           group_order = group_order,
                                            ymin = n_genes + 1, 
                                            label_height = label_height, 
                                            poly_type = label_type)
@@ -301,6 +306,10 @@ sample_heatmap_plot <- function(data,
   
   # Add an x position to each sample.
   if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
     group_order_df <- data.frame(group = group_order) %>%
       mutate(.plot_order = 1:n())
     names(group_order_df)[1] <- group_id
@@ -326,6 +335,7 @@ sample_heatmap_plot <- function(data,
   # build_header_polygons from plot_components.R
   header_polygons <- build_header_polygons(data = plot_data, 
                                            grouping = grouping,
+                                           group_order = group_order,
                                            ymin = n_genes + 1, 
                                            label_height = label_height, 
                                            poly_type = label_type)
@@ -472,6 +482,10 @@ sample_fire_plot <- function(data,
   
   # Add an x position to each group
   if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
     group_order_df <- data.frame(group = group_order) %>%
       mutate(xpos = 1:n())
     names(group_order_df)[1] <- group_id
@@ -500,6 +514,7 @@ sample_fire_plot <- function(data,
   # Build the cell type label rectangles from plot_components.R
   header_labels <-build_header_labels(data = plot_data, 
                                       grouping = grouping,
+                                      group_order = group_order,
                                       ymin = n_genes + 1, 
                                       label_height = label_height, 
                                       label_type = "simple")
@@ -662,13 +677,16 @@ group_violin_plot <- function(data,
   
   # Add an x position to each group
   if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
     group_order_df <- data.frame(group = group_order) %>%
       mutate(xpos = 1:n())
     names(group_order_df)[1] <- group_id
     
     plot_data <- plot_data %>%
-      filter_(paste0(group_id, " %in% group_order")) %>%
-      left_join(group_order_df, by = group_id)
+        left_join(group_order_df, by = group_id)
     
   } else {
     # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
@@ -699,6 +717,7 @@ group_violin_plot <- function(data,
   
   header_labels <-build_header_labels(data = plot_data, 
                                       grouping = grouping,
+                                      group_order = group_order,
                                       ymin = n_genes + 1, 
                                       label_height = label_height, 
                                       label_type = "simple")
@@ -865,6 +884,10 @@ group_quasirandom_plot <- function(data,
   
   # Add an x position to each group
   if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
     group_order_df <- data.frame(group = group_order) %>%
       mutate(xpos = 1:n())
     names(group_order_df)[1] <- group_id
@@ -902,6 +925,7 @@ group_quasirandom_plot <- function(data,
   
   header_labels <-build_header_labels(data = plot_data, 
                                       grouping = grouping,
+                                      group_order = group_order,
                                       ymin = n_genes + 1, 
                                       label_height = label_height, 
                                       label_type = "simple")
@@ -1059,6 +1083,10 @@ group_box_plot <- function(data,
   
   # Add an x position to each group
   if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
     group_order_df <- data.frame(group = group_order) %>%
       mutate(xpos = 1:n())
     names(group_order_df)[1] <- group_id
@@ -1096,6 +1124,7 @@ group_box_plot <- function(data,
   
   header_labels <-build_header_labels(data = plot_data, 
                                       grouping = grouping,
+                                      group_order = group_order,
                                       ymin = n_genes + 1, 
                                       label_height = label_height, 
                                       label_type = "simple")
@@ -1288,6 +1317,10 @@ group_heatmap_plot <- function(data,
   
   # Add an x position to each group
   if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
     group_order_df <- data.frame(group = group_order) %>%
       mutate(xpos = 1:n())
     names(group_order_df)[1] <- group_id
@@ -1315,6 +1348,7 @@ group_heatmap_plot <- function(data,
   
   header_labels <-build_header_labels(data = plot_data, 
                                       grouping = grouping,
+                                      group_order = group_order,
                                       ymin = n_genes + 1, 
                                       label_height = label_height, 
                                       label_type = "simple")
@@ -1351,7 +1385,7 @@ group_heatmap_plot <- function(data,
           legend.position = "none") +
     geom_hline(aes(yintercept = 1:(n_genes)), size = 0.2)
   
-  # plot the swarms for each gene
+  # plot the heatmap for each gene
   for(i in 1:length(genes)) {
     gene <- genes[[i]]
     
@@ -1515,6 +1549,10 @@ group_dot_plot <- function(data,
   
   # Add an x position to each group
   if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
     group_order_df <- data.frame(group = group_order) %>%
       mutate(xpos = 1:n())
     names(group_order_df)[1] <- group_id
@@ -1542,6 +1580,7 @@ group_dot_plot <- function(data,
   
   header_labels <-build_header_labels(data = plot_data, 
                                       grouping = grouping,
+                                      group_order = group_order,
                                       ymin = n_genes + 1, 
                                       label_height = label_height, 
                                       label_type = "simple")

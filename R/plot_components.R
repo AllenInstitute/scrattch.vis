@@ -185,6 +185,7 @@ build_header_polygons <- function(data,
 #' 
 #' @param data A data.frame containing joined annotations and expression data
 #' @param grouping The base to use for grouping samples.
+#' @param group_order Alternate order to use for grouping if necessary. Default is NULL, which will use grouping_id.
 #' @param ymin The minimum y value for the bottom of the headers. In gene plot contexts, this will usually be the number of genes + 1
 #' @param label_height Percentage of the plot area that the headers should take up. Default = 25. 
 #' @param label_type Either "simple", "angle", or "square". Simple is for use with grouped plots. 
@@ -194,6 +195,7 @@ build_header_polygons <- function(data,
 #' 
 build_header_labels <- function(data, 
                                 grouping, 
+                                group_order = NULL,
                                 ymin,  
                                 label_height = 25, 
                                 label_type = "simple") {
@@ -218,9 +220,23 @@ build_header_labels <- function(data,
   n_samples <- nrow(data)
   n_clust <- length(unique(data[[group_id]]))
   
-  data <- data %>%
-    arrange_(group_id) %>%
-    mutate(xpos = 1:n())
+  # Add an x position to each group
+  if(!"xpos" %in% names(data)) {
+    if(!is.null(group_order)) {
+      group_order_df <- data.frame(group = group_order) %>%
+        mutate(xpos = 1:n())
+      names(group_order_df)[1] <- group_id
+      
+      data <- data %>%
+        left_join(group_order_df, by = group_id)
+      
+    } else {
+      # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
+      data <- data %>%
+        arrange_(group_id) %>%
+        mutate(xpos = 1:n())
+    }
+  }
   
   data <- data %>%
     group_by_(group_id, group_label, group_color) %>%
@@ -228,8 +244,8 @@ build_header_labels <- function(data,
               maxx = max(xpos))
   
   if(label_type == "simple") {
-    xlab.rect <- data.frame(xmin = 1:n_clust - 0.5,
-                            xmax = 1:n_clust + 0.5,
+    xlab.rect <- data.frame(xmin = data$minx - 0.5,
+                            xmax = data$maxx + 0.5,
                             ymin = ymin,
                             ymax = ymin + labheight,
                             color = data[[group_color]],

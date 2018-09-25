@@ -21,6 +21,7 @@ mat_to_data_df <- function(mat,
     }
   }
   
+
   df <- cbind(sample_name = rownames(mat),
               as.data.frame(as.matrix(mat)))
   rownames(df) <- NULL

@@ -1,8 +1,9 @@
 library(scrattch.vis)
+
 context("data formatting")
 
 test_that("Matrix is converted to a df", {
-  
+
   library(tasic2016data)
   counts <- tasic2016data::tasic_2016_counts
   df <- mat_to_data_df(counts, cols_are = "sample_names")

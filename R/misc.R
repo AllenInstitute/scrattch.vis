@@ -1,6 +1,6 @@
 #' Check input genes against a vector of gene names
 #' 
-#' @param genes An input character vector of gene symbols
+#' @param genes An input character string (or character vector) of gene symbols
 #' @param gene_reference A reference character vector of gene symbols
 #' @param result Whether to return a vector of matched or unmatched genes, or a list of both. Options are "matched" (default), "unmatched", or "both".
 #' 
@@ -8,7 +8,19 @@ check_genes <- function(genes,
                         gene_reference,
                         result = "matched") {
   
-  raw_genes <- unique(split_text(genes))
+  # Add some input QC
+  if (class(genes) != "character")
+    stop("Your genes input is not a character string or vector.")
+  if (class(gene_reference) != "character")
+    stop("Your reference input is not a character vector.")
+  
+  
+  if (length(genes) == 1) {
+    raw_genes <- unique(split_text(genes))
+  } else {
+    raw_genes <- unique(genes)
+  }
+  
   
   # Convert gene_reference to lowercase and remove "-" and " " for matching
   match_genes <- tolower(gsub("[- .]+","_",gene_reference))
@@ -20,17 +32,17 @@ check_genes <- function(genes,
   good_genes <- character()
   bad_genes <- character()
   
-  for(x in raw_genes) {
+  for (x in raw_genes) {
     this_gene <- tolower(gsub("[- .]+","_", x))
     
-    if(this_gene %in% match_genes) {
+    if (this_gene %in% match_genes) {
       good_genes <- c(good_genes, gene_reference[match_genes == this_gene][1])
     } else {
       bad_genes <- c(bad_genes, x)
     }
   }
   
-  if(result == "matched") {
+  if (result == "matched") {
     unique(good_genes)
   } else if (result == "not_matched") {
     unique(bad_genes)
@@ -40,8 +52,9 @@ check_genes <- function(genes,
          not_matched = unique(bad_genes))
     
   }
-  
 }
+
+
 
 #' Evaluate a character string specifying integer values to a numeric vector
 #' 
@@ -55,6 +68,11 @@ check_genes <- function(genes,
 #' test <- "8,7,45,20"
 #' chr_to_num(test)
 chr_to_num <- function(in_chr) {
+  
+  if (length(in_chr) != 1) {
+    stop("Your input is not a character string.")
+  }
+  
   round_c_chr <- paste0("round(c(", in_chr, "),0)")
   parsed_chr <- parse(text = round_c_chr)
   result <- eval(parsed_chr)
@@ -71,7 +89,7 @@ chr_to_num <- function(in_chr) {
 #' @examples
 #' color_sum("red","green")
 #' 
-#' color_sum("#EC008C","#FBB040")
+#' color_sum("#1B9E77","#D95F02")
 color_sum <- function(col1,col2) {
   
   rgbmat1 <- col2rgb(col1)/255
@@ -96,6 +114,10 @@ color_sum <- function(col1,col2) {
 #'   geom_text(aes(x = mpg, y = wt, label = rownames(mtcars)),
 #'             size = pt2mm(7))
 pt2mm <- function(pt) {
+  
+  if (class(pt) != "numeric")
+    stop("Your input should be numeric font size in pt.")
+  
   mm <- pt / 2.834645669
   return(mm)
 }
@@ -110,6 +132,11 @@ pt2mm <- function(pt) {
 #' test <- c("6330527o06RiK","A930038C07RIK","a330070k13rik")
 #' riken_case(test)
 riken_case <- function(in_chr) {
+  
+  library(stringr)
+  if (!stringr::str_detect(in_chr, "[rikRIKrIKRik]"))
+    warning("Your input is not a Riken gene.")
+  
   upper <- toupper(in_chr)
   result <- sub("RIK","Rik",upper)
   return(result)
@@ -122,11 +149,15 @@ riken_case <- function(in_chr) {
 #' @return a character vector with each object separated by any combination of commas, spaces, and/or tabs
 #' 
 #' @examples
-#' test <- "Hspa8, Scnn1a,Rbp4    Ptgs2"
+#' test <- "Hspa8, Scnn1a,Rbp4    Ptgs2; GeneA:GeneB"
 #' split_text(test)
 #' 
 split_text <- function(in_string) {
-  out_chr <- strsplit(in_string,"[, \t\r\n]+")[[1]]
+  
+  if (length(in_string) != 1)
+    warning("Input might not be a character string.")
+  
+  out_chr <- strsplit(in_string,"[,.;: \t\r\n]+")[[1]]
   return(out_chr)
 }
 

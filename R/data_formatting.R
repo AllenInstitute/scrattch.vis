@@ -139,17 +139,17 @@ data_df_to_colors <- function(df,
   
   library(purrr)
   
-  if(is.null(value_cols)) {
+  if (is.null(value_cols)) {
     value_cols <- names(df)[-1]
   }
   
-  if(scale == "log2") {
+  if (scale == "log2") {
     df[[value_cols]] <- log2(df[[value_cols]])
-  } else if(scale == "log10") {
+  } else if (scale == "log10") {
     df[[value_cols]] <- log10(df[[value_cols]])
   }
   
-  if(is.null(max_val) & per_col == FALSE) {
+  if (is.null(max_val) & per_col == FALSE) {
     max_val <- max(unlist(df[, value_cols]), na.rm = TRUE)
   }
   
@@ -157,7 +157,7 @@ data_df_to_colors <- function(df,
                          function(x) {
                            vals <- unlist(df[[x]])
                            
-                           if(is.null(colorset)) {
+                           if (is.null(colorset)) {
                              values_to_colors(vals,
                                               min_val = min_val,
                                               max_val = max_val)
@@ -175,9 +175,10 @@ data_df_to_colors <- function(df,
   
 }
 
+
 #' Build plot positions for a character vector
 #' 
-#' @param vec a character vector
+#' @param vec a character vector (like gene names)
 #' @param sort how to resort the vector, if necessary. Default is "none", which keeps input order. 
 #' Options: "none","rev","random","alpha".
 #' @param axis_name which axis to use. Default is "y"

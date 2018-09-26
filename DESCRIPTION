@@ -8,6 +8,7 @@ Maintainer: Lucas Graybuck <lucasg@alleninstitute.org>
 Description: Single cell RNA-seq data visualization
 License: file LICENSE
 LazyData: true
+Encoding: UTF-8
 Imports:
     dendextend (>= 1.2.0),
     dplyr (>= 0.4.3),

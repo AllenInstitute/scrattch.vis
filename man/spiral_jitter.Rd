@@ -7,6 +7,24 @@
 spiral_jitter(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1,
   ratio = "golden")
 }
+\arguments{
+\item{x}{coordinate x}
+
+\item{y}{coordinate y}
+
+\item{n}{length(x)}
+
+\item{max_n}{}
+
+\item{radius}{}
+
+\item{aspect}{}
+
+\item{ratio}{golden}
+}
 \description{
 Jitter x-y coordinates in a spiral pattern
+}
+\examples{
+spiral_jitter(x,y)
 }

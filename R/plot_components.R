@@ -282,7 +282,7 @@ build_header_labels <- function(data,
 
 #' Covert hclust objects to segments for use in ggplots
 #' 
-#' @param hc a hclust object
+#' @param hc a hclust object (hierarchical clustering, stats package). First convert df to distances (dist(df)) then hclust(df)
 #' @param tree.dir a character object with the direction the tree points to, from root to leaves. options are "down" (default), "up","left", "right".
 #' @param dir.lims a 2-member vector with the space in the direction of plotting that the dendrogram will occupy. default = c(0,1)
 #' @return a data.frame with segment values for ggplot2's geom_seg. columns: "x","xend","y","yend".
@@ -332,11 +332,21 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
     
   }
   
-  plot.segs
+  return(plot.segs)
   
 }
 
 #' Jitter x-y coordinates in a spiral pattern
+#'
+#' @param x coordinate x
+#' @param y coordinate y
+#' @param n length(x)
+#' @param max_n 
+#' @param radius 
+#' @param aspect 
+#' @param ratio golden
+#' @examples 
+#' spiral_jitter(x,y)
 spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, ratio = "golden") {
   
   if (is.null(n)) {

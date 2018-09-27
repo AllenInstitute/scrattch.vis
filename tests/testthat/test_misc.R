@@ -46,7 +46,6 @@ test_that("Convert the case of Riken genes no matter input case", {
 })
 
 
-
 test_that("Split a character string by commas, spaces, tabs, and line breaks into a character vector", {
   test <- "Hspa8, Scnn1a,Rbp4    Ptgs2; GeneA:GeneB"
   out <- split_text(test)
@@ -55,3 +54,4 @@ test_that("Split a character string by commas, spaces, tabs, and line breaks int
   expect_length(out, 6)
   expect_warning(split_text(c("GeneA","GeneBb2a","GeneC:2b")))
 })
+

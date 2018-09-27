@@ -13,6 +13,12 @@ melt_data_df(data_df, grouping = "sample_name", value_cols = NULL)
 
 \item{value_cols}{The value columns to include. If NULL (default), will automatically choose all non-grouping columns.}
 }
+\value{
+melted dataframe
+}
 \description{
 Melt a data_df to prepare for plot parameters
+}
+\examples{
+melt_data_df(df,grouping = "sample_name", value_cols = NULL)
 }

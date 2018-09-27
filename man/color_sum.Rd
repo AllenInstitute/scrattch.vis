@@ -20,5 +20,5 @@ Mix two colors additively in RGB space
 \examples{
 color_sum("red","green")
 
-color_sum("#EC008C","#FBB040")
+color_sum("#1B9E77","#D95F02")
 }

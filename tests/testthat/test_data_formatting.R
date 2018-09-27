@@ -3,16 +3,6 @@ library(scrattch.vis)
 context("data_formatting.R")
 
 test_that(
-  "mat_to_data_df() correctly converts a matrix to a data.frame with the correct dimensions", {
-  counts <- readRDS(system.file("testdata", "test_data_matrix.RData", package = "scrattch.vis"))
-  expect_is(counts, "matrix")
-  df <- mat_to_data_df(counts, cols_are = "sample_names")
-  expect_is(df, "data.frame")
-  expect_output(str(df), "1809 obs")
-})
-
-
-test_that(
   "melt_data_df() correctly melts a data.frame to a 3-column format", 
   {
     df <- readRDS(system.file("testdata","test_data_df.RData", package = "scrattch.vis"))
@@ -106,9 +96,10 @@ test_that(
   expect_equal(names(output_sorted), c("gene","y"))
   expect_equal(output_sorted$gene, genes[order(genes)])
   
+
 })
 
 test_that("Format data provided in list format for scrattch plots", {
- skip('skip this function') 
+ skip('skip this test for now') 
 })
 

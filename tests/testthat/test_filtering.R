@@ -22,7 +22,7 @@ test_that("Filter a data.frame with parameters provided in a list", {
   expect_output(str(filtered_anno), "primary_type")
   expect_that(length(filter_names) == 0, throws_error())
   expect_that(length(missing_cols) > 0, throws_error())
-  
+  expect_error(expect_output(filter_using_list(), NULL))
 })
 
 

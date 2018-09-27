@@ -14,6 +14,7 @@ test_that("Check input genes against a vector of gene names", {
   expect_true(is.character(output))
   expect_false(class(genes) != "character")
   expect_false(class(reference) != "character")
+  expect_error(expect_output(check_genes(), NULL))
 })
 
 
@@ -23,12 +24,14 @@ test_that("Evaluate a character string specifying integer values to a numeric ve
   output <- chr_to_num(test)
   expect_true(length(test) == 1)
   expect_true(is.numeric(output))
+  expect_error(expect_output(chr_to_num(), NULL))
 })
 
 
 test_that("Mix two colors additively in RGB space", {
   expect_true(is.character(color_sum("#1B9E77","#D95F02")))
   expect_error(color_sum("blue", "white"))
+  expect_error(expect_output(color_sum(), NULL))
 })
 
 
@@ -36,6 +39,7 @@ test_that("Mix two colors additively in RGB space", {
 test_that("Convert font sizes in pt to mm", {
   expect_that(pt2mm(12), equals(12 / 2.834645669))
   expect_error(pt2mm(NA))
+  expect_error(expect_output(pt2mm(), NULL))
 })
 
 
@@ -43,6 +47,7 @@ test_that("Convert font sizes in pt to mm", {
 test_that("Convert the case of Riken genes no matter input case", {
   expect_that(riken_case(c("6330527o06RiK","A930038C07RIK","a330070k13rik")), equals(c("6330527O06Rik", "A930038C07Rik", "A330070K13Rik")))
   expect_warning(riken_case("geneA"))
+  expect_error(expect_output(riken_case(), NULL))
 })
 
 
@@ -53,5 +58,22 @@ test_that("Split a character string by commas, spaces, tabs, and line breaks int
   expect_length(test, 1)
   expect_length(out, 6)
   expect_warning(split_text(c("GeneA","GeneBb2a","GeneC:2b")))
+  expect_error(expect_output(split_text(), NULL))
+  
 })
 
+
+test_that("Convert the case of objects in a character vector to Title Case", {
+  expect_length(title_case(c("hspa8","scnn1a","fhqwghads")), 3)
+  expect_type(title_case(c("hspa8","scnn1a","fhqwghads")), "character")
+  tmp <- tempfile()
+  expect_known_output(title_case(c("Scnn1a", "Hspa8")), tmp, print = TRUE)
+  expect_warning(title_case(c("hspa8, scnn1a, myrandomgene")))
+  expect_error(expect_output(title_case(), NULL))
+})
+
+
+test_that("Convert values to colors along a color ramp", {
+  
+  
+})

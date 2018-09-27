@@ -16,7 +16,7 @@ a character vector with each object separated by any combination of commas, spac
 Split a character string by commas, spaces, tabs, and line breaks into a character vector
 }
 \examples{
-test <- "Hspa8, Scnn1a,Rbp4    Ptgs2"
+test <- "Hspa8, Scnn1a,Rbp4    Ptgs2; GeneA:GeneB"
 split_text(test)
 
 }

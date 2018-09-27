@@ -4,10 +4,11 @@
 \alias{build_vec_pos}
 \title{Build plot positions for a character vector}
 \usage{
-build_vec_pos(vec, vec_name = "gene_name", sort = "none", axis_name = "y")
+build_vec_pos(vec, vec_name = "gene_name", sort = "none",
+  axis_name = "y")
 }
 \arguments{
-\item{vec}{a character vector}
+\item{vec}{a character vector (like gene names)}
 
 \item{sort}{how to resort the vector, if necessary. Default is "none", which keeps input order. 
 Options: "none","rev","random","alpha".}

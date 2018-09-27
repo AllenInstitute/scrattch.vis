@@ -4,13 +4,15 @@
 \alias{build_header_labels}
 \title{Build colorful, rectangular labels for plot headers in plot space}
 \usage{
-build_header_labels(data, grouping, ymin, label_height = 25,
-  label_type = "simple")
+build_header_labels(data, grouping, group_order = NULL, ymin,
+  label_height = 25, label_type = "simple")
 }
 \arguments{
 \item{data}{A data.frame containing joined annotations and expression data}
 
 \item{grouping}{The base to use for grouping samples.}
+
+\item{group_order}{Alternate order to use for grouping if necessary. Default is NULL, which will use grouping_id.}
 
 \item{ymin}{The minimum y value for the bottom of the headers. In gene plot contexts, this will usually be the number of genes + 1}
 

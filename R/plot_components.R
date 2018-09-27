@@ -15,6 +15,7 @@
 #' sci_label(my_numbers)
 #' 
 #' sci_label(my_numbers, sig_figs = 3)
+
 sci_label <- function(in_num, 
                       sig_figs = 2, 
                       type = "ggplot2") {
@@ -25,6 +26,7 @@ sci_label <- function(in_num,
     x <- in_num[i]
     
     if(x < 0) {
+
       neg <- "-"
       x <- abs(x)
     } else {
@@ -32,19 +34,19 @@ sci_label <- function(in_num,
     }
     
     # Format the string to adjust for number of sig_figs
-    if(x == 0) {
+    if (x == 0) {
       # If the value is 0, build 0.(0)N based on the number of sig figs requested.
-      first <- paste0("0", ".", paste0(rep("0", sig_figs - 1), collapse="") )
-    } else if(log10(x) %% 1 == 0) {
+      first <- paste0("0", ".", paste0(rep("0", sig_figs - 1), collapse = "") )
+    } else if (log10(x) %% 1 == 0) {
       first <- substr(x, 1, 1)
-      if(sig_figs > 1) {
-        first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse=""))
+      if (sig_figs > 1) {
+        first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse = ""))
       }
     } else {
       first <- round(x / (10 ^ floor(log10(x))), sig_figs - 1)
-      if(nchar(first) < sig_figs + 1) {
-        if(first %% 1 == 0) {
-          first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse=""))
+      if (nchar(first) < sig_figs + 1) {
+        if (first %% 1 == 0) {
+          first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse = ""))
         } else {
           # +1 because of decimal place
           first <- paste0(first, paste0(rep("0",sig_figs + 1 - nchar(first)), collapse = ""))
@@ -53,20 +55,20 @@ sci_label <- function(in_num,
       }
     }
     # Add suffixes based on type parameter
-    if(x == 0) {
-      if(type == "text") {
+    if (x == 0) {
+      if (type == "text") {
         label <- paste0(first,"E0")
-      } else if(type == "ggplot2") {
+      } else if (type == "ggplot2") {
         label <- paste0(first, "%*%10^0" )
-      } else if(type == "DT") {
+      } else if (type == "DT") {
         label <- paste0(first, "\u271510<sup>0</sup>" )
       }
     } else {
-      if(type == "text") {
+      if (type == "text") {
         label <- paste0(first,"E",floor(log10(x)))
-      } else if(type == "ggplot2") {
+      } else if (type == "ggplot2") {
         label <- paste0(first, "%*%10^", floor(log10(x)))
-      } else if(type == "DT") {
+      } else if (type == "DT") {
         label <- paste0(first, "\u271510<sup>", floor(log10(x)),"</sup>")
       }
     }
@@ -88,9 +90,10 @@ sci_label <- function(in_num,
 #' @examples
 #' ggplot(mtcars) +
 #'  geom_point(aes(x = mpg, y = wt)) +
-#'  theme_no_x_margin() +
+#'  theme_no_x() +
 #'  labs(x = NULL)
 theme_no_x <- function(base_size = 12, base_family = "") {
+  library(ggplot2)
   theme_classic(base_size = base_size, base_family = base_family) %+replace%
     theme(plot.margin = unit(c(rep(0,4)),"line"),
           axis.text = element_text(size = rel(1)),
@@ -183,7 +186,7 @@ build_header_polygons <- function(data,
            y4 = ymin + labheight * fraction_of_label)
   
   # For a simpler square label, set the top and bottom x-positions to be the same
-  if(poly_type == "square") {
+  if (poly_type == "square") {
     poly.data <- poly.data %>%
       mutate(x3 = x2,
              x4 = x1)
@@ -195,7 +198,7 @@ build_header_polygons <- function(data,
                      color = rep(poly.data$color, each = 4))
   poly.x <- numeric()
   poly.y <- numeric()
-  for(i in 1:nrow(poly.data)) {
+  for (i in 1:nrow(poly.data)) {
     poly.x <- c(poly.x,
                 poly.data$x1[i],
                 poly.data$x2[i],
@@ -244,7 +247,7 @@ build_header_labels <- function(data,
   # x-axis: 0:(nsamples) (for cell-based plots)
   # x-axis: 1:(nclust + 1) (for cluster-based plots)
   
-  labheight <- (ymin - 1)*(label_height/100)/(1-label_height/100)
+  labheight <- (ymin - 1)*(label_height/100)/(1 - label_height/100)
   
   group_id <- paste0(grouping, "_id")
   group_label <- paste0(grouping, "_label")
@@ -277,14 +280,14 @@ build_header_labels <- function(data,
     summarise(minx = min(xpos),
               maxx = max(xpos))
   
-  if(label_type == "simple") {
+  if (label_type == "simple") {
     xlab.rect <- data.frame(xmin = data$minx - 0.5,
                             xmax = data$maxx + 0.5,
                             ymin = ymin,
                             ymax = ymin + labheight,
                             color = data[[group_color]],
                             label = data[[group_label]] )
-  } else if(label_type == "angle") {
+  } else if (label_type == "angle") {
     xlab.rect <- data.frame(xmin = (n_samples) * (1:n_clust - 1) / n_clust,
                             xmax = (n_samples) * (1:n_clust) / n_clust,
                             # 10% of the label height is reserved for angled polygons
@@ -292,7 +295,7 @@ build_header_labels <- function(data,
                             ymax = ymin + labheight,
                             color = data[[group_color]],
                             label = data[[group_label]] )
-  } else if(label_type == "square") {
+  } else if (label_type == "square") {
     xlab.rect <- data %>% 
       group_by_(group_id) %>%
       summarise(xmin = minx - 1,
@@ -308,7 +311,7 @@ build_header_labels <- function(data,
 
 #' Covert hclust objects to segments for use in ggplots
 #' 
-#' @param hc a hclust object
+#' @param hc a hclust object (hierarchical clustering, stats package). First convert df to distances (dist(df)) then hclust(df)
 #' @param tree.dir a character object with the direction the tree points to, from root to leaves. options are "down" (default), "up","left", "right".
 #' @param dir.lims a 2-member vector with the space in the direction of plotting that the dendrogram will occupy. default = c(0,1)
 #' @return a data.frame with segment values for ggplot2's geom_seg. columns: "x","xend","y","yend".
@@ -329,11 +332,11 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
     mutate(y = (y/max(y))*yheight + ymin) %>%
     mutate(yend = (yend/max(yend))*yheight + ymin)
   
-  if(tree.dir == "down") {
+  if (tree.dir == "down") {
     
     plot.segs <- norm.segs
     
-  } else if(tree.dir == "up") {
+  } else if (tree.dir == "up") {
     
     ycenter = (ymin + ymax) / 2
     
@@ -341,12 +344,12 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
       mutate(y = ycenter + (ycenter - y),
              yend = ycenter + (ycenter - yend))
     
-  } else if(tree.dir == "left") {
+  } else if (tree.dir == "left") {
     
     plot.segs <- norm.segs
     names(plot.segs) <- c("y","x","yend","xend")
     
-  } else if(tree.dir == "right") {
+  } else if (tree.dir == "right") {
     xcenter = (ymin + ymax) / 2
     
     plot.segs <- norm.segs
@@ -358,19 +361,29 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
     
   }
   
-  plot.segs
+  return(plot.segs)
   
 }
 
 #' Jitter x-y coordinates in a spiral pattern
+#'
+#' @param x coordinate x
+#' @param y coordinate y
+#' @param n length(x)
+#' @param max_n 
+#' @param radius 
+#' @param aspect 
+#' @param ratio golden
+#' @examples 
+#' spiral_jitter(x,y)
 spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, ratio = "golden") {
   
-  if(is.null(n)) {
+  if (is.null(n)) {
     n <- length(x)
   }
   
   # pre-calculated golden ratio
-  if(ratio == "golden") {
+  if (ratio == "golden") {
     ratio <- (sqrt(5) + 1) / 2
   }
   
@@ -378,7 +391,7 @@ spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, 
   angle <- 360 / (ratio ^ 2)
   
   # scale the spacing between points
-  if(is.null(max_n)) {
+  if (is.null(max_n)) {
     # If no maximum is provided, then c is based
     # on the number of points (n)
     c <- radius / sqrt(n)
@@ -393,13 +406,13 @@ spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, 
   y_j <- rep(y,n)
   
   # Jitter each point
-  for(m in 1:n) {
+  for (m in 1:n) {
     # calculate position using polar coordinates
     r <- c * sqrt(m)
     theta <- angle * m
     
     # convert polar coordinates to cartesian coordinates
-    if(aspect > 1) {
+    if (aspect > 1) {
       # if the aspect is larger than 1 (wider than tall),
       # scale the y positions to compensate
       x_j[m] <- x + r * cos(theta)

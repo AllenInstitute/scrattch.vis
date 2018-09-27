@@ -154,4 +154,43 @@ test_that(
   }
 )
 
+test_that("Remove the X-axis (and most other margins)", {
+  skip("Function doesn't work at the moment. Skip.")
+})
+
+test_that("Build colorful, rectangular labels for plot headers in plot space", {
+  df <- system.file("testdata","helper_plot_data.csv", package = "scrattch.vis")
+  df <- read.csv(df)
+  grouping <- "primary_type"
+  expect_output(str(build_header_labels(df, grouping, ymin = 5)), "data.frame")
+  expect_output(str(build_header_labels(df, grouping, ymin = 5)), "label")
+  expect_length(build_header_labels(df, grouping, ymin = 5), 6)
+  expect_error(expect_output(build_header_labels(), NULL))
+})
+
+
+test_that("Covert hclust objects to segments for use in ggplots", {
+  library(tidyverse)
+  df <- mtcars %>%
+    dist(.) %>%
+    hclust(.)
+  out <- hclust_to_seg(df, tree.dir = "down", dir.lims = c(0,1))
+  expect_type(df, "list")
+  expect_output(str(df), "hclust")
+  expect_length(out, 4)
+  expect_length(hclust_to_seg(df, tree.dir = "up", dir.lims = c(0,1)), 4)
+  expect_output(str(out), "data.frame")
+})
+
+
+test_that("Jitter x-y coordinates in a spiral pattern",{
+  out <- mtcars %>%
+    dist(.) %>%
+    hclust(.) %>%
+    hclust_to_seg(.)
+  expect_length(out, 4)
+  expect_output(str(spiral_jitter(out$x,out$y)), "data.frame")
+  expect_output(str(spiral_jitter(out$x,out$y)), "y")
+  expect_length(spiral_jitter(out$x,out$y), 2)
+})
 

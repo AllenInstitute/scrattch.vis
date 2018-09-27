@@ -1,6 +1,6 @@
 library(scrattch.vis)
 
-context("Filtering")
+context("filtering.R")
 
 test_that("Filter a data.frame with parameters provided in a list", {
   library(tasic2016data)

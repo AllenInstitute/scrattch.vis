@@ -1,6 +1,6 @@
 library(scrattch.vis)
 
-context("Misc")
+context("misc.R")
 
 test_that("Check input genes against a vector of gene names", {
   library(tasic2016data)

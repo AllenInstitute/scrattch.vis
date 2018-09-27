@@ -158,7 +158,7 @@ test_that("Remove the X-axis (and most other margins)", {
   skip("Function doesn't work at the moment. Skip.")
 })
 
-test_that("Build colorful, rectangular labels for plot headers in plot space", {
+test_that("build_header_labels() builds colorful, rectangular labels for plot headers in plot space", {
   df <- system.file("testdata","helper_plot_data.csv", package = "scrattch.vis")
   df <- read.csv(df)
   grouping <- "primary_type"
@@ -169,7 +169,7 @@ test_that("Build colorful, rectangular labels for plot headers in plot space", {
 })
 
 
-test_that("Covert hclust objects to segments for use in ggplots", {
+test_that("hclust_to_seg() Converts hclust objects to segments for use in ggplots", {
   library(tidyverse)
   df <- mtcars %>%
     dist(.) %>%
@@ -183,7 +183,7 @@ test_that("Covert hclust objects to segments for use in ggplots", {
 })
 
 
-test_that("Jitter x-y coordinates in a spiral pattern",{
+test_that("spiral_jitter() Generates Jitter x-y coordinates in a spiral pattern",{
   out <- mtcars %>%
     dist(.) %>%
     hclust(.) %>%

@@ -15,23 +15,24 @@
 #' sci_label(my_numbers)
 #' 
 #' sci_label(my_numbers, sig_figs = 3)
-#' 
-#' sci_label(my_numbers, sig_figs = 3, type = "ggplot2")
-#' 
-#' sci_label(my_numbers, sig_figs = 2, type = "text")
-#' 
-#' sci_label(my_numbers, sig_figs = 4, type = "DT)
-#' 
-sci_label <- function(in_num, sig_figs = 2, type = "ggplot2") {
+
+sci_label <- function(in_num, 
+                      sig_figs = 2, 
+                      type = "ggplot2") {
+  
   labels <- character()
-  for (i in 1:length(in_num)) {
+  
+  for(i in 1:length(in_num)) {
     x <- in_num[i]
-    if (x < 0) {
+    
+    if(x < 0) {
+
       neg <- "-"
       x <- abs(x)
     } else {
       neg <- ""
     }
+    
     # Format the string to adjust for number of sig_figs
     if (x == 0) {
       # If the value is 0, build 0.(0)N based on the number of sig figs requested.
@@ -114,10 +115,13 @@ theme_no_x <- function(base_size = 12, base_family = "") {
 #' of the samples in each group.
 #' 
 #' 
-build_header_polygons <- function(data, 
+build_header_polygons <- function(data,
+                                  anno,
                                   grouping,
+                                  group_order = NULL,
                                   ymin, 
                                   label_height = 25, 
+                                  fraction_of_label = 0.1,
                                   poly_type = "angle") {
   # Two label types: 
   # "angle" will draw a polygon with the base lined up with samples, and the top
@@ -128,8 +132,8 @@ build_header_polygons <- function(data,
   
   group_id <- paste0(grouping, "_id")
   group_color <- paste0(grouping, "_color")
-  n_groups <- length(unique(data[[group_id]]))
-  n_samples <- nrow(data)
+  n_groups <- length(unique(anno[[group_id]]))
+  n_samples <- nrow(anno)
   
   ## Note on plot dimensions
   # The range of the plot area (not including labels) will be
@@ -143,6 +147,30 @@ build_header_polygons <- function(data,
   # polygon points are built in this order: 1 = bottom-right, 2 = bottom-left, 3 = top-left, 4 = top-right
   # For angled labels, the bottom two x positions are calculated based on the number of samples
   # in each cluster. The top positions are evenly spaced based on the number of clusters.
+  # Add an x position to each group
+  
+  data <- dplyr::left_join(anno, data, by = "sample_name")
+  
+  if(!"xpos" %in% names(data)) {
+    if(!is.null(group_order)) {
+      group_order_df <- build_vec_pos(group_order,
+                                      vec_name = group_id,
+                                      sort = "none",
+                                      axis_name = "group_order")
+      
+      data <- data %>%
+        left_join(group_order_df, by = group_id) %>%
+        arrange(group_order) %>%
+        mutate(xpos = 1:n())
+      
+    } else {
+      # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
+      data <- data %>%
+        arrange_(group_id) %>%
+        mutate(xpos = 1:n())
+    }
+  }
+  
   poly.data <- data %>% 
     group_by_(group_id) %>%
     summarise(color = .data[[group_color]][1],
@@ -154,8 +182,8 @@ build_header_polygons <- function(data,
            y1 = ymin,
            y2 = ymin,
            # The angled portion of the label will be 10% of the total label height 
-           y3 = ymin + labheight * 0.1,
-           y4 = ymin + labheight * 0.1)
+           y3 = ymin + labheight * fraction_of_label,
+           y4 = ymin + labheight * fraction_of_label)
   
   # For a simpler square label, set the top and bottom x-positions to be the same
   if (poly_type == "square") {
@@ -229,11 +257,12 @@ build_header_labels <- function(data,
   n_clust <- length(unique(data[[group_id]]))
   
   # Add an x position to each group
-  if (!"xpos" %in% names(data)) {
-    if (!is.null(group_order)) {
-      group_order_df <- data.frame(group = group_order) %>%
-        mutate(xpos = 1:n())
-      names(group_order_df)[1] <- group_id
+  if(!"xpos" %in% names(data)) {
+    if(!is.null(group_order)) {
+      group_order_df <- build_vec_pos(group_order,
+                                      vec_name = group_id,
+                                      sort = "none",
+                                      axis_name = "xpos")
       
       data <- data %>%
         left_join(group_order_df, by = group_id)

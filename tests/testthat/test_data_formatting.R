@@ -9,7 +9,8 @@ test_that("Matrix is converted to a df", {
   df <- mat_to_data_df(counts, cols_are = "sample_names")
   expect_true(class(counts) == "matrix")
   expect_true(class(df) == "data.frame")
-  expect_output(str(df), "1809 obs")            
+  expect_output(str(df), "1809 obs")
+  expect_error(expect_output(mat_to_data_df(), NULL))
 })
 
 
@@ -21,6 +22,7 @@ test_that("Data frame is correctly melted", {
   expect_true(class(df) == "data.frame")
   expect_true(class(melt) == "data.frame")
   expect_true(is.factor(melt$sample_name))
+  expect_error(expect_output(melt_data_df(), NULL))
 })
 
 
@@ -35,7 +37,8 @@ test_that("Compute stats for samples grouped by one or more annotations", {
   expect_true(class(df) == "data.frame")
   expect_output(str(df), "sample_name")
   expect_true(class(stats) == "data.frame")
-  expect_true(length(stats) > 0)
+  expect_true(length(stats) > 0)  
+  expect_error(expect_output(group_stats(), NULL))
 })
 
 
@@ -47,6 +50,7 @@ test_that("Convert expression data to heatmap colors for plotting", {
   expect_output(str(output), "sample_name")
   expect_output(str(output), "#00008B")
   expect_true(class(output) == "data.frame")
+  expect_error(expect_output(data_df_to_colors(), NULL))
 })
 
 test_that("Build plot positions for a character vector", {
@@ -58,9 +62,10 @@ test_that("Build plot positions for a character vector", {
   expect_true(class(output) == "data.frame")
   expect_output(str(output), "genes")
   expect_true(length(output) == 2)
+  expect_error(expect_output(build_vec_pos(), NULL))
 })
 
 test_that("Format data provided in list format for scrattch plots", {
- skip('skip this function') 
+ skip('skip this test for now') 
 })
 

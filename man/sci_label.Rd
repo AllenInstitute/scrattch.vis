@@ -22,10 +22,3 @@ a character vector with numeric values reformatted for display
 \description{
 Convert integers to scientific notation labels
 }
-\examples{
-my_numbers <- c(100,15.359,32687,.000468)
-
-sci_label(my_numbers)
-
-sci_label(my_numbers, sig_figs = 3)
-}

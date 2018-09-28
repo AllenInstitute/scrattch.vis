@@ -30,6 +30,7 @@ test_that("sigline() Generates x-y coordinates for a sigmoidal line", {
 test_that("sigribbon() Expands a sigmoidal line to a ribbon by adding ymin", {
   expect_warning(sigribbon(sigline(), height = NA))
   expect_error(sigribbon(sigline(), height = "NA"))
+  expect_error(sigribbon())
   expect_length(sigribbon(sigline(), height = 5, from = "top"), 3)
   expect_length(sigribbon(sigline(), height = 5, from = "bot"), 3)
   expect_length(sigribbon(sigline(), height = 5, from = "mid"), 3)
@@ -43,6 +44,7 @@ test_that("sigribbon() Expands a sigmoidal line to a ribbon by adding ymin", {
 test_that("make_group_nodes() Makes group nodes for categorical data", {
   library(tasic2016data)
   expect_length(tasic_2016_anno, 17)
+  expect_error(make_group_nodes())
   expect_error(make_group_nodes(tasic_2016_anno, "cre_driver"))
   expect_error(make_group_nodes(tasic_2016_anno, "primary_type"))
   out <- make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type"))
@@ -56,6 +58,7 @@ test_that("make_plot_nodes() generates the plot nodes from make_group_nodes() ou
             input <-
               make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type"))
             expect_type(input, "list")
+            expect_error(make_plot_nodes())
             expect_length(make_plot_nodes(input), 13)
             expect_equal(
               colnames(make_plot_nodes(input)),
@@ -81,6 +84,7 @@ test_that("make_plot_nodes() generates the plot nodes from make_group_nodes() ou
 test_that("make_group_links() generates the group links from the plot notes", 
           {
             library(tasic2016data)
+            library(tidyverse)
             inputnodes <-
               make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type")) %>%
               make_plot_nodes(.)
@@ -90,6 +94,7 @@ test_that("make_group_links() generates the group links from the plot notes",
               c("primary_type", "secondary_type"),
               inputnodes
             ), 16)
+            expect_error(make_group_links())
             expect_error(make_group_links(tasic_2016_anno, "primary_type", inputnodes))
             expect_is(make_group_links(
               tasic_2016_anno,
@@ -123,3 +128,21 @@ test_that("make_group_links() generates the group links from the plot notes",
             )
           })
 
+
+
+test_that("make_plot_links() generates the link ids",
+          {
+            library(tasic2016data)
+            library(tidyverse)
+            input <-
+              make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type")) %>%
+              make_plot_nodes(.) %>%
+              make_group_links(tasic_2016_anno, c("primary_type", "secondary_type"), .)
+            
+            expect_length(input, 16)
+            expect_length(make_plot_links(input), 5)
+            expect_equal(colnames(make_plot_links(input)), c("x", "y", "ymin", "fill", "link_id"))
+            expect_type(make_plot_links(input), "list")
+            expect_type(make_plot_links(input)$link_id, "integer")
+            expect_error(make_plot_links())
+  })

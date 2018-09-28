@@ -60,7 +60,7 @@ sigline <- function(x = 0, xend = 1,
 sigribbon <- function(sigline, height, from = "top") {
   library(dplyr)
   
-  if (class(height) != "numeric") 
+  if (!is.numeric(height)) 
     warning("Your height input should be numeric.")
   
   if (height == Inf | is.na(height))

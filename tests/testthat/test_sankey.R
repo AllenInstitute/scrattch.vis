@@ -18,7 +18,7 @@ test_that("erf() calculates error margins required to generate a sigmoidal curve
 test_that("sigline() Generates x-y coordinates for a sigmoidal line", {
   out <- sigline()
   helper <-
-    read.csv(system.file("testdata", "helper_sigline.csv",  package = "scrattch.vis"))
+    readRDS(system.file("testdata", "helper_sigline.RData",  package = "scrattch.vis"))
   plot <- plot(sigline())
   expect_is(sigline(), "data.frame")
   expect_error(sigline(sigfun != "erf"))

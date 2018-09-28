@@ -58,3 +58,7 @@ test_sci_label <- list(input = test_sci,
                        output_3_dt = test_sci_3_dt,
                        output_3_text = test_sci_3_text)
 saveRDS(test_sci_label, file = "test_sci_label_data.RData")
+
+
+sigline <- sigline() 
+saveRDS(sigline, file = "helper_sigline.RData")

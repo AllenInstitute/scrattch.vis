@@ -5,13 +5,15 @@ context("filtering.R")
 test_that("Filter a data.frame with parameters provided in a list", {
   library(tasic2016data)
   anno <- tasic_2016_anno
-  filter_list <- list(pass_qc_checks = list(values = "Y",
-                                             match_type = "exact"),
-                       primary_type = list(values = c("Pvalb","Vip"),
-                                           match_type = "grep"))
-   
+  filter_list <- list(
+    pass_qc_checks = list(values = "Y",
+                          match_type = "exact"),
+    primary_type = list(values = c("Pvalb", "Vip"),
+                        match_type = "grep")
+  )
+  
   filtered_anno <- anno %>%
-     filter_using_list(filter_list)
+    filter_using_list(filter_list)
   
   expect_true(nrow(anno) == 1809)
   expect_true(nrow(filtered_anno) < nrow(anno))
@@ -24,5 +26,3 @@ test_that("Filter a data.frame with parameters provided in a list", {
   expect_that(length(missing_cols) > 0, throws_error())
   expect_error(expect_output(filter_using_list(), NULL))
 })
-
-

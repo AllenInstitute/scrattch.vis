@@ -276,7 +276,7 @@ build_header_labels <- function(data,
   }
   
   data <- data %>%
-    group_by_(group_id, group_label, group_color) %>%
+    dplyr::group_by_(group_id, group_label, group_color) %>%
     summarise(minx = min(xpos),
               maxx = max(xpos))
   

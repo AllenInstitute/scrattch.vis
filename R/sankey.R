@@ -1,5 +1,5 @@
 # Error function
-# used to generate sigmoidal curve [0,1]
+# used to generate sigmoidal curve 
 
 #' Simple error function
 #' 
@@ -60,12 +60,18 @@ sigline <- function(x = 0, xend = 1,
 sigribbon <- function(sigline, height, from = "top") {
   library(dplyr)
   
+  if (class(height) != "numeric") 
+    warning("Your height input should be numeric.")
+  
+  if (height == Inf | is.na(height))
+    warning("Your height input is NA or infinite.")
+    
   if (from == "top") {
     ribbon <- sigline %>%
       mutate(ymin = y - height)
   } else if (from == "bot") {
     ribbon <- sigline %>%
-      rename(y = ymin) %>%
+      rename(ymin = y) %>%
       mutate(y = ymin + height)
   } else if (from == "mid") {
     ribbon <- sigline %>%
@@ -80,7 +86,9 @@ sigribbon <- function(sigline, height, from = "top") {
 #' Make group nodes for categorical data
 #' 
 #' @param anno sample annotations
-#' @param group_by which columns of anno to use for sample grouping
+#' @param group_by which columns of anno to use for sample grouping. Group must have "_id", "_label", "_color" columns.
+#' @examples 
+#' make_group_nodes(tasic_2016_anno, "primary_type")
 make_group_nodes <- function(anno,
                              group_by,
                              value_col,
@@ -125,6 +133,17 @@ make_group_nodes <- function(anno,
   nodes
 }
 
+
+#' Title
+#'
+#' @param group_nodes 
+#' @param pad 
+#' @param width 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_plot_nodes <- function(group_nodes,
                             # % of height to distribute for padding between nodes
                             pad = 0.1,
@@ -156,6 +175,17 @@ make_plot_nodes <- function(group_nodes,
   
 }
 
+
+#' Title
+#'
+#' @param anno 
+#' @param group_by 
+#' @param plot_nodes 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_group_links <- function(anno,
                         group_by,
                         plot_nodes) {

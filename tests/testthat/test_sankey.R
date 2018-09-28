@@ -44,8 +44,8 @@ test_that("make_group_nodes() Makes group nodes for categorical data", {
   library(tasic2016data)
   expect_length(tasic_2016_anno, 17)
   expect_error(make_group_nodes(tasic_2016_anno, "cre_driver"))
-  expect_length(make_group_nodes(tasic_2016_anno, "primary_type"), 6)
-  out <- make_group_nodes(tasic_2016_anno, "secondary_type")
+  expect_error(make_group_nodes(tasic_2016_anno, "primary_type"))
+  out <- make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type"))
   expect_output(str(out), "xpos")
 })
 
@@ -54,7 +54,7 @@ test_that("make_plot_nodes() generates the plot nodes from make_group_nodes() ou
           {
             library(tasic2016data)
             input <-
-              make_group_nodes(tasic_2016_anno, "primary_type")
+              make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type"))
             expect_type(input, "list")
             expect_length(make_plot_nodes(input), 13)
             expect_equal(
@@ -76,3 +76,14 @@ test_that("make_plot_nodes() generates the plot nodes from make_group_nodes() ou
               )
             )
           })
+
+
+test_that("make_group_links() generates the group links from the plot notes", 
+          {
+            library(tasic2016data)
+            inputnodes <-
+              make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type")) %>%
+              make_plot_nodes(.)
+            
+          })
+            

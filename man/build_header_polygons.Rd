@@ -4,8 +4,8 @@
 \alias{build_header_polygons}
 \title{Build polygons from plot data for fancy headers built into the plot area}
 \usage{
-build_header_polygons(data, grouping, ymin, label_height = 25,
-  poly_type = "angle")
+build_header_polygons(data, anno, grouping, group_order = NULL, ymin,
+  label_height = 25, fraction_of_label = 0.1, poly_type = "angle")
 }
 \arguments{
 \item{data}{A data.frame containing joined annotations and expression data}

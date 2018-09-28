@@ -2,17 +2,17 @@
 % Please edit documentation in R/sankey.R
 \name{make_plot_nodes}
 \alias{make_plot_nodes}
-\title{Title}
+\title{Make plot nodes}
 \usage{
 make_plot_nodes(group_nodes, pad = 0.1, width = 0.1)
 }
 \arguments{
-\item{group_nodes}{}
+\item{group_nodes}{output from make_group_nodes()}
 
 \item{pad}{}
 
 \item{width}{}
 }
 \description{
-Title
+Make plot nodes
 }

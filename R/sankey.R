@@ -393,6 +393,17 @@ build_river_plot <- function(anno,
   
 }
 
+#' River plot bokeh
+#'
+#' @param anno 
+#' @param group_by 
+#' @param pad 
+#' @param fill_group 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 build_river_plot_bokeh <- function(anno, group_by, pad = 0.1, fill_group = NULL) {
   library(rbokeh)
   

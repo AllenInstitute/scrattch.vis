@@ -54,5 +54,4 @@ test_that("make_plot_nodes() generates the plot nodes from make_group_nodes() ou
   expect_length(make_plot_nodes(input),13)
   expect_equal(colnames(make_plot_nodes(input)), c("id", "name", "color", "n", "group", "xpos", "xmin", 
                                                    "xmax", "n_groups", "group_pad", "n_cum", "ymin", "ymax"))
-  
 })

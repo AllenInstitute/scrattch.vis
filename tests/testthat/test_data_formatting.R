@@ -74,32 +74,31 @@ test_that(
 test_that(
   "build_vec_pos() builds a data.frame of plot positions for a vector", 
   {
-  genes <- readRDS(system.file("testdata","test_genes.RData", package = "scrattch.vis"))
-  
-  output <- build_vec_pos(genes, 
-                          vec_name = "gene",
-                          sort = "none",
-                          axis_name = "y")
-  
-  expect_is(output, "data.frame")
-  expect_equal(nrow(output), length(genes))
-  expect_equal(names(output), c("gene","y"))
-  expect_equal(output$gene, genes)
-  
-  output_sorted <- build_vec_pos(genes,
-                                 vec_name = "gene",
-                                 sort = "alpha",
-                                 axis_name = "y")
-  
-  expect_is(output_sorted, "data.frame")
-  expect_equal(nrow(output_sorted), length(genes))
-  expect_equal(names(output_sorted), c("gene","y"))
-  expect_equal(output_sorted$gene, genes[order(genes)])
-  
-
-})
+    genes <- readRDS(system.file("testdata","test_genes.RData", package = "scrattch.vis"))
+    
+    output <- build_vec_pos(genes, 
+                            vec_name = "gene",
+                            sort = "none",
+                            axis_name = "y")
+    
+    expect_is(output, "data.frame")
+    expect_equal(nrow(output), length(genes))
+    expect_equal(names(output), c("gene","y"))
+    expect_equal(output$gene, genes)
+    
+    output_sorted <- build_vec_pos(genes,
+                                   vec_name = "gene",
+                                   sort = "alpha",
+                                   axis_name = "y")
+    
+    expect_is(output_sorted, "data.frame")
+    expect_equal(nrow(output_sorted), length(genes))
+    expect_equal(names(output_sorted), c("gene","y"))
+    expect_equal(output_sorted$gene, genes[order(genes)])
+    
+    
+  })
 
 test_that("Format data provided in list format for scrattch plots", {
- skip('skip this test for now') 
+  skip('skip this test for now') 
 })
-

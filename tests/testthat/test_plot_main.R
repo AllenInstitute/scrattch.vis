@@ -3,10 +3,11 @@ library(scrattch.vis)
 context("plot_main.R")
 
 test_that("Barplots of gene expression of individual samples", {
-  skip("Function needs bug fix :)")
+  skip("Skip for now. Fix me!")
 })
 
 test_that("Build a heatmap legend plot", {
+  skip("Skip for now. Fix me!")
   helper <-
     readRDS(
       system.file("testdata", "helper_heatmap_legend_plot.rds", package = "scrattch.vis")

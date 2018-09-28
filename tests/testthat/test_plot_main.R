@@ -7,7 +7,7 @@ test_that("Barplots of gene expression of individual samples", {
 })
 
 test_that("Build a heatmap legend plot", {
-  skip("Skip for now. Fix me!")
+  #skip("Skip for now. Fix me!")
   helper <-
     readRDS(
       system.file("testdata", "helper_heatmap_legend_plot.rds", package = "scrattch.vis")

@@ -10,7 +10,7 @@ test_that("Build a heatmap legend plot", {
   #skip("Skip for now. Fix me!")
   helper <-
     readRDS(
-      system.file("testdata", "helper_heatmap_legend_plot.rds", package = "scrattch.vis")
+      system.file("testdata", "helper_heatmap_legend_plot.RData", package = "scrattch.vis")
     )
   plot <- heatmap_legend_plot()
   expect_is(plot, "gg")

@@ -63,5 +63,10 @@ saveRDS(test_sci_label, file = "test_sci_label_data.RData")
 sigline <- sigline() 
 saveRDS(sigline, file = "helper_sigline.RData")
 
+
 plot <- heatmap_legend_plot()
 saveRDS(plot, file = "helper_heatmap_legend_plot.RData")
+
+
+riverplot <- build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type"))
+saveRDS(riverplot, file = "helper_riverplot_tasicdata.RData")

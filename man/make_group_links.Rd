@@ -2,17 +2,17 @@
 % Please edit documentation in R/sankey.R
 \name{make_group_links}
 \alias{make_group_links}
-\title{Title}
+\title{Make group links}
 \usage{
 make_group_links(anno, group_by, plot_nodes)
 }
 \arguments{
-\item{anno}{}
+\item{anno}{annotation data}
 
-\item{group_by}{}
+\item{group_by}{grouping}
 
-\item{plot_nodes}{}
+\item{plot_nodes}{output of make_plot_nodes()}
 }
 \description{
-Title
+Make group links
 }

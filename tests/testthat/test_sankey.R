@@ -47,7 +47,8 @@ test_that("make_group_nodes() Makes group nodes for categorical data", {
   expect_error(make_group_nodes())
   expect_error(make_group_nodes(tasic_2016_anno, "cre_driver"))
   expect_error(make_group_nodes(tasic_2016_anno, "primary_type"))
-  out <- make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type"))
+  out <-
+    make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type"))
   expect_output(str(out), "xpos")
 })
 
@@ -80,8 +81,8 @@ test_that("make_plot_nodes() generates the plot nodes from make_group_nodes() ou
             )
           })
 
-            
-test_that("make_group_links() generates the group links from the plot notes", 
+
+test_that("make_group_links() generates the group links from the plot notes",
           {
             library(tasic2016data)
             library(tidyverse)
@@ -141,8 +142,24 @@ test_that("make_plot_links() generates the link ids",
             
             expect_length(input, 16)
             expect_length(make_plot_links(input), 5)
-            expect_equal(colnames(make_plot_links(input)), c("x", "y", "ymin", "fill", "link_id"))
+            expect_equal(colnames(make_plot_links(input)),
+                         c("x", "y", "ymin", "fill", "link_id"))
             expect_type(make_plot_links(input), "list")
             expect_type(make_plot_links(input)$link_id, "integer")
             expect_error(make_plot_links())
-  })
+          })
+
+
+test_that("build_river_plot() generates a river plot", 
+          {
+  library(tasic2016data)
+            expect_error(build_river_plot())
+            expect_error(build_river_plot(tasic_2016_anno, "primary_type"))
+            expect_warning(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")))
+            group <- as.factor(c("primary_type", "secondary_type"))
+            expect_error(build_river_plot(tasic_2016_anno, group))
+            expect_length(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")),9)
+            helper <- readRDS(system.file("testdata", "helper_riverplot_tasicdata.RData", package = "scrattch.vis"))
+            out <- build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type"))
+            expect_equal(helper, out)
+})

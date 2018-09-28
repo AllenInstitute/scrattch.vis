@@ -189,8 +189,11 @@ test_that("spiral_jitter() Generates Jitter x-y coordinates in a spiral pattern"
     hclust(.) %>%
     hclust_to_seg(.)
   expect_length(out, 4)
-  expect_output(str(spiral_jitter(out$x,out$y)), "data.frame")
-  expect_output(str(spiral_jitter(out$x,out$y)), "y")
-  expect_length(spiral_jitter(out$x,out$y), 2)
-})
+  expect_is(out, "data.frame")
+  expect_warning(spiral_jitter(out$x, out$y, n = 1))
+  expect_error(spiral_jitter(out$x, out$y, n = NA))
+  expect_error(spiral_jitter(out$x, out$y, n = "string"))
+  expect_error(spiral_jitter(out$x, out$y, max_n = "string"))
+  expect_error(spiral_jitter(out$x, out$y, ratio = "notgolden"))
+  })
 

@@ -166,7 +166,7 @@ build_header_polygons <- function(data,
     } else {
       # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
       data <- data %>%
-        arrange_(group_id) %>%
+        dplyr::arrange_(group_id) %>%
         mutate(xpos = 1:n())
     }
   }

@@ -86,13 +86,17 @@ sigribbon <- function(sigline, height, from = "top") {
 #' Make group nodes for categorical data
 #' 
 #' @param anno sample annotations
-#' @param group_by which columns of anno to use for sample grouping. Group must have "_id", "_label", "_color" columns.
+#' @param group_by which columns of anno to use for sample grouping (should be at least 2). Group must have "_id", "_label", "_color" columns.
 #' @examples 
-#' make_group_nodes(tasic_2016_anno, "primary_type")
+#' make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type)
 make_group_nodes <- function(anno,
                              group_by,
                              value_col,
                              xpos = NULL) {
+  
+  
+  if (length(group_by) == 1) 
+    stop("Group_by should have at least 2 elements.")
   
   library(dplyr)
   
@@ -134,9 +138,9 @@ make_group_nodes <- function(anno,
 }
 
 
-#' Title
+#' Make plot nodes
 #'
-#' @param group_nodes 
+#' @param group_nodes output from make_group_nodes()
 #' @param pad 
 #' @param width 
 #'
@@ -176,11 +180,11 @@ make_plot_nodes <- function(group_nodes,
 }
 
 
-#' Title
+#' Make group links
 #'
-#' @param anno 
-#' @param group_by 
-#' @param plot_nodes 
+#' @param anno annotation data
+#' @param group_by grouping
+#' @param plot_nodes output of make_plot_nodes()
 #'
 #' @return
 #' @export
@@ -192,10 +196,13 @@ make_group_links <- function(anno,
   
   library(dplyr)
   
+  if (length(group_by) == 1)
+    stop("Group_by should have at least 2 elements.")
+  
   pairs <- list()
   
   for (i in 2:length(group_by)) {
-    pair <- group_by[(i-1):i]
+    pair <- group_by[(i - 1):i]
     pairs <- c(pairs, list(pair))
   }
   
@@ -261,6 +268,17 @@ make_group_links <- function(anno,
   
 }
 
+
+
+#' Title
+#'
+#' @param group_links 
+#' @param fill 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_plot_links <- function(group_links,
                             fill = NULL) {
   

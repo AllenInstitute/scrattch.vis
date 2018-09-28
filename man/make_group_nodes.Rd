@@ -9,8 +9,11 @@ make_group_nodes(anno, group_by, value_col, xpos = NULL)
 \arguments{
 \item{anno}{sample annotations}
 
-\item{group_by}{which columns of anno to use for sample grouping}
+\item{group_by}{which columns of anno to use for sample grouping. Group must have "_id", "_label", "_color" columns.}
 }
 \description{
 Make group nodes for categorical data
+}
+\examples{
+make_group_nodes(tasic_2016_anno, "primary_type")
 }

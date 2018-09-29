@@ -541,6 +541,14 @@ write_database <- function(desc=NULL,anno=NULL,data=NULL,file = stop("'file' mus
   
 }
 
+#' Title
+#'
+#' @param n 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 auto_sample_names <- function(n) {
   
   sample_names <- character()
@@ -561,6 +569,17 @@ auto_sample_names <- function(n) {
   
 }
 
+#' Title
+#'
+#' @param df 
+#' @param sample_id 
+#' @param anno_cols 
+#' @param data_cols 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 auto_format <- function(df,sample_id=NULL,anno_cols=NULL,data_cols=NULL) {
   library(dplyr)
   

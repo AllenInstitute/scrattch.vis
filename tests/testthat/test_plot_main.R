@@ -6,7 +6,7 @@ test_that("Barplots of gene expression of individual samples", {
   skip("Skip for now. Fix me!")
 })
 
-test_that("Build a heatmap legend plot", {
+test_that("heatmap_legend_plot() Builds a heatmap legend plot", {
   #skip("Skip for now. Fix me!")
   helper <-
     readRDS(

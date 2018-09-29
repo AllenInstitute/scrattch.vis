@@ -150,16 +150,20 @@ test_that("make_plot_links() generates the link ids",
           })
 
 
-test_that("build_river_plot() generates a river plot", 
+test_that("build_river_plot() generates a river plot",
           {
-  library(tasic2016data)
+            library(tasic2016data)
             expect_error(build_river_plot())
             expect_error(build_river_plot(tasic_2016_anno, "primary_type"))
             expect_warning(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")))
             group <- as.factor(c("primary_type", "secondary_type"))
             expect_error(build_river_plot(tasic_2016_anno, group))
-            expect_length(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")),9)
-            helper <- readRDS(system.file("testdata", "helper_riverplot_tasicdata.RData", package = "scrattch.vis"))
-            out <- build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type"))
+            expect_length(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")), 9)
+            helper <-
+              readRDS(
+                system.file("testdata", "helper_riverplot_tasicdata.RData", package = "scrattch.vis")
+              )
+            out <-
+              build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type"))
             expect_equal(helper, out)
-})
+          })

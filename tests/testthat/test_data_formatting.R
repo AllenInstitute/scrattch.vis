@@ -2,6 +2,16 @@ library(scrattch.vis)
 
 context("data_formatting.R")
 
+
+test_that("mat_to_data_df() Matrix is converted to a df", {
+  library(tasic2016data)
+  counts <- tasic2016data::tasic_2016_counts
+  df <- mat_to_data_df(counts, cols_are = "sample_names")
+  expect_true(class(df) == "data.frame")
+  expect_output(str(df), "1809 obs")
+})
+
+
 test_that("melt_data_df() correctly melts a data.frame to a 3-column format",
           {
             df <-
@@ -60,7 +70,7 @@ test_that(
 )
 
 
-test_that("Convert expression data to heatmap colors for plotting",
+test_that("data_df_to_colors() Converts expression data to heatmap colors for plotting",
           {
             df <-
               readRDS(system.file("testdata", "test_data_df.RData", package = "scrattch.vis"))
@@ -70,6 +80,7 @@ test_that("Convert expression data to heatmap colors for plotting",
             expect_is(output, "data.frame")
             expect_equal(ncol(df), ncol(output))
           })
+
 
 test_that("build_vec_pos() builds a data.frame of plot positions for a vector",
           {
@@ -99,6 +110,6 @@ test_that("build_vec_pos() builds a data.frame of plot positions for a vector",
             
           })
 
-test_that("Format data provided in list format for scrattch plots", {
-  skip('skip this test for now')
+test_that("get_list_data() Formats data provided in list format for scrattch plots", {
+  skip('Missing input data. Skip this test for now.')
 })

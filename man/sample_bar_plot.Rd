@@ -15,7 +15,7 @@ sample_bar_plot(data, anno, genes, grouping, group_order = NULL,
 
 \item{genes}{A character vector containing gene symbols to be plotted.}
 
-\item{grouping}{A character vector specifying the desc base that should be used to group cells}
+\item{grouping}{A character string specifying the desc base (column) that should be used to group cells.}
 
 \item{group_order}{Optional: Explicit specification of group order by supplying a vector of group_ids.}
 

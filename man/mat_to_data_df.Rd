@@ -7,9 +7,12 @@
 mat_to_data_df(mat, cols_are = "gene_names")
 }
 \arguments{
-\item{mat}{a matrix or sparse matrix object from the Matrix package.}
+\item{mat}{a matrix or sparse matrix dgCMatrix object from the Matrix package.}
 
-\item{cols_are}{Whether columns are "gene_names" (default) or "sample_names".}
+\item{cols_are}{whether columns are "gene_names" or "sample_names"}
+}
+\value{
+dataframe
 }
 \description{
 Convert a matrix to a data.frame for plotting

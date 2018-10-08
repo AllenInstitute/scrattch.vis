@@ -16,7 +16,7 @@
 #' @param data A data frame containing gene expression values. The first column should be sample_name
 #' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
 #' @param genes A character vector containing gene symbols to be plotted. 
-#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param grouping A character string specifying the desc base (column) that should be used to group cells. 
 #' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
 #' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
@@ -95,7 +95,7 @@ sample_bar_plot <- function(data,
   # build_header_polygons from plot_components.R
   header_polygons <- build_header_polygons(data = plot_data, 
                                            grouping = grouping,
-                                           group_order = group_order,
+                                           #group_order = group_order,
                                            ymin = n_genes + 1, 
                                            label_height = label_height, 
                                            poly_type = label_type)
@@ -484,7 +484,7 @@ sample_fire_plot <- function(data,
   # Get maximum values for each gene before rescaling to plot space.
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
   
-  if(log_scale) {
+  if (log_scale) {
     gene_data[,genes] <- log10(gene_data[,genes] + 1)
   }
   
@@ -492,7 +492,7 @@ sample_fire_plot <- function(data,
   plot_data <- left_join(anno, gene_data, by = "sample_name")
   
   # Add an x position to each group
-  if(!is.null(group_order)) {
+  if (!is.null(group_order)) {
     # Because we allow ranges, and groups may not necessarily be continuous integer sets
     # We have to filter out any that don't match first.
     group_order <- group_order[group_order %in% anno[[group_id]]]
@@ -523,7 +523,7 @@ sample_fire_plot <- function(data,
   n_samples <- nrow(plot_data)
   
   # Build the cell type label rectangles from plot_components.R
-  header_labels <-build_header_labels(data = plot_data, 
+  header_labels <- build_header_labels(data = plot_data, 
                                       grouping = grouping,
                                       group_order = group_order,
                                       ymin = n_genes + 1, 
@@ -537,13 +537,13 @@ sample_fire_plot <- function(data,
   max_header <- data.frame(x = n_groups * 1.01,
                            y = n_genes + 1,
                            label = "Max value")
-  max_width <- n_groups*(max_width/100)/(1-max_width/100)
+  max_width <- n_groups*(max_width/100)/(1 - max_width/100)
   
   # Plot setup
   p <- ggplot(data) +
     scale_fill_identity() +
     theme_classic(base_size = font_size) +
-    theme(axis.text = element_text(size=rel(1)),
+    theme(axis.text = element_text(size = rel(1)),
           axis.ticks = element_blank(),
           axis.line = element_blank(),
           axis.title = element_blank(),
@@ -552,7 +552,7 @@ sample_fire_plot <- function(data,
     scale_y_continuous(expand = c(0, 0), breaks = 1:n_genes + 0.45, labels = genes)
   
   # plot the rectangles for each gene
-  for(i in seq_along(genes)) {
+  for (i in seq_along(genes)) {
     
     gene <- genes[i]
     
@@ -566,7 +566,7 @@ sample_fire_plot <- function(data,
     
     names(gene_colors)[names(gene_colors) == gene] <- "plot_fill"
     
-    if(top_values == "highest") {
+    if (top_values == "highest") {
       rect_data <- plot_data %>%
         left_join(gene_colors, by = "sample_name") %>%
         arrange_(gene) %>%
@@ -700,7 +700,7 @@ group_violin_plot <- function(data,
   ## Arrange
   
   # Add an x position to each group
-  if(!is.null(group_order)) {
+  if (!is.null(group_order)) {
     # Because we allow ranges, and groups may not necessarily be continuous integer sets
     # We have to filter out any that don't match first.
     group_order <- group_order[group_order %in% anno[[group_id]]]
@@ -729,14 +729,14 @@ group_violin_plot <- function(data,
   n_samples <- nrow(plot_data)
   
   # Scale the data between i and i + 0.9
-  for(i in 1:length(genes)) {
+  for (i in 1:length(genes)) {
     gene <- genes[i]
     gene_max <- scaled_max_vals[gene]
     
     plot_data[[gene]] <- i + plot_data[[gene]] / gene_max * 0.9
   }
   
-  header_labels <-build_header_labels(data = plot_data, 
+  header_labels <- build_header_labels(data = plot_data, 
                                       grouping = grouping,
                                       group_order = group_order,
                                       ymin = n_genes + 1, 
@@ -750,7 +750,7 @@ group_violin_plot <- function(data,
   max_header <- data.frame(x = (n_groups + 0.5) * 1.01,
                            y = n_genes + 1,
                            label = "Max value")
-  max_width <- n_groups*(max_width/100)/(1-max_width/100)
+  max_width <- n_groups*(max_width/100)/(1 - max_width/100)
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
@@ -777,9 +777,9 @@ group_violin_plot <- function(data,
     ggplot2::geom_hline(ggplot2::aes(yintercept = 1:(n_genes)), size = 0.2)
   
   # plot the violins for each gene
-  for(i in 1:length(genes)) {
+  for (i in 1:length(genes)) {
     gene <- genes[[i]]
-    
+
     # Check for lack of variance. If no variance, we only plot the median value
     # instead of a violin.
     if(sum(plot_data[[gene]] == 0) == nrow(plot_data)) {
@@ -842,6 +842,7 @@ group_violin_plot <- function(data,
                        parse = TRUE)
   
   # Cluster counts
+
   if(show_counts) {
     if(rotate_counts) {
       p <- p + 
@@ -852,6 +853,7 @@ group_violin_plot <- function(data,
                            angle = 90,
                            hjust = 1, vjust = 0.35, 
                            size = pt2mm(font_size))
+
     } else {
       p <- p + 
         ggplot2::geom_text(data = group_data,
@@ -910,7 +912,7 @@ group_quasirandom_plot <- function(data,
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
   names(max_vals) <- genes
   
-  if(log_scale) {
+  if (log_scale) {
     gene_data[,genes] <- log10(gene_data[,genes] + 1)
   }
   
@@ -918,7 +920,7 @@ group_quasirandom_plot <- function(data,
   plot_data <- left_join(anno, gene_data, by = "sample_name")
   
   # Add an x position to each group
-  if(!is.null(group_order)) {
+  if (!is.null(group_order)) {
     # Because we allow ranges, and groups may not necessarily be continuous integer sets
     # We have to filter out any that don't match first.
     group_order <- group_order[group_order %in% anno[[group_id]]]
@@ -948,17 +950,17 @@ group_quasirandom_plot <- function(data,
   n_samples <- nrow(data)
   
   # Scale the data between i and i + 0.9
-  for(i in 1:length(genes)) {
+  for (i in 1:length(genes)) {
     gene <- genes[i]
     gene_max <- max_vals[gene]
-    if(log_scale) {
+    if (log_scale) {
       plot_data[[gene]] <- i + plot_data[[gene]] / log10(gene_max + 1) * 0.9
     } else {
       plot_data[[gene]] <- i + plot_data[[gene]] / gene_max * 0.9
     }
   }
   
-  header_labels <-build_header_labels(data = plot_data, 
+  header_labels <- build_header_labels(data = plot_data, 
                                       grouping = grouping,
                                       group_order = group_order,
                                       ymin = n_genes + 1, 
@@ -972,7 +974,7 @@ group_quasirandom_plot <- function(data,
   max_header <- data.frame(x = (n_groups + 0.5) * 1.01,
                            y = n_genes + 1,
                            label = "Max value")
-  max_width <- n_groups*(max_width/100)/(1-max_width/100)
+  max_width <- n_groups*(max_width/100)/(1 - max_width/100)
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
@@ -1000,9 +1002,9 @@ group_quasirandom_plot <- function(data,
     geom_hline(aes(yintercept = 1:(n_genes)), size = 0.2)
   
   # plot the swarms for each gene
-  for(i in 1:length(genes)) {
+  for (i in 1:length(genes)) {
     gene <- genes[[i]]
-    if(var(plot_data[[gene]]) != 0) {
+    if (var(plot_data[[gene]]) != 0) {
       p <- p + 
         geom_quasirandom(data = plot_data,
                          aes_string(x = "xpos", 
@@ -1045,8 +1047,8 @@ group_quasirandom_plot <- function(data,
               parse = TRUE)
   
   # Cluster counts
-  if(show_counts) {
-    if(rotate_counts) {
+  if (show_counts) {
+    if (rotate_counts) {
       p <- p + geom_text(data = group_data,
                          aes(x = xpos,
                              y = group_n_y, 
@@ -1109,7 +1111,7 @@ group_box_plot <- function(data,
   max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
   names(max_vals) <- genes
   
-  if(log_scale) {
+  if (log_scale) {
     gene_data[,genes] <- log10(gene_data[,genes] + 1)
   }
   
@@ -1117,7 +1119,7 @@ group_box_plot <- function(data,
   plot_data <- left_join(anno, gene_data, by = "sample_name")
   
   # Add an x position to each group
-  if(!is.null(group_order)) {
+  if (!is.null(group_order)) {
     # Because we allow ranges, and groups may not necessarily be continuous integer sets
     # We have to filter out any that don't match first.
     group_order <- group_order[group_order %in% anno[[group_id]]]
@@ -1147,17 +1149,17 @@ group_box_plot <- function(data,
   n_samples <- nrow(data)
   
   # Scale the data between i and i + 0.9
-  for(i in 1:length(genes)) {
+  for (i in 1:length(genes)) {
     gene <- genes[i]
     gene_max <- max_vals[gene]
-    if(log_scale) {
+    if (log_scale) {
       plot_data[[gene]] <- i + plot_data[[gene]] / log10(gene_max + 1) * 0.9
     } else {
       plot_data[[gene]] <- i + plot_data[[gene]] / gene_max * 0.9
     }
   }
   
-  header_labels <-build_header_labels(data = plot_data, 
+  header_labels <- build_header_labels(data = plot_data, 
                                       grouping = grouping,
                                       group_order = group_order,
                                       ymin = n_genes + 1, 
@@ -1171,7 +1173,7 @@ group_box_plot <- function(data,
   max_header <- data.frame(x = (n_groups + 0.5) * 1.01,
                            y = n_genes + 1,
                            label = "Max value")
-  max_width <- n_groups*(max_width/100)/(1-max_width/100)
+  max_width <- n_groups*(max_width/100)/(1 - max_width/100)
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
@@ -1198,9 +1200,9 @@ group_box_plot <- function(data,
     geom_hline(aes(yintercept = 1:(n_genes)), size = 0.2)
   
   # plot the swarms for each gene
-  for(i in 1:length(genes)) {
+  for (i in 1:length(genes)) {
     gene <- genes[[i]]
-    if(var(plot_data[[gene]]) != 0) {
+    if (var(plot_data[[gene]]) != 0) {
       p <- p + 
         geom_boxplot(data = plot_data,
                      aes_string(x = "xpos", 
@@ -1243,8 +1245,8 @@ group_box_plot <- function(data,
               parse = TRUE)
   
   # Cluster counts
-  if(show_counts) {
-    if(rotate_counts) {
+  if (show_counts) {
+    if (rotate_counts) {
       p <- p + geom_text(data = group_data,
                          aes(x = xpos,
                              y = group_n_y, 
@@ -1329,7 +1331,7 @@ group_heatmap_plot <- function(data,
   max_vals <- map_dbl(genes, function(x) { max(gene_stats[[x]]) })
   names(max_vals) <- genes
   
-  if(log_scale) {
+  if (log_scale) {
     gene_stats[,genes] <- log10(gene_stats[,genes] + 1)
   }
   
@@ -1351,7 +1353,7 @@ group_heatmap_plot <- function(data,
   plot_data <- left_join(plot_anno, gene_stats, by = group_label)
   
   # Add an x position to each group
-  if(!is.null(group_order)) {
+  if (!is.null(group_order)) {
     # Because we allow ranges, and groups may not necessarily be continuous integer sets
     # We have to filter out any that don't match first.
     group_order <- group_order[group_order %in% anno[[group_id]]]
@@ -1381,7 +1383,7 @@ group_heatmap_plot <- function(data,
   n_groups <- length(unique(plot_data[[group_id]]))
   n_samples <- nrow(data)
   
-  header_labels <-build_header_labels(data = plot_data, 
+  header_labels <- build_header_labels(data = plot_data, 
                                       grouping = grouping,
                                       group_order = group_order,
                                       ymin = n_genes + 1, 
@@ -1421,7 +1423,7 @@ group_heatmap_plot <- function(data,
     geom_hline(aes(yintercept = 1:(n_genes)), size = 0.2)
   
   # plot the heatmap for each gene
-  for(i in 1:length(genes)) {
+  for (i in 1:length(genes)) {
     gene <- genes[[i]]
     
     p <- p + 
@@ -1464,8 +1466,8 @@ group_heatmap_plot <- function(data,
               parse = TRUE)
   
   # Cluster counts
-  if(show_counts) {
-    if(rotate_counts) {
+  if (show_counts) {
+    if (rotate_counts) {
       p <- p + geom_text(data = group_data,
                          aes(x = xpos,
                              y = group_n_y, 

@@ -1,10 +1,12 @@
 # Error function
-# used to generate sigmoidal curve
+# used to generate sigmoidal curve 
 
 #' Simple error function
 #' 
 #' @param x input for error function
-#' 
+#' @examples 
+#' erf(0.5)
+#' erf(0.1) 
 erf <- function(x) {
   2 * pnorm(x * sqrt(2)) - 1
 }
@@ -33,7 +35,7 @@ sigline <- function(x = 0, xend = 1,
   
   xsteps <- seq(-sigx, sigx, length.out = steps)
   
-  if(sigfun == "erf") {
+  if (sigfun == "erf") {
     ysteps <- erf(xsteps)
   }
   
@@ -58,14 +60,20 @@ sigline <- function(x = 0, xend = 1,
 sigribbon <- function(sigline, height, from = "top") {
   library(dplyr)
   
-  if(from == "top") {
+  if (!is.numeric(height)) 
+    warning("Your height input should be numeric.")
+  
+  if (height == Inf | is.na(height))
+    warning("Your height input is NA or infinite.")
+    
+  if (from == "top") {
     ribbon <- sigline %>%
       mutate(ymin = y - height)
-  } else if(from == "bot") {
+  } else if (from == "bot") {
     ribbon <- sigline %>%
-      rename(y = ymin) %>%
+      rename(ymin = y) %>%
       mutate(y = ymin + height)
-  } else if(from == "mid") {
+  } else if (from == "mid") {
     ribbon <- sigline %>%
       mutate(y = y + height/2,
              ymin = y - height/2)
@@ -78,11 +86,17 @@ sigribbon <- function(sigline, height, from = "top") {
 #' Make group nodes for categorical data
 #' 
 #' @param anno sample annotations
-#' @param group_by which columns of anno to use for sample grouping
+#' @param group_by which columns of anno to use for sample grouping (should be at least 2). Group must have "_id", "_label", "_color" columns.
+#' @examples 
+#' make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type)
 make_group_nodes <- function(anno,
                              group_by,
                              value_col,
                              xpos = NULL) {
+  
+  
+  if (length(group_by) == 1) 
+    stop("Group_by should have at least 2 elements.")
   
   library(dplyr)
   
@@ -93,7 +107,7 @@ make_group_nodes <- function(anno,
                       group = character(),
                       xpos = numeric())
   
-  for(i in 1:length(group_by)) {
+  for (i in 1:length(group_by)) {
     base <- group_by[i]
     anno_id <- paste0(base,"_id")
     anno_label <- paste0(base,"_label")
@@ -109,7 +123,7 @@ make_group_nodes <- function(anno,
       mutate(group = base) %>%
       ungroup()
     
-    if(is.null(xpos)) {
+    if (is.null(xpos)) {
       group_nodes <- mutate(group_nodes, xpos = i)
     } else {
       group_nodes <- mutate(group_nodes, xpos = xpos[i])
@@ -123,6 +137,17 @@ make_group_nodes <- function(anno,
   nodes
 }
 
+
+#' Make plot nodes
+#'
+#' @param group_nodes output from make_group_nodes()
+#' @param pad 
+#' @param width 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_plot_nodes <- function(group_nodes,
                             # % of height to distribute for padding between nodes
                             pad = 0.1,
@@ -154,20 +179,34 @@ make_plot_nodes <- function(group_nodes,
   
 }
 
+
+#' Make group links
+#'
+#' @param anno annotation data
+#' @param group_by grouping
+#' @param plot_nodes output of make_plot_nodes()
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_group_links <- function(anno,
                         group_by,
                         plot_nodes) {
   
   library(dplyr)
   
+  if (length(group_by) == 1)
+    stop("Group_by should have at least 2 elements.")
+  
   pairs <- list()
   
-  for(i in 2:length(group_by)) {
-    pair <- group_by[(i-1):i]
+  for (i in 2:length(group_by)) {
+    pair <- group_by[(i - 1):i]
     pairs <- c(pairs, list(pair))
   }
   
-  for(pair in pairs) {
+  for (pair in pairs) {
     base <- pair
     anno_id <- paste0(base,"_id")
     anno_label <- paste0(base,"_label")
@@ -217,7 +256,7 @@ make_group_links <- function(anno,
                               group2_label,"_",group2_id)) %>%
       ungroup()
     
-    if(exists("all_links")) {
+    if (exists("all_links")) {
       all_links <- rbind(all_links, group_links)
     } else {
       all_links <- group_links
@@ -229,23 +268,34 @@ make_group_links <- function(anno,
   
 }
 
+
+
+#' Title
+#'
+#' @param group_links 
+#' @param fill 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_plot_links <- function(group_links,
                             fill = NULL) {
   
   library(dplyr)
   
-  for(i in 1:nrow(group_links)) {
+  for (i in 1:nrow(group_links)) {
     
     link_line <- sigline(x = group_links$x[i], xend = group_links$xend[i],
                          y = group_links$y[i], yend = group_links$yend[i])
     
     link_ribbon <- sigribbon(link_line, h = group_links$n[i])
     
-    if(is.null(fill)) {
+    if (is.null(fill)) {
       link_ribbon <- mutate(link_ribbon, fill = "#808080")
-    } else if(fill == group_links$group1[i]) {
+    } else if (fill == group_links$group1[i]) {
       link_ribbon <- mutate(link_ribbon, fill = group_links$group1_color[i])
-    } else if(fill == group_links$group2[i]) {
+    } else if (fill == group_links$group2[i]) {
       link_ribbon <- mutate(link_ribbon, fill = group_links$group2_color[i])
     } else {
       link_ribbon <- mutate(link_ribbon, fill = "#808080")
@@ -253,7 +303,7 @@ make_plot_links <- function(group_links,
     
     link_ribbon <- mutate(link_ribbon, link_id = i)
     
-    if(exists("all_ribbons")) {
+    if (exists("all_ribbons")) {
       all_ribbons <- rbind(all_ribbons, link_ribbon)
     } else {
       all_ribbons <- link_ribbon
@@ -288,8 +338,8 @@ build_river_plot <- function(anno,
   group_nodes <- make_group_nodes(anno, grouping)
   plot_nodes <- make_plot_nodes(group_nodes, pad = pad)
   
-  if(show_labels) {
-    if(length(label_pos) == 1) {
+  if (show_labels) {
+    if (length(label_pos) == 1) {
       label_pos <- rep(label_pos, length(grouping))
     }
     
@@ -329,7 +379,7 @@ build_river_plot <- function(anno,
     scale_y_reverse() +
     theme_void()
   
-  if(show_labels) {
+  if (show_labels) {
     p <- p +
       geom_text(data = node_labels,
                 aes(x = label_xpos,
@@ -343,6 +393,17 @@ build_river_plot <- function(anno,
   
 }
 
+#' River plot bokeh
+#'
+#' @param anno 
+#' @param group_by 
+#' @param pad 
+#' @param fill_group 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 build_river_plot_bokeh <- function(anno, group_by, pad = 0.1, fill_group = NULL) {
   library(rbokeh)
   
@@ -354,7 +415,7 @@ build_river_plot_bokeh <- function(anno, group_by, pad = 0.1, fill_group = NULL)
     arrange(link_id)
   
   poly_links <- data.frame(x = numeric, y = numeric, link_id = character())
-  for(i in 1:nrow(group_links)) {
+  for (i in 1:nrow(group_links)) {
     plot_links <- make_plot_links(group_links[i,], fill = fill_group)
     
     poly_link <- data.frame(x = c(rev(plot_links$x),plot_links$x),

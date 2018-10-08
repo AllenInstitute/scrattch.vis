@@ -6,8 +6,8 @@
 \usage{
 group_heatmap_plot(data, anno, genes, grouping, group_order = NULL,
   stat = "median", log_scale = TRUE, normalize_rows = FALSE,
-  font_size = 7, label_height = 25, show_counts = TRUE,
-  rotate_counts = FALSE, max_width = 10)
+  colorset = NULL, font_size = 7, label_height = 25,
+  show_counts = TRUE, rotate_counts = FALSE, max_width = 10)
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}

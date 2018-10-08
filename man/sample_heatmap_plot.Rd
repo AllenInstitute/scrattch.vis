@@ -5,8 +5,9 @@
 \title{Heatmaps of gene expression for individual samples}
 \usage{
 sample_heatmap_plot(data, anno, genes, grouping, group_order = NULL,
-  log_scale = TRUE, normalize_rows = FALSE, font_size = 7,
-  label_height = 25, label_type = "angle", max_width = 10)
+  log_scale = TRUE, normalize_rows = FALSE, colorset = NULL,
+  font_size = 7, label_height = 25, label_type = "angle",
+  max_width = 10)
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}

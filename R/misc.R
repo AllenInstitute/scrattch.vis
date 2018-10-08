@@ -171,10 +171,16 @@ split_text <- function(in_string) {
 #' test <- c("hspa8","scnn1a","fhqwghads")
 #' title_case(test)
 title_case <- function(in_chr) {
+
   lower <- tolower(in_chr)
   s <- strsplit(lower, " ")
   result <- paste(toupper(substring(s, 1,1)), substring(s, 2), sep="")
+  
+  if (length(result) < 2)
+    warning("Make sure that your input is a character vector.")
+  
   return(result)
+    
 }
 
 
@@ -197,7 +203,7 @@ values_to_colors <- function(x,
   
   heat_colors <- colorRampPalette(colorset)(1001)
   
-  if(is.null(max_val)) {
+  if (is.null(max_val)) {
     max_val <- max(x, na.rm = T)
   } else {
     x[x > max_val] <- max_val
@@ -208,11 +214,11 @@ values_to_colors <- function(x,
     x[x < min_val] <- min_val
   }
   
-  if(sum(x == min_val, na.rm = TRUE) == length(x)) {
+  if (sum(x == min_val, na.rm = TRUE) == length(x)) {
     colors <- rep(heat_colors[1],length(x))
   } else {
-    if(length(x) > 1) {
-      if(var(x, na.rm = TRUE) == 0) {
+    if (length(x) > 1) {
+      if (var(x, na.rm = TRUE) == 0) {
         colors <- rep(heat_colors[500], length(x))
       } else {
         heat_positions <- unlist(round((x - min_val) / (max_val - min_val) * 1000 + 1, 0))
@@ -224,7 +230,7 @@ values_to_colors <- function(x,
     }
   }
   
-  if(!is.null(missing_color)) {
+  if (!is.null(missing_color)) {
     colors[is.na(colors)] <- rgb(t(col2rgb(missing_color)/255))
   }
   

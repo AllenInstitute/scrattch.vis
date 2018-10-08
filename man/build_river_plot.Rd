@@ -4,8 +4,8 @@
 \alias{build_river_plot}
 \title{Build river plots for annotations}
 \usage{
-build_river_plot(anno, grouping, show_labels = TRUE, label_pos = "center",
-  pad = 0.1, fill_group = NULL)
+build_river_plot(anno, grouping, show_labels = TRUE,
+  label_pos = "center", pad = 0.1, fill_group = NULL)
 }
 \arguments{
 \item{anno}{The sample annotations to use. Must have _id, _label, and _color columns for each grouping.}

@@ -10,20 +10,20 @@
 #' mat_to_data_df(matrix, cols_are = "sample_names)
 mat_to_data_df <- function(mat,
                            cols_are = "gene_names") {
-  library(Matrix)
-  
+
   if (grepl("sample", cols_are) == TRUE) {
     if (class(mat) == "matrix") {
       mat <- t(mat)
     } else {
-      print(class(mat))
       mat <- Matrix::t(mat)
     }
   }
   
 
   df <- cbind(sample_name = rownames(mat),
-              as.data.frame(as.matrix(mat)))
+              as.data.frame(as.matrix(mat)),
+              stringsAsFactors = FALSE)
+  
   rownames(df) <- NULL
   
   return(df)
@@ -40,16 +40,22 @@ mat_to_data_df <- function(mat,
 #' @examples 
 #' melt_data_df(df,grouping = "sample_name", value_cols = NULL)
 #' @export
-melt_data_df <- function(data_df, grouping = "sample_name", value_cols = NULL) {
-  library(reshape2)
+melt_data_df <- function(data_df, 
+                         grouping = "sample_name", 
+                         value_cols = NULL) {
   
   if (is.null(value_cols)) {
     value_cols <- names(data_df)[!names(data_df) %in% grouping]
   }
   
-  melted <- melt(data_df, id.vars = grouping, measure.vars = value_cols)
+  melted <- reshape2::melt(data_df, 
+                           id.vars = grouping, 
+                           measure.vars = value_cols)
   
   names(melted)[names(melted) == "variable"] <- "gene_name"
+  
+  melted$sample_name <- as.character(melted$sample_name)
+  melted$gene_name <- as.character(melted$gene_name)
   
   return(melted)
   
@@ -78,13 +84,11 @@ group_stats <- function(data_df,
                         anno,
                         grouping,
                         stat = c("median","mean","tmean","prop_gt0","prop_gt1","min","max")) {
-  library(dplyr)
-  library(purrr)
-  
+
   if (is.character(grouping) == TRUE) {
     grouping_quo <- rlang::syms(grouping)
   } else {
-    grouping_quo <- quo(grouping)
+    grouping_quo <- dplyr::quo(grouping)
   }
   
   if (is.null(value_cols) == TRUE) {
@@ -92,24 +96,23 @@ group_stats <- function(data_df,
   }
   
   data_df <- data_df %>%
-    select(one_of(c("sample_name", value_cols)))
+    dplyr::select(dplyr::one_of(c("sample_name", value_cols)))
   
   anno_data_df <- anno %>%
-    select(one_of(c("sample_name", grouping))) %>%
-    left_join(data_df)
+    dplyr::select(dplyr::one_of(c("sample_name", grouping))) %>%
+    dplyr::left_join(data_df, by = "sample_name")
   
   results_df <- anno_data_df %>%
-    select(one_of(grouping)) %>%
+    dplyr::select(dplyr::one_of(grouping)) %>%
     unique()
   
   for (v in value_cols) {
-    val_col <- sym(v)
+    val_col <- rlang::sym(v)
     val_df <- anno_data_df %>%
-      group_by(!!!grouping_quo) %>%
-      summarise(val_stat = text_stat(!!val_col, stat))
+      dplyr::group_by(!!!grouping_quo) %>%
+      dplyr::summarise(val_stat = text_stat(!!val_col, stat))
     names(val_df)[names(val_df) == "val_stat"] <- v
-    results_df <- left_join(results_df, val_df, by = grouping)
-    print(head(results_df))
+    results_df <- dplyr::left_join(results_df, val_df, by = grouping)
   }
   
   rownames(results_df) <- NULL
@@ -198,7 +201,8 @@ build_vec_pos <- function(vec,
   }
   
   pos_df <- data.frame(vec_name = vec,
-                       pos = 1:length(vec))
+                       pos = 1:length(vec),
+                       stringsAsFactors = FALSE)
   
   names(pos_df) <- c(vec_name, axis_name)
 

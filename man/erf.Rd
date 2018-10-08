@@ -12,3 +12,7 @@ erf(x)
 \description{
 Simple error function
 }
+\examples{
+erf(0.5)
+erf(0.1) 
+}

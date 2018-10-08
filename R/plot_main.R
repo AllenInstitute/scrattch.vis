@@ -779,7 +779,18 @@ group_violin_plot <- function(data,
   # plot the violins for each gene
   for (i in 1:length(genes)) {
     gene <- genes[[i]]
-    if (var(plot_data[[gene]]) != 0) {
+
+    # Check for lack of variance. If no variance, we only plot the median value
+    # instead of a violin.
+    if(sum(plot_data[[gene]] == 0) == nrow(plot_data)) {
+      has_variance <- FALSE
+    } else if(var(plot_data[[gene]]) == 0) {
+      has_variance <- FALSE
+    } else {
+      has_variance <- TRUE
+    }
+    
+    if(has_variance) {
       p <- p + 
         ggplot2::geom_violin(data = plot_data,
                              ggplot2::aes_string(x = "xpos", 
@@ -788,6 +799,7 @@ group_violin_plot <- function(data,
                              scale = "width",
                              adjust = 2)
     }
+    
     p <- p +
       ggplot2::stat_summary(data = plot_data,
                             ggplot2::aes_string(x = "xpos", 

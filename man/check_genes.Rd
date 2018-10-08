@@ -7,7 +7,7 @@
 check_genes(genes, gene_reference, result = "matched")
 }
 \arguments{
-\item{genes}{An input character vector of gene symbols}
+\item{genes}{An input character string (or character vector) of gene symbols}
 
 \item{gene_reference}{A reference character vector of gene symbols}
 

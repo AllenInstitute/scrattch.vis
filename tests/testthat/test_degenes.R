@@ -1,8 +1,10 @@
 library(scrattch.vis)
 
-context("DE genes")
+context("degenes.R")
 
-test_that("Find sparse, differentially-expressed genes in pairwise comparisons", {
-  skip('skip test degenes')
-})
-
+test_that(
+  "get_sparse_pairwise_deg() Finds sparse, differentially-expressed genes in pairwise comparisons",
+  {
+    skip("Missing input data. Skip for now")
+  }
+)

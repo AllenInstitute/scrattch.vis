@@ -4,15 +4,16 @@
 \alias{group_stats}
 \title{Compute stats for samples grouped by one or more annotations}
 \usage{
-group_stats(data_df, value_cols = NULL, anno, grouping, stat = c("median",
-  "mean", "tmean", "prop_gt0", "prop_gt1", "min", "max"))
+group_stats(data_df, value_cols = NULL, anno, grouping,
+  stat = c("median", "mean", "tmean", "prop_gt0", "prop_gt1", "min",
+  "max"))
 }
 \arguments{
 \item{data_df}{a data.frame with sample_name and expression values}
 
 \item{value_cols}{The values to use for computation. If NULL (default), will select all columns in data_df except sample_name.}
 
-\item{anno}{a data.frame sample_name and sample annotations}
+\item{anno}{a data.frame with sample_name and sample annotations}
 
 \item{grouping}{one or more column names of anno to use for sample grouping}
 
@@ -30,4 +31,7 @@ options are:
 }
 \description{
 Compute stats for samples grouped by one or more annotations
+}
+\examples{
+group_stats(melt_df, value_cols = NULL, anno, grouping = "mouse_line", stat = "mean")
 }

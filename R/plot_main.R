@@ -782,7 +782,8 @@ group_violin_plot <- function(data,
 
     # Check for lack of variance. If no variance, we only plot the median value
     # instead of a violin.
-    if(sum(plot_data[[gene]] == 0) == nrow(plot_data)) {
+    # Note that values of 0 will now be i due to row position scaling, above.
+    if(sum(plot_data[,gene] == i) == nrow(plot_data)) {
       has_variance <- FALSE
     } else if(var(plot_data[[gene]]) == 0) {
       has_variance <- FALSE

@@ -733,7 +733,11 @@ group_violin_plot <- function(data,
     gene <- genes[i]
     gene_max <- scaled_max_vals[gene]
     
-    plot_data[[gene]] <- i + plot_data[[gene]] / gene_max * 0.9
+    if(gene_max != 0) {
+      plot_data[[gene]] <- i + plot_data[[gene]] / gene_max * 0.9
+    } else {
+      plot_data[[gene]] <- i
+    }
   }
   
   header_labels <- build_header_labels(data = plot_data, 
@@ -778,7 +782,7 @@ group_violin_plot <- function(data,
   
   # plot the violins for each gene
   for (i in 1:length(genes)) {
-    gene <- genes[[i]]
+    gene <- genes[i]
 
     # Check for lack of variance. If no variance, we only plot the median value
     # instead of a violin.

@@ -1,5 +1,13 @@
 devtools::load_all()
 
+library(tasic2016data)
+options(stringsAsFactors = F)
+
+anno <- tasic_2016_anno
+data <- tasic_2016_rpkm
+data_df <- cbind(sample_name = colnames(data),
+                 as.data.frame(t(data[c("Pvalb","Sst","Rorb"),])))
+
 sample_bar_plot(data_df, 
                  anno, 
                  genes = c("Pvalb","Sst","Rorb"), 

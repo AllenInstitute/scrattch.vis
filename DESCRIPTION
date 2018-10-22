@@ -3,20 +3,23 @@ Type: Package
 Title: Visualization from scrattch
 Version: 0.0.208
 Date: 2018-08-18
-Author: Lucas T. Graybuck
+Authors@R: c(person("Lucas", "Graybuck", role = c("aut", "cre"), email =
+    "lucasg@alleninstitute.org"),
+    person("Adriana", "Sedeno-Cortes", role = "aut"))
 Maintainer: Lucas Graybuck <lucasg@alleninstitute.org>
 Description: Single cell RNA-seq data visualization
 License: file LICENSE
 LazyData: true
 Encoding: UTF-8
-Imports:
-    dendextend (>= 1.2.0),
+Depends:
     dplyr (>= 0.4.3),
     ggplot2 (>= 1.0.1),
     ggbeeswarm (>= 0.6.0),
+    purrr
+Imports:
+    dendextend (>= 1.2.0),
     grid (>= 3.2.2),
     lazyeval (>= 0.2.0),
-    purrr
 RoxygenNote: 6.1.0
 Suggests: knitr,
     rmarkdown,

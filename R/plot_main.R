@@ -750,6 +750,7 @@ group_violin_plot <- function(data,
 #' @param show_counts Logical, whether or not to display sample counts at the top of labels. Default = TRUE.
 #' @param rotate_counts Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.
 #' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
+#' @param return_type What values to return - can be "plot", "data", or "both". Default is "plot".
 #' 
 #' @return a ggplot2 plot object
 #'
@@ -763,94 +764,64 @@ group_quasirandom_plot <- function(data,
                                    label_height = 25,
                                    show_counts = TRUE, 
                                    rotate_counts = FALSE,
-                                   max_width = 10) {
-  library(dplyr)
-  library(ggplot2)
-  library(ggbeeswarm)
+                                   max_width = 10,
+                                   return_type = "plot") {
   
+  # Reverse so that genes go from top to bottom
+  # instead of bottom to top.
   genes <- rev(genes)
   
-  group_id <- paste0(grouping, "_id")
-  group_label <- paste0(grouping, "_label")
-  group_color <- paste0(grouping, "_color")
+  group_cols <- group_columns(grouping)
   
-  gene_data <- data[,c("sample_name",genes)]
-  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
+  # Filter data to genes and samples in anno
+  gene_data <- filter_gene_data(data, 
+                                genes, 
+                                anno, 
+                                group_cols,
+                                group_order, 
+                                "sample_name")
   
   # Get maximum values for each gene before rescaling to plot space.
-  max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
-  names(max_vals) <- genes
-  
-  if (log_scale) {
-    gene_data[,genes] <- log10(gene_data[,genes] + 1)
-  }
+  max_vals_unscaled <- max_gene_vals(gene_data, genes)
   
   # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
-  plot_data <- left_join(anno, gene_data, by = "sample_name")
+  plot_data <- dplyr::left_join(anno, gene_data, by = "sample_name")
   
-  # Add an x position to each group
-  if (!is.null(group_order)) {
-    # Because we allow ranges, and groups may not necessarily be continuous integer sets
-    # We have to filter out any that don't match first.
-    group_order <- group_order[group_order %in% anno[[group_id]]]
-    
-    group_order_df <- data.frame(group = group_order) %>%
-      mutate(xpos = 1:n())
-    names(group_order_df)[1] <- group_id
-    
-    plot_data <- plot_data %>%
-      filter_(paste0(group_id, " %in% group_order")) %>%
-      left_join(group_order_df, by = group_id)
-    
-  } else {
-    # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
-    group_order_df <- plot_data %>%
-      select(one_of(group_id)) %>%
-      unique() %>%
-      arrange_(group_id) %>%
-      mutate(xpos = 1:n())
-    
-    plot_data <- plot_data %>%
-      left_join(group_order_df, by = group_id)
+  # Rescale values if needed
+  if(log_scale) {
+    plot_data <- scale_gene_data(plot_data, genes, scale_type = "log10")
   }
   
-  n_genes <- length(genes)
-  n_groups <- length(unique(plot_data[[group_id]]))
-  n_samples <- nrow(data)
+  # Add x-positions for each group
+  plot_data <- add_group_xpos(plot_data,
+                              group_cols = group_cols,
+                              group_order = group_order)
+  
+  # Compute basic count stats that are used downstream
+  # n_stats$genes, n_stats$samples, and n_stats$groups
+  n_stats <- get_n_stats(plot_data, group_cols, genes)
   
   # Scale the data between i and i + 0.9
   for (i in 1:length(genes)) {
     gene <- genes[i]
-    gene_max <- max_vals[gene]
-    if (log_scale) {
-      plot_data[[gene]] <- i + plot_data[[gene]] / log10(gene_max + 1) * 0.9
-    } else {
-      plot_data[[gene]] <- i + plot_data[[gene]] / gene_max * 0.9
-    }
+    
+    plot_data[[gene]] <- scale_values_plot_space(plot_data[[gene]],
+                                                 min_ps = i)
   }
   
   header_labels <- build_header_labels(data = plot_data, 
                                       grouping = grouping,
                                       group_order = group_order,
-                                      ymin = n_genes + 1, 
+                                      ymin = n_stats$genes + 1, 
                                       label_height = label_height, 
                                       label_type = "simple")
-  
-  # Build the maximum value labels for the right edge
-  max_labels <- data.frame(x = (n_groups + 0.5) * 1.01,
-                           y = 1:n_genes + 0.5,
-                           label = sci_label(max_vals) )
-  max_header <- data.frame(x = (n_groups + 0.5) * 1.01,
-                           y = n_genes + 1,
-                           label = "Max value")
-  max_width <- n_groups*(max_width/100)/(1 - max_width/100)
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
   group_data <- plot_data %>%
     group_by(xpos) %>%
     summarise(group_n = n()) %>%
-    mutate(label_y = n_genes + label_y_size * 0.05,
+    mutate(label_y = n_stats$genes + label_y_size * 0.05,
            group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
   
   # Plot setup
@@ -868,17 +839,17 @@ group_quasirandom_plot <- function(data,
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "none") +
-    geom_hline(aes(yintercept = 1:(n_genes)), size = 0.2)
+    geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
   
   # plot the swarms for each gene
-  for (i in 1:length(genes)) {
+  for (i in 1:n_stats$genes) {
     gene <- genes[[i]]
     if (var(plot_data[[gene]]) != 0) {
       p <- p + 
-        geom_quasirandom(data = plot_data,
+        ggbeeswarm::geom_quasirandom(data = plot_data,
                          aes_string(x = "xpos", 
                                     y = genes[i], 
-                                    color = group_color),
+                                    color = group_cols$color),
                          size = 0.5,
                          groupOnX = TRUE)
     }
@@ -886,34 +857,22 @@ group_quasirandom_plot <- function(data,
   }
   
   # Cluster labels
-  p <- p +
-    geom_rect(data = header_labels, 
-              aes(xmin = xmin, ymin = ymin, 
-                  xmax = xmax, ymax = ymax, 
-                  fill = color)) +
-    geom_text(data = header_labels,
-              aes(x = (xmin + xmax) / 2, 
-                  y = ymin + 0.05, 
-                  label = label),
-              angle = 90, 
-              vjust = 0.35, hjust = 0, 
-              size = pt2mm(font_size)) +
-    # Maximum value labels on right side of plot
-    geom_rect(aes(xmin = n_groups + 0.5, xmax = n_groups + 0.5 + max_width, 
-                  ymin = 1, ymax = max(header_labels$ymax)),
-              fill = "white") +
-    geom_text(data = max_header,
-              aes(x = x, y = y, 
-                  label = label),
-              angle = 90, 
-              hjust = 0, vjust = 0.35, 
-              size = pt2mm(font_size)) +
-    geom_text(data = max_labels,
-              aes(x = x, y = y, 
-                  label = label),
-              hjust = 0, vjust = 0.35, 
-              size = pt2mm(font_size), 
-              parse = TRUE)
+  p <- ggplot_header_labels(p,
+                            header_labels = header_labels,
+                            header_polygons = NULL,
+                            font_size = font_size)
+  
+  ### Maximum value labels at the right edge of the plot
+  max_val_dfs <- build_max_dfs(n_stats, 
+                               width_stat = "groups", 
+                               max_vals_unscaled, 
+                               max_width)
+  
+  p <- ggplot_max_vals(p,
+                       n_stats = n_stats,
+                       width_stat = "groups",
+                       max_val_dfs = max_val_dfs,
+                       font_size = font_size)
   
   # Cluster counts
   if (show_counts) {
@@ -934,7 +893,22 @@ group_quasirandom_plot <- function(data,
     }
   }
   
-  return(p)
+  if(return_type == "plot") {
+    return(p)
+  } else if(return_type == "data") {
+    return(list(plot_data = plot_data,
+                header_labels = header_labels,
+                header_polygons = header_polygons,
+                max_val_dfs = max_val_dfs,
+                n_stats = n_stats))
+  } else if(return_type == "both") {
+    return(list(plot = p,
+                plot_data = plot_data,
+                header_labels = header_labels,
+                group_counts = group_data,
+                max_val_dfs = max_val_dfs,
+                n_stats = n_stats))
+  }
 }
 
 #' Box Plots plots of gene expression for grouped samples

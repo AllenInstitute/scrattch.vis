@@ -2,11 +2,12 @@
 % Please edit documentation in R/plot_main.R
 \name{group_violin_plot}
 \alias{group_violin_plot}
-\title{Violing plots of gene expression for grouped samples}
+\title{Violin plots of gene expression for grouped samples}
 \usage{
 group_violin_plot(data, anno, genes, grouping, group_order = NULL,
   log_scale = TRUE, font_size = 7, label_height = 25,
-  show_counts = TRUE, rotate_counts = FALSE, max_width = 10)
+  show_counts = TRUE, rotate_counts = FALSE, max_width = 10,
+  return_type = "plot")
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}
@@ -30,10 +31,12 @@ group_violin_plot(data, anno, genes, grouping, group_order = NULL,
 \item{rotate_counts}{Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.}
 
 \item{max_width}{numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.}
+
+\item{return_type}{What values to return - can be "plot", "data", or "both". Default is "plot".}
 }
 \value{
 a ggplot2 plot object
 }
 \description{
-Violing plots of gene expression for grouped samples
+Violin plots of gene expression for grouped samples
 }

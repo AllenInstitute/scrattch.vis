@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_main.R
 \name{group_violin_plot}
 \alias{group_violin_plot}
-\title{Violing plots of gene expression for grouped samples}
+\title{Violin plots of gene expression for grouped samples}
 \usage{
 group_violin_plot(data, anno, genes, grouping, group_order = NULL,
   log_scale = TRUE, font_size = 7, label_height = 25,
@@ -35,5 +35,5 @@ group_violin_plot(data, anno, genes, grouping, group_order = NULL,
 a ggplot2 plot object
 }
 \description{
-Violing plots of gene expression for grouped samples
+Violin plots of gene expression for grouped samples
 }

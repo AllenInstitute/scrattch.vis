@@ -200,6 +200,7 @@ sample_bar_plot <- function(data,
 #' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
 #' @param label_type Label shape, "angle" or "square"
 #' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
+#' @param return_type What values to return - can be "plot", "data", or "both". Default is "plot".
 #' 
 #' @return a ggplot2 plot object
 #'
@@ -214,90 +215,68 @@ sample_heatmap_plot <- function(data,
                                 font_size = 7, 
                                 label_height = 25,
                                 label_type = "angle",
-                                max_width = 10) {
+                                max_width = 10,
+                                return_type = "plot") {
   
   library(dplyr)
   library(ggplot2)
   
   genes <- rev(genes)
   
-  group_id <- paste0(grouping, "_id")
-  group_label <- paste0(grouping, "_label")
-  group_color <- paste0(grouping, "_color")
+  group_cols <- group_columns(grouping)
   
-  gene_data <- data[,c("sample_name",genes)]
-  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
+  # Filter data to genes and samples in anno
+  gene_data <- filter_gene_data(data, 
+                                genes, 
+                                anno, 
+                                group_cols,
+                                group_order, 
+                                "sample_name")
   
   # Get maximum values for each gene before rescaling to plot space.
-  max_vals <- map_dbl(genes, function(x) { max(gene_data[[x]]) })
+  max_vals_unscaled <- max_gene_vals(gene_data, genes)
   
+  # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
+  plot_data <- dplyr::left_join(anno, gene_data, by = "sample_name")
+  
+  # Rescale values if needed
   if(log_scale) {
-    gene_data[,genes] <- log10(gene_data[,genes] + 1)
+    plot_data <- scale_gene_data(plot_data, genes, scale_type = "log10")
   }
   
   # Convert the data values to heatmap colors
-  gene_data <- data_df_to_colors(gene_data,
+  plot_data <- data_df_to_colors(plot_data,
                                  value_cols = genes,
                                  per_col = normalize_rows,
                                  colorset = colorset)
-
-  # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
-  plot_data <- left_join(anno, gene_data, by = "sample_name")
   
-  # Add an x position to each sample.
-  if(!is.null(group_order)) {
-    # Because we allow ranges, and groups may not necessarily be continuous integer sets
-    # We have to filter out any that don't match first.
-    group_order <- group_order[group_order %in% anno[[group_id]]]
-    
-    group_order_df <- data.frame(group = group_order) %>%
-      mutate(.plot_order = 1:n())
-    names(group_order_df)[1] <- group_id
-    
-    plot_data <- plot_data %>%
-      filter_(paste0(group_id, " %in% group_order")) %>%
-      left_join(group_order_df, by = group_id) %>%
-      arrange(.plot_order) %>%
-      mutate(xpos = 1:n()) %>%
-      select(-.plot_order)
-  } else {
-    # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
-    plot_data <- plot_data %>%
-      arrange_(group_id) %>%
-      mutate(xpos = 1:n())
-  }
+  # Add x-positions for each sample
+  plot_data <- add_sample_xpos(plot_data,
+                               group_cols = group_cols,
+                               group_order = group_order)
   
-  # Calculate the number of genes and samples for use as plot dimensions
-  n_genes <- length(genes)
-  n_groups <- length(unique(plot_data[[group_id]]))
-  n_samples <- nrow(plot_data)
+  # Compute basic count stats that are used downstream
+  # n_stats$genes, n_stats$samples, and n_stats$groups
+  n_stats <- get_n_stats(plot_data, group_cols, genes)
   
   # build_header_polygons from plot_components.R
-  header_polygons <- build_header_polygons(data = plot_data, 
+  header_polygons <- build_header_polygons(data = gene_data, 
+                                           anno = anno,
                                            grouping = grouping,
                                            group_order = group_order,
-                                           ymin = n_genes + 1, 
+                                           ymin = n_stats$genes + 1, 
                                            label_height = label_height, 
                                            poly_type = label_type)
   
   # Build the cell type label rectangles from plot_components.R
   header_labels <-build_header_labels(data = plot_data, 
                                       grouping = grouping,
-                                      ymin = n_genes + 1, 
+                                      ymin = n_stats$genes + 1, 
                                       label_height = label_height, 
                                       label_type = label_type)
   
-  # Build the maximum value labels for the right edge
-  max_labels <- data.frame(x = n_samples * 1.01,
-                           y = 1:n_genes + 0.5,
-                           label = sci_label(max_vals) )
-  max_header <- data.frame(x = n_samples * 1.01,
-                           y = n_genes + 1,
-                           label = "Max value")
-  max_width <- n_samples*(max_width/100)/(1-max_width/100)
-  
   # Plot setup
-  p <- ggplot(data) +
+  p <- ggplot(plot_data) +
     scale_fill_identity() +
     theme_classic(base_size = font_size) +
     theme(axis.text = element_text(size=rel(1)),
@@ -306,7 +285,9 @@ sample_heatmap_plot <- function(data,
           axis.title = element_blank(),
           axis.text.x = element_blank()) +
     scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0), breaks = 1:n_genes + 0.45, labels = genes)
+    scale_y_continuous(expand = c(0, 0), 
+                       breaks = 1:n_stats$genes + 0.45, 
+                       labels = genes)
   
   # plot the rectangles for each gene
   for(i in seq_along(genes)) {
@@ -329,43 +310,59 @@ sample_heatmap_plot <- function(data,
     
   }
   
-  # Label elements
-  # pt2mm() is in plot_components.R
-  p <- p + 
-    # Cluster labels at the top of the plot
-    geom_rect(data = header_labels,
-              aes(xmin = xmin, xmax = xmax, 
-                  ymin = ymin, ymax = ymax, 
-                  fill = color)) +
-    geom_text(data = header_labels,
-              aes(x = (xmin + xmax) / 2, 
-                  y = ymin + 0.05, 
-                  label = label),
-              angle = 90, 
-              vjust = 0.35, hjust = 0, 
-              size = pt2mm(font_size)) +
-    geom_polygon(data = header_polygons,
-                 aes(x = poly.x, 
-                     y = poly.y, 
-                     fill = color, 
-                     group = id)) +
-    # Maximum value labels at the right edge of the plot
-    geom_rect(aes(xmin = n_samples + 1, xmax = n_samples + max_width, 
-                  ymin = 1, ymax = max(header_labels$ymax)), 
-              fill = "#FFFFFF") +
-    geom_text(data = max_header,
-              aes(x = x, y = y, 
-                  label = label),
-              angle = 90, 
-              hjust = 0, vjust = 0.5, 
-              size = pt2mm(font_size)) +
-    geom_text(data = max_labels,
-              aes(x = x, y = y, 
-                  label = label),
-              hjust = 0, vjust = 0.5, 
-              size = pt2mm(font_size), parse = TRUE)
+  ### Cluster labels at the top of the plot
   
-  p
+  # build_header_polygons from plot_components.R
+  header_polygons <- build_header_polygons(data = gene_data, 
+                                           anno = anno,
+                                           grouping = grouping,
+                                           group_order = group_order,
+                                           ymin = n_stats$genes + 1, 
+                                           label_height = label_height, 
+                                           poly_type = label_type)
+  
+  # Build the cell type label rectangles from plot_components.R
+  header_labels <- build_header_labels(data = plot_data, 
+                                       grouping = grouping,
+                                       ymin = n_stats$genes + 1, 
+                                       label_height = label_height, 
+                                       label_type = label_type)
+  
+  p <- ggplot_header_labels(p,
+                            header_labels = header_labels,
+                            header_polygons = header_polygons,
+                            font_size = font_size)
+  
+  ### Scale bar elements
+  p <- ggplot_scale_bars(p, 
+                         n_genes = n_stats$genes, 
+                         n_samples = n_stats$samples,
+                         extent = 0.9)
+  
+  ### Maximum value labels at the right edge of the plot
+  max_val_dfs <- build_max_dfs(n_stats, max_vals_unscaled, max_width)
+  
+  p <- ggplot_max_vals(p,
+                       n_stats = n_stats,
+                       max_val_dfs = max_val_dfs,
+                       font_size = font_size)
+  
+  if(return_type == "plot") {
+    return(p)
+  } else if(return_type == "data") {
+    return(list(plot_data = plot_data,
+                header_labels = header_labels,
+                header_polygons = header_polygons,
+                max_val_dfs = max_val_dfs,
+                n_stats = n_stats))
+  } else if(return_type == "both") {
+    return(list(plot = p,
+                plot_data = plot_data,
+                header_labels = header_labels,
+                header_polygons = header_polygons,
+                max_val_dfs = max_val_dfs,
+                n_stats = n_stats))
+  }
   
 }
 

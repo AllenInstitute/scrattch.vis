@@ -363,6 +363,7 @@ sample_heatmap_plot <- function(data,
 #' @param font_size numeric object, the font size (in pts) used to make the plot.
 #' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
 #' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
+#' @param return_type What values to return - can be "plot", "data", or "both". Default is "plot".
 #' 
 #' @return a ggplot2 plot object
 #'

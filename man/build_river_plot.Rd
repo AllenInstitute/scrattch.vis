@@ -5,7 +5,8 @@
 \title{Build river plots for annotations}
 \usage{
 build_river_plot(anno, grouping, show_labels = TRUE,
-  label_pos = "center", pad = 0.1, fill_group = NULL)
+  label_pos = "center", min_link_size = 0, pad = 0.1,
+  fill_group = NULL)
 }
 \arguments{
 \item{anno}{The sample annotations to use. Must have _id, _label, and _color columns for each grouping.}
@@ -13,6 +14,8 @@ build_river_plot(anno, grouping, show_labels = TRUE,
 \item{show_labels}{Logical, whether or not to show labels. Default is TRUE.}
 
 \item{label_pos}{Label position - "left", "center", or "right". Can be specified for each entry in group_by. Default = "center".}
+
+\item{min_link_size}{Numeric, the minimum fraction of cells in either group that must be included in a link for display. Default is 0 (show all links).}
 
 \item{pad}{The fraction of vertical space to use as padding between groups. Default = 0.1.}
 

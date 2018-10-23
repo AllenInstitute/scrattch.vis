@@ -214,13 +214,13 @@ make_group_links <- function(anno,
     
     group1_nodes <- plot_nodes %>%
       filter(group == base[1]) %>%
-      select(group, id, xmax, ymin)
-    names(group1_nodes) <- c("group1",anno_id[1],"x","group1_min")
+      select(group, id, xmax, ymin, n)
+    names(group1_nodes) <- c("group1",anno_id[1],"x","group1_min", "group1_n")
     
     group2_nodes <- plot_nodes %>%
       filter(group == base[2]) %>%
-      select(group, id, xmin, ymin)
-    names(group2_nodes) <- c("group2",anno_id[2],"xend","group2_min")
+      select(group, id, xmin, ymin, n)
+    names(group2_nodes) <- c("group2",anno_id[2],"xend","group2_min", "group2_n")
     
     grouping <- c(anno_id, anno_label, anno_color)
     
@@ -247,14 +247,16 @@ make_group_links <- function(anno,
                             "group1_label","group2_label",
                             "group1_color","group2_color",
                             "n","group1","group2",
-                            "x","group1_min","xend","group2_min",
+                            "x","group1_min","group1_n","xend","group2_min","group2_n",
                             "y","yend")
     
     group_links <- group_links %>%
       rowwise() %>%
       mutate(link_id = paste0(group1_label,"_",group1_id,"_to_",
                               group2_label,"_",group2_id)) %>%
-      ungroup()
+      ungroup() %>%
+      mutate(group1_frac = n/group1_n,
+             group2_frac = n/group2_n)
     
     if (exists("all_links")) {
       all_links <- rbind(all_links, group_links)
@@ -320,6 +322,7 @@ make_plot_links <- function(group_links,
 #' @param group_by The bases to use for the river plot, from left to right.
 #' @param show_labels Logical, whether or not to show labels. Default is TRUE.
 #' @param label_pos Label position - "left", "center", or "right". Can be specified for each entry in group_by. Default = "center".
+#' @param min_link_size Numeric, the minimum fraction of cells in either group that must be included in a link for display. Default is 0 (show all links).
 #' @param pad The fraction of vertical space to use as padding between groups. Default = 0.1.
 #' @param fill_group One group to use as a source for ribbon colors. Default is NULL.
 #' 
@@ -329,6 +332,7 @@ build_river_plot <- function(anno,
                              grouping, 
                              show_labels = TRUE,
                              label_pos = "center",
+                             min_link_size = 0,
                              pad = 0.1, 
                              fill_group = NULL) {
   
@@ -359,7 +363,8 @@ build_river_plot <- function(anno,
     
   }
   
-  group_links <- make_group_links(anno, grouping, plot_nodes)
+  group_links <- make_group_links(anno, grouping, plot_nodes) %>%
+    filter(group1_frac > min_link_size | group2_frac > min_link_size)
   plot_links <- make_plot_links(group_links, fill = fill_group)
   
   p <- ggplot() +

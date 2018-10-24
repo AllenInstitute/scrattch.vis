@@ -94,7 +94,7 @@ sample_bar_plot <- function(data,
                        breaks = 1:n_stats$genes + 0.45, 
                        labels = genes) +
     theme_classic(base_size = font_size) +
-    theme(axis.text = element_text(size=rel(1)),
+    theme(axis.text = element_text(size=rel(1), face = "italic"),
           axis.ticks = element_blank(),
           axis.line = element_blank(),
           axis.title = element_blank(),
@@ -263,7 +263,7 @@ sample_heatmap_plot <- function(data,
   p <- ggplot(plot_data) +
     scale_fill_identity() +
     theme_classic(base_size = font_size) +
-    theme(axis.text = element_text(size=rel(1)),
+    theme(axis.text = element_text(size=rel(1), face = "italic"),
           axis.ticks = element_blank(),
           axis.line = element_blank(),
           axis.title = element_blank(),
@@ -425,7 +425,7 @@ sample_fire_plot <- function(data,
   p <- ggplot(data) +
     scale_fill_identity() +
     theme_classic(base_size = font_size) +
-    theme(axis.text = element_text(size = rel(1)),
+    theme(axis.text = element_text(size = rel(1), face = "italic"),
           axis.ticks = element_blank(),
           axis.line = element_blank(),
           axis.title = element_blank(),
@@ -637,7 +637,7 @@ group_violin_plot <- function(data,
     ggplot2::scale_x_continuous("", 
                                 expand = c(0, 0)) +
     ggplot2::theme_classic(font_size) +
-    ggplot2::theme(axis.text = ggplot2::element_text(size = ggplot2::rel(1)),
+    ggplot2::theme(axis.text = ggplot2::element_text(size = ggplot2::rel(1), face = "italic"),
                    axis.text.x = ggplot2::element_blank(),
                    axis.ticks.x = ggplot2::element_blank(),
                    legend.position = "none") +
@@ -835,7 +835,7 @@ group_quasirandom_plot <- function(data,
     scale_x_continuous("", 
                        expand = c(0, 0)) +
     theme_classic(font_size) +
-    theme(axis.text = element_text(size = rel(1)),
+    theme(axis.text = element_text(size = rel(1), face = "italic"),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "none") +
@@ -1007,7 +1007,7 @@ group_box_plot <- function(data,
     scale_x_continuous("", 
                        expand = c(0, 0)) +
     theme_classic(font_size) +
-    theme(axis.text = element_text(size = rel(1)),
+    theme(axis.text = element_text(size = rel(1), face = "italic"),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "none") +
@@ -1096,6 +1096,8 @@ group_box_plot <- function(data,
 #'   \item "median"
 #'   \item "mean"
 #'   \item "tmean" (25\% trimmed mean)
+#'   \item "nzmean" (mean of non-zero values)
+#'   \item "nzmedian" (median of non-zero values)
 #'   \item "prop_gt0" (proportion of samples > 0)
 #'   \item "prop_gt1" (proportion of samples > 1)
 #'   \item "min"
@@ -1206,7 +1208,7 @@ group_heatmap_plot <- function(data,
     scale_x_continuous("", 
                        expand = c(0, 0)) +
     theme_classic(font_size) +
-    theme(axis.text = element_text(size = rel(1)),
+    theme(axis.text = element_text(size = rel(1), face = "italic"),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "none") +
@@ -1294,6 +1296,8 @@ group_heatmap_plot <- function(data,
 #'   \item "median"
 #'   \item "mean"
 #'   \item "tmean" (25\% trimmed mean)
+#'   \item "nzmean" (mean of non-zero values)
+#'   \item "nzmedian" (median of non-zero values)
 #'   \item "prop_gt0" (proportion of samples > 0)
 #'   \item "prop_gt1" (proportion of samples > 1)
 #'   \item "min"
@@ -1382,7 +1386,8 @@ group_dot_plot <- function(data,
   
   plot_data <- plot_anno %>%
     left_join(gene_fill_data, by = group_cols$label) %>%
-    left_join(gene_size_stats, by = group_cols$label)
+    left_join(gene_size_stats, by = group_cols$label) %>%
+    left_join(group_counts, by = group_cols$id)
   
   # Add x-positions for each group
   plot_data <- add_group_xpos(plot_data,
@@ -1418,7 +1423,7 @@ group_dot_plot <- function(data,
     scale_x_continuous("", 
                        expand = c(0, 0)) +
     theme_classic(font_size) +
-    theme(axis.text = element_text(size = rel(1)),
+    theme(axis.text = element_text(size = rel(1), face = "italic"),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "none") +

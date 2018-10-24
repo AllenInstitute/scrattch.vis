@@ -5,8 +5,8 @@
 \title{Compute stats for samples grouped by one or more annotations}
 \usage{
 group_stats(data_df, value_cols = NULL, anno, grouping,
-  stat = c("median", "mean", "tmean", "prop_gt0", "prop_gt1", "min",
-  "max"))
+  stat = c("median", "mean", "tmean", "prop_gt0", "prop_gt1",
+  "prop_gt_cutoff", "min", "max"), cutoff = NULL)
 }
 \arguments{
 \item{data_df}{a data.frame with sample_name and expression values}
@@ -23,11 +23,16 @@ options are:
   \item "median"
   \item "mean"
   \item "tmean" (25\% trimmed mean)
+  \item "nzmean" (mean of non-zero values)
+  \item "nzmedian" (median of non-zero values)
   \item "prop_gt0" (proportion of samples > 0)
   \item "prop_gt1" (proportion of samples > 1)
+  \item "prop_gt_cutoff" (proportion of samples > cutoff)
   \item "min"
   \item "max"
   }}
+
+\item{cutoff}{A cutoff for use in stats calculations. Most ignore this value. Default is 0.}
 }
 \description{
 Compute stats for samples grouped by one or more annotations

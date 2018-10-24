@@ -4,7 +4,7 @@
 \alias{text_stat}
 \title{Compute statistics for a numeric vector, selected with a simple text string}
 \usage{
-text_stat(x, stat)
+text_stat(x, stat, cutoff = NULL)
 }
 \arguments{
 \item{x}{A numeric vector}
@@ -18,9 +18,12 @@ text_stat(x, stat)
   \item "nzmedian" (median of non-zero values)
   \item "prop_gt0" (proportion of samples > 0)
   \item "prop_gt1" (proportion of samples > 1)
+  \item "prop_gt_cutoff" (proportion of samples > cutoff)
   \item "min"
   \item "max"
   }}
+
+\item{cutoff}{A cutoff for use in stats calculations. Most ignore this value. Default is 0.}
 }
 \description{
 This is useful for computation based on parameters passed by other functions.

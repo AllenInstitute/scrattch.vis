@@ -73,17 +73,22 @@ melt_data_df <- function(data_df,
 #'   \item "median"
 #'   \item "mean"
 #'   \item "tmean" (25\% trimmed mean)
+#'   \item "nzmean" (mean of non-zero values)
+#'   \item "nzmedian" (median of non-zero values)
 #'   \item "prop_gt0" (proportion of samples > 0)
 #'   \item "prop_gt1" (proportion of samples > 1)
+#'   \item "prop_gt_cutoff" (proportion of samples > cutoff)
 #'   \item "min"
 #'   \item "max"
 #'   }
+#' @param cutoff A cutoff for use in stats calculations. Most ignore this value. Default is 0.
 #' @examples group_stats(melt_df, value_cols = NULL, anno, grouping = "mouse_line", stat = "mean")
 group_stats <- function(data_df,
                         value_cols = NULL,
                         anno,
                         grouping,
-                        stat = c("median","mean","tmean","prop_gt0","prop_gt1","min","max")) {
+                        stat = c("median","mean","tmean","prop_gt0","prop_gt1","prop_gt_cutoff","min","max"),
+                        cutoff = NULL) {
 
   if (is.character(grouping) == TRUE) {
     grouping_quo <- rlang::syms(grouping)
@@ -110,7 +115,7 @@ group_stats <- function(data_df,
     val_col <- rlang::sym(v)
     val_df <- anno_data_df %>%
       dplyr::group_by(!!!grouping_quo) %>%
-      dplyr::summarise(val_stat = text_stat(!!val_col, stat))
+      dplyr::summarise(val_stat = text_stat(!!val_col, stat, cutoff))
     names(val_df)[names(val_df) == "val_stat"] <- v
     results_df <- dplyr::left_join(results_df, val_df, by = grouping)
   }

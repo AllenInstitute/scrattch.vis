@@ -14,6 +14,8 @@ text_stat(x, stat)
   \item "median"
   \item "mean"
   \item "tmean" (25\% trimmed mean)
+  \item "nzmean" (mean of non-zero values)
+  \item "nzmedian" (median of non-zero values)
   \item "prop_gt0" (proportion of samples > 0)
   \item "prop_gt1" (proportion of samples > 1)
   \item "min"

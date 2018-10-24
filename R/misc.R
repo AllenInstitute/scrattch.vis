@@ -274,6 +274,8 @@ prop_gt1 <- function(x) {
 #'   \item "median"
 #'   \item "mean"
 #'   \item "tmean" (25\% trimmed mean)
+#'   \item "nzmean" (mean of non-zero values)
+#'   \item "nzmedian" (median of non-zero values)
 #'   \item "prop_gt0" (proportion of samples > 0)
 #'   \item "prop_gt1" (proportion of samples > 1)
 #'   \item "min"
@@ -281,18 +283,22 @@ prop_gt1 <- function(x) {
 #'   }
 text_stat <- function(x, stat) {
   if(stat == "mean") {
-    mean(x)
+    mean(x, na.rm = TRUE)
   } else if(stat == "tmean") {
-    tmean(x)
+    tmean(x, na.rm = TRUE)
+  } else if(stat == "nzmean") {
+    mean(x[x > 0], na.rm = TRUE)
   } else if(stat == "median") {
-    median(x)
+    median(x, na.rm = TRUE)
+  } else if(stat == "nzmedian") {
+    median(x[x > 0], na.rm = TRUE)
   } else if(stat == "prop_gt0") {
     sum(x > 0)/length(x)
   } else if(stat == "prop_gt1") {
     sum(x > 1)/length(x)
   } else if(stat == "min") {
-    min(x)
+    min(x, na.rm = TRUE)
   } else if(stat == "max") {
-    max(x)
+    max(x, na.rm = TRUE)
   }
 }

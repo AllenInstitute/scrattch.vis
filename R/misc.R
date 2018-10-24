@@ -278,10 +278,12 @@ prop_gt1 <- function(x) {
 #'   \item "nzmedian" (median of non-zero values)
 #'   \item "prop_gt0" (proportion of samples > 0)
 #'   \item "prop_gt1" (proportion of samples > 1)
+#'   \item "prop_gt_cutoff" (proportion of samples > cutoff)
 #'   \item "min"
 #'   \item "max"
 #'   }
-text_stat <- function(x, stat) {
+#' @param cutoff A cutoff for use in stats calculations. Most ignore this value. Default is 0.
+text_stat <- function(x, stat, cutoff = NULL) {
   if(stat == "mean") {
     mean(x, na.rm = TRUE)
   } else if(stat == "tmean") {
@@ -296,6 +298,8 @@ text_stat <- function(x, stat) {
     sum(x > 0)/length(x)
   } else if(stat == "prop_gt1") {
     sum(x > 1)/length(x)
+  } else if(stat == "prop_gt_cutoff") {
+    sum(x > cutoff)/length(x)
   } else if(stat == "min") {
     min(x, na.rm = TRUE)
   } else if(stat == "max") {

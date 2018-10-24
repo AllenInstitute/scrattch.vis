@@ -586,10 +586,13 @@ add_group_xpos <- function(data, group_cols, group_order = NULL) {
 #' 
 #' @return a list with 3 data.frames: labels with label positions and values; header, with header position and label; width with the width in plot space. 
 build_max_dfs <- function(n_stats, width_stat = "samples", max_vals, max_width) {
-  labels <- data.frame(x = n_stats[[width_stat]] * 1.01,
+  xpos <- ifelse(width_stat == "samples",
+                 n_stats[[width_stat]] * 1.01,
+                 n_stats[[width_stat]] + 0.75)
+  labels <- data.frame(x = xpos,
                        y = 1:n_stats$genes + 0.5,
                        label = sci_label(max_vals))
-  header <- data.frame(x = n_stats[[width_stat]] * 1.01,
+  header <- data.frame(x = xpos,
                        y = n_stats$genes + 1,
                        label = "Max value")
   width <- n_stats[[width_stat]] * (max_width / 100) / (1 - max_width / 100)

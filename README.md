@@ -30,7 +30,7 @@ sample_fire_plot()
 
 ### Group-centric plots:
 
-group_violing_plot()
+group_violin_plot()
 ![](man/figures/group_violin_plot.png?raw=true)  
 
 group_quasirandom_plot()

@@ -2,6 +2,8 @@
 
 Single-cell RNA-seq visualization tools.  
 
+This package is under heavy development and optimization.  
+
 ## Installation
 
 All of the dependencies for `scrattch.vis` are available from CRAN. You can install scrattch.vis from Github using:

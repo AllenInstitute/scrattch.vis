@@ -7,7 +7,7 @@
 hclust_to_seg(hc, tree.dir = "down", dir.lims = c(0, 1))
 }
 \arguments{
-\item{hc}{a hclust object}
+\item{hc}{a hclust object (hierarchical clustering, stats package). First convert df to distances (dist(df)) then hclust(df)}
 
 \item{tree.dir}{a character object with the direction the tree points to, from root to leaves. options are "down" (default), "up","left", "right".}
 

@@ -6,7 +6,8 @@
 \usage{
 sample_bar_plot(data, anno, genes, grouping, group_order = NULL,
   log_scale = FALSE, font_size = 7, label_height = 25,
-  label_type = "angle", max_width = 10, bg_color = "#ADCFE0")
+  label_type = "angle", max_width = 10, bg_color = "#ADCFE0",
+  return_type = "plot")
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}
@@ -15,7 +16,7 @@ sample_bar_plot(data, anno, genes, grouping, group_order = NULL,
 
 \item{genes}{A character vector containing gene symbols to be plotted.}
 
-\item{grouping}{A character vector specifying the desc base that should be used to group cells}
+\item{grouping}{A character string specifying the desc base (column) that should be used to group cells.}
 
 \item{group_order}{Optional: Explicit specification of group order by supplying a vector of group_ids.}
 
@@ -30,6 +31,8 @@ sample_bar_plot(data, anno, genes, grouping, group_order = NULL,
 \item{max_width}{numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.}
 
 \item{bg_color}{plot background color. Default is a light blue ("#ADCFE0")}
+
+\item{return_type}{What values to return - can be "plot", "data", or "both". Default is "plot".}
 }
 \value{
 a ggplot2 plot object

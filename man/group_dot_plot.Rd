@@ -5,9 +5,10 @@
 \title{Dot-plot Heatmap plots of group summary statistics}
 \usage{
 group_dot_plot(data, anno, genes, grouping, group_order = NULL,
-  fill_stat = "median", size_stat = "prop_gt0", log_scale = TRUE,
-  normalize_rows = FALSE, font_size = 7, label_height = 25,
-  show_counts = TRUE, rotate_counts = FALSE, max_width = 10)
+  fill_stat = "median", size_stat = "prop_gt0", max_size = 10,
+  log_scale = TRUE, normalize_rows = FALSE, colorset = NULL,
+  font_size = 7, label_height = 25, show_counts = TRUE,
+  rotate_counts = FALSE, max_width = 10, return_type = "plot")
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}
@@ -25,6 +26,8 @@ group_dot_plot(data, anno, genes, grouping, group_order = NULL,
   \item "median"
   \item "mean"
   \item "tmean" (25\% trimmed mean)
+  \item "nzmean" (mean of non-zero values)
+  \item "nzmedian" (median of non-zero values)
   \item "prop_gt0" (proportion of samples > 0)
   \item "prop_gt1" (proportion of samples > 1)
   \item "min"
@@ -32,6 +35,8 @@ group_dot_plot(data, anno, genes, grouping, group_order = NULL,
   }}
 
 \item{size_stat}{The statistic to apply to each group for scaling dot size. Same options as fill_stat. Default = "prop_gt0".}
+
+\item{max_size}{Maximum size of dots, in pts.}
 
 \item{log_scale}{Logical , determines if data is log scaled before plotting. Default = FALSE.}
 
@@ -46,6 +51,8 @@ group_dot_plot(data, anno, genes, grouping, group_order = NULL,
 \item{rotate_counts}{Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.}
 
 \item{max_width}{numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.}
+
+\item{return_type}{What values to return - can be "plot", "data", or "both". Default is "plot".}
 }
 \value{
 a ggplot2 plot object

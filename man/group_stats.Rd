@@ -4,15 +4,16 @@
 \alias{group_stats}
 \title{Compute stats for samples grouped by one or more annotations}
 \usage{
-group_stats(data_df, value_cols = NULL, anno, grouping, stat = c("median",
-  "mean", "tmean", "prop_gt0", "prop_gt1", "min", "max"))
+group_stats(data_df, value_cols = NULL, anno, grouping,
+  stat = c("median", "mean", "tmean", "prop_gt0", "prop_gt1",
+  "prop_gt_cutoff", "min", "max"), cutoff = NULL)
 }
 \arguments{
 \item{data_df}{a data.frame with sample_name and expression values}
 
 \item{value_cols}{The values to use for computation. If NULL (default), will select all columns in data_df except sample_name.}
 
-\item{anno}{a data.frame sample_name and sample annotations}
+\item{anno}{a data.frame with sample_name and sample annotations}
 
 \item{grouping}{one or more column names of anno to use for sample grouping}
 
@@ -22,12 +23,20 @@ options are:
   \item "median"
   \item "mean"
   \item "tmean" (25\% trimmed mean)
+  \item "nzmean" (mean of non-zero values)
+  \item "nzmedian" (median of non-zero values)
   \item "prop_gt0" (proportion of samples > 0)
   \item "prop_gt1" (proportion of samples > 1)
+  \item "prop_gt_cutoff" (proportion of samples > cutoff)
   \item "min"
   \item "max"
   }}
+
+\item{cutoff}{A cutoff for use in stats calculations. Most ignore this value. Default is 0.}
 }
 \description{
 Compute stats for samples grouped by one or more annotations
+}
+\examples{
+group_stats(melt_df, value_cols = NULL, anno, grouping = "mouse_line", stat = "mean")
 }

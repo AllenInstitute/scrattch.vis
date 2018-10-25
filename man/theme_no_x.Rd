@@ -18,6 +18,6 @@ Based on theme_classic() from ggplot2.
 \examples{
 ggplot(mtcars) +
  geom_point(aes(x = mpg, y = wt)) +
- theme_no_x_margin() +
+ theme_no_x() +
  labs(x = NULL)
 }

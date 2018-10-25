@@ -15,30 +15,38 @@
 #' sci_label(my_numbers)
 #' 
 #' sci_label(my_numbers, sig_figs = 3)
-sci_label <- function(in_num, sig_figs = 2, type = "ggplot2") {
+
+sci_label <- function(in_num, 
+                      sig_figs = 2, 
+                      type = "ggplot2") {
+  
   labels <- character()
+  
   for(i in 1:length(in_num)) {
     x <- in_num[i]
+    
     if(x < 0) {
+
       neg <- "-"
       x <- abs(x)
     } else {
       neg <- ""
     }
+    
     # Format the string to adjust for number of sig_figs
-    if(x == 0) {
+    if (x == 0) {
       # If the value is 0, build 0.(0)N based on the number of sig figs requested.
-      first <- paste0("0", ".", paste0(rep("0", sig_figs - 1), collapse="") )
-    } else if(log10(x) %% 1 == 0) {
+      first <- paste0("0", ".", paste0(rep("0", sig_figs - 1), collapse = "") )
+    } else if (log10(x) %% 1 == 0) {
       first <- substr(x, 1, 1)
-      if(sig_figs > 1) {
-        first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse=""))
+      if (sig_figs > 1) {
+        first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse = ""))
       }
     } else {
       first <- round(x / (10 ^ floor(log10(x))), sig_figs - 1)
-      if(nchar(first) < sig_figs + 1) {
-        if(first %% 1 == 0) {
-          first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse=""))
+      if (nchar(first) < sig_figs + 1) {
+        if (first %% 1 == 0) {
+          first <- paste0(first, ".", paste0(rep("0", sig_figs - 1), collapse = ""))
         } else {
           # +1 because of decimal place
           first <- paste0(first, paste0(rep("0",sig_figs + 1 - nchar(first)), collapse = ""))
@@ -47,20 +55,20 @@ sci_label <- function(in_num, sig_figs = 2, type = "ggplot2") {
       }
     }
     # Add suffixes based on type parameter
-    if(x == 0) {
-      if(type == "text") {
+    if (x == 0) {
+      if (type == "text") {
         label <- paste0(first,"E0")
-      } else if(type == "ggplot2") {
+      } else if (type == "ggplot2") {
         label <- paste0(first, "%*%10^0" )
-      } else if(type == "DT") {
+      } else if (type == "DT") {
         label <- paste0(first, "\u271510<sup>0</sup>" )
       }
     } else {
-      if(type == "text") {
+      if (type == "text") {
         label <- paste0(first,"E",floor(log10(x)))
-      } else if(type == "ggplot2") {
+      } else if (type == "ggplot2") {
         label <- paste0(first, "%*%10^", floor(log10(x)))
-      } else if(type == "DT") {
+      } else if (type == "DT") {
         label <- paste0(first, "\u271510<sup>", floor(log10(x)),"</sup>")
       }
     }
@@ -82,9 +90,10 @@ sci_label <- function(in_num, sig_figs = 2, type = "ggplot2") {
 #' @examples
 #' ggplot(mtcars) +
 #'  geom_point(aes(x = mpg, y = wt)) +
-#'  theme_no_x_margin() +
+#'  theme_no_x() +
 #'  labs(x = NULL)
 theme_no_x <- function(base_size = 12, base_family = "") {
+  library(ggplot2)
   theme_classic(base_size = base_size, base_family = base_family) %+replace%
     theme(plot.margin = unit(c(rep(0,4)),"line"),
           axis.text = element_text(size = rel(1)),
@@ -106,10 +115,13 @@ theme_no_x <- function(base_size = 12, base_family = "") {
 #' of the samples in each group.
 #' 
 #' 
-build_header_polygons <- function(data, 
+build_header_polygons <- function(data,
+                                  anno,
                                   grouping,
+                                  group_order = NULL,
                                   ymin, 
                                   label_height = 25, 
+                                  fraction_of_label = 0.1,
                                   poly_type = "angle") {
   # Two label types: 
   # "angle" will draw a polygon with the base lined up with samples, and the top
@@ -120,8 +132,8 @@ build_header_polygons <- function(data,
   
   group_id <- paste0(grouping, "_id")
   group_color <- paste0(grouping, "_color")
-  n_groups <- length(unique(data[[group_id]]))
-  n_samples <- nrow(data)
+  n_groups <- length(unique(anno[[group_id]]))
+  n_samples <- nrow(anno)
   
   ## Note on plot dimensions
   # The range of the plot area (not including labels) will be
@@ -135,6 +147,30 @@ build_header_polygons <- function(data,
   # polygon points are built in this order: 1 = bottom-right, 2 = bottom-left, 3 = top-left, 4 = top-right
   # For angled labels, the bottom two x positions are calculated based on the number of samples
   # in each cluster. The top positions are evenly spaced based on the number of clusters.
+  # Add an x position to each group
+  
+  data <- dplyr::left_join(anno, data, by = "sample_name")
+  
+  if(!"xpos" %in% names(data)) {
+    if(!is.null(group_order)) {
+      group_order_df <- build_vec_pos(group_order,
+                                      vec_name = group_id,
+                                      sort = "none",
+                                      axis_name = "group_order")
+      
+      data <- data %>%
+        left_join(group_order_df, by = group_id) %>%
+        arrange(group_order) %>%
+        mutate(xpos = 1:n())
+      
+    } else {
+      # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
+      data <- data %>%
+        dplyr::arrange_(group_id) %>%
+        mutate(xpos = 1:n())
+    }
+  }
+  
   poly.data <- data %>% 
     group_by_(group_id) %>%
     summarise(color = .data[[group_color]][1],
@@ -146,11 +182,11 @@ build_header_polygons <- function(data,
            y1 = ymin,
            y2 = ymin,
            # The angled portion of the label will be 10% of the total label height 
-           y3 = ymin + labheight * 0.1,
-           y4 = ymin + labheight * 0.1)
+           y3 = ymin + labheight * fraction_of_label,
+           y4 = ymin + labheight * fraction_of_label)
   
   # For a simpler square label, set the top and bottom x-positions to be the same
-  if(poly_type == "square") {
+  if (poly_type == "square") {
     poly.data <- poly.data %>%
       mutate(x3 = x2,
              x4 = x1)
@@ -162,7 +198,7 @@ build_header_polygons <- function(data,
                      color = rep(poly.data$color, each = 4))
   poly.x <- numeric()
   poly.y <- numeric()
-  for(i in 1:nrow(poly.data)) {
+  for (i in 1:nrow(poly.data)) {
     poly.x <- c(poly.x,
                 poly.data$x1[i],
                 poly.data$x2[i],
@@ -211,7 +247,7 @@ build_header_labels <- function(data,
   # x-axis: 0:(nsamples) (for cell-based plots)
   # x-axis: 1:(nclust + 1) (for cluster-based plots)
   
-  labheight <- (ymin - 1)*(label_height/100)/(1-label_height/100)
+  labheight <- (ymin - 1)*(label_height/100)/(1 - label_height/100)
   
   group_id <- paste0(grouping, "_id")
   group_label <- paste0(grouping, "_label")
@@ -223,9 +259,10 @@ build_header_labels <- function(data,
   # Add an x position to each group
   if(!"xpos" %in% names(data)) {
     if(!is.null(group_order)) {
-      group_order_df <- data.frame(group = group_order) %>%
-        mutate(xpos = 1:n())
-      names(group_order_df)[1] <- group_id
+      group_order_df <- build_vec_pos(group_order,
+                                      vec_name = group_id,
+                                      sort = "none",
+                                      axis_name = "xpos")
       
       data <- data %>%
         left_join(group_order_df, by = group_id)
@@ -239,18 +276,18 @@ build_header_labels <- function(data,
   }
   
   data <- data %>%
-    group_by_(group_id, group_label, group_color) %>%
+    dplyr::group_by_(group_id, group_label, group_color) %>%
     summarise(minx = min(xpos),
               maxx = max(xpos))
   
-  if(label_type == "simple") {
+  if (label_type == "simple") {
     xlab.rect <- data.frame(xmin = data$minx - 0.5,
                             xmax = data$maxx + 0.5,
                             ymin = ymin,
                             ymax = ymin + labheight,
                             color = data[[group_color]],
                             label = data[[group_label]] )
-  } else if(label_type == "angle") {
+  } else if (label_type == "angle") {
     xlab.rect <- data.frame(xmin = (n_samples) * (1:n_clust - 1) / n_clust,
                             xmax = (n_samples) * (1:n_clust) / n_clust,
                             # 10% of the label height is reserved for angled polygons
@@ -258,7 +295,7 @@ build_header_labels <- function(data,
                             ymax = ymin + labheight,
                             color = data[[group_color]],
                             label = data[[group_label]] )
-  } else if(label_type == "square") {
+  } else if (label_type == "square") {
     xlab.rect <- data %>% 
       group_by_(group_id) %>%
       summarise(xmin = minx - 1,
@@ -274,7 +311,7 @@ build_header_labels <- function(data,
 
 #' Covert hclust objects to segments for use in ggplots
 #' 
-#' @param hc a hclust object
+#' @param hc a hclust object (hierarchical clustering, stats package). First convert df to distances (dist(df)) then hclust(df)
 #' @param tree.dir a character object with the direction the tree points to, from root to leaves. options are "down" (default), "up","left", "right".
 #' @param dir.lims a 2-member vector with the space in the direction of plotting that the dendrogram will occupy. default = c(0,1)
 #' @return a data.frame with segment values for ggplot2's geom_seg. columns: "x","xend","y","yend".
@@ -295,11 +332,11 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
     mutate(y = (y/max(y))*yheight + ymin) %>%
     mutate(yend = (yend/max(yend))*yheight + ymin)
   
-  if(tree.dir == "down") {
+  if (tree.dir == "down") {
     
     plot.segs <- norm.segs
     
-  } else if(tree.dir == "up") {
+  } else if (tree.dir == "up") {
     
     ycenter = (ymin + ymax) / 2
     
@@ -307,12 +344,12 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
       mutate(y = ycenter + (ycenter - y),
              yend = ycenter + (ycenter - yend))
     
-  } else if(tree.dir == "left") {
+  } else if (tree.dir == "left") {
     
     plot.segs <- norm.segs
     names(plot.segs) <- c("y","x","yend","xend")
     
-  } else if(tree.dir == "right") {
+  } else if (tree.dir == "right") {
     xcenter = (ymin + ymax) / 2
     
     plot.segs <- norm.segs
@@ -324,19 +361,29 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
     
   }
   
-  plot.segs
+  return(plot.segs)
   
 }
 
 #' Jitter x-y coordinates in a spiral pattern
+#'
+#' @param x coordinate x
+#' @param y coordinate y
+#' @param n length(x)
+#' @param max_n 
+#' @param radius 
+#' @param aspect 
+#' @param ratio golden
+#' @examples 
+#' spiral_jitter(x,y)
 spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, ratio = "golden") {
   
-  if(is.null(n)) {
+  if (is.null(n)) {
     n <- length(x)
   }
   
   # pre-calculated golden ratio
-  if(ratio == "golden") {
+  if (ratio == "golden") {
     ratio <- (sqrt(5) + 1) / 2
   }
   
@@ -344,7 +391,7 @@ spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, 
   angle <- 360 / (ratio ^ 2)
   
   # scale the spacing between points
-  if(is.null(max_n)) {
+  if (is.null(max_n)) {
     # If no maximum is provided, then c is based
     # on the number of points (n)
     c <- radius / sqrt(n)
@@ -359,13 +406,13 @@ spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, 
   y_j <- rep(y,n)
   
   # Jitter each point
-  for(m in 1:n) {
+  for (m in 1:n) {
     # calculate position using polar coordinates
     r <- c * sqrt(m)
     theta <- angle * m
     
     # convert polar coordinates to cartesian coordinates
-    if(aspect > 1) {
+    if (aspect > 1) {
       # if the aspect is larger than 1 (wider than tall),
       # scale the y positions to compensate
       x_j[m] <- x + r * cos(theta)
@@ -384,4 +431,312 @@ spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, 
   
   return(results)
   
+}
+
+#' Compute basic count statistics for use in generating plots
+#' 
+#' @param plot_data a data.frame with joined annotations and gene expression data
+#' @param group_cols a group_cols list generated by group_columns()
+#' @param genes a vector of genes used for the plot
+#' 
+#' @return a list of 3 count statistics: genes, groups, and samples
+get_n_stats <- function(plot_data, group_cols, genes) {
+  list(genes = length(genes),
+       groups = length(unique(plot_data[[group_cols$id]])),
+       samples = nrow(plot_data))
+}
+
+#' Generate a list of anno columns based on grouping
+#' 
+#' @param grouping the base of the grouping to use.
+#' 
+#' @return a list with 3 character objects: id, label, and color
+#' 
+group_columns <- function(grouping) {
+  list(id = paste0(grouping, "_id"),
+       label = paste0(grouping, "_label"),
+       color = paste0(grouping, "_color"))
+}
+
+#' Filter gene data based on annotations, genes, and groups supplied with group_order.
+#' 
+#' @param data a data.frame with gene expression data and a sample_name
+#' @param genes a vector of genes to plot
+#' @param anno a data.frame of sample annotations
+#' @param group_cols a group_cols list generated by group_columns()
+#' @param group_order a set of group_ids to use for the plot. Default is NULL, which ignores filtering on this parameter.
+#' @param sample_key_column the name of the key column for sample identification. Default is "sample_name"
+#' 
+#' @return a data.frame of data filtered based on genes, the sample_names in anno, and (if supplied) the groups in group_order.
+filter_gene_data <- function(data, 
+                             genes, 
+                             anno, 
+                             group_cols, 
+                             group_order = NULL, 
+                             sample_key_column = "sample_name") {
+  
+  if(!is.null(group_order)) {
+    group_order <- group_order[group_order %in% anno[[group_cols$id]]]
+    
+    anno_filter <- anno[[group_cols$id]] %in% group_order
+    anno <- anno[anno_filter, ]
+  }
+  
+  row_filter <- match(anno[[sample_key_column]], data[[sample_key_column]])
+  col_filter <- c(sample_key_column, genes)
+  
+  data[row_filter, col_filter]
+  
+}
+
+#' Compute maximum expression values in data for a set of genes.
+#' 
+#' @param data a data.frame with gene expression data
+#' @param genes the genes to plot
+#' 
+#' @return a numeric vector with maximum expression values named for each gene.
+max_gene_vals <- function(data, genes) {
+  max_vals <- purrr::map_dbl(genes, function(x) { max(data[[x]], na.rm = TRUE) })
+  names(max_vals) <- genes
+  
+  max_vals
+}
+
+#' Scale gene data columns
+#' 
+#' @param data a data.frame with gene expression data
+#' @param genes the genes to plot
+#' @param scale_type the type of scaling to supply. Currently only supports "log10" (default), and "linear" (no rescaling).
+#' 
+#' @return a data.frame with columns matching genes rescaled based on scale_type.
+scale_gene_data <- function(data, genes, scale_type = "log10") {
+  if(scale_type == "linear") {
+    data
+  } else if(scale_type == "log10") {
+    data[, genes] <- log10(data[, genes] + 1)
+    data
+  }
+}
+
+#' Add a per-sample xpos column for sample data based on grouping
+#' 
+#' @param data a data.frame with both annotations and gene expression vales
+#' @param group_cols a group_cols list generated by group_columns()
+#' @param group_order an optional vector of group ids for ordering (default is NULL).
+#' 
+#' @return a data.frame of data with a column xpos appended.
+#' 
+add_sample_xpos <- function(data, group_cols, group_order = NULL) {
+  if(is.null(group_order)) {
+    data %>%
+      dplyr::arrange_(group_cols$id) %>%
+      dplyr::mutate(xpos = 1:n())
+  } else {
+    group_order_df <- data.frame(group = group_order) %>%
+      dplyr::mutate(.plot_order = 1:n())
+    names(group_order_df)[1] <- group_id
+    
+    group_filter <- data[[group_cols$id]] %in% group_order
+    
+    data[group_filter, ] %>%
+      dplyr::left_join(group_order_df, 
+                       by = group_cols$id) %>%
+      dplyr::arrange(.plot_order) %>%
+      dplyr::mutate(xpos = 1:n()) %>%
+      dplyr::select(-.plot_order)
+  }
+}
+
+#' Adda per-group xpos column for sample data based on grouping
+#' 
+#' @param data a data.frame with both annotations and gene expression vales
+#' @param group_cols a group_cols list generated by group_columns()
+#' @param group_order an optional vector of group ids for ordering (default is NULL).
+#' 
+#' @return a data.frame of data with a column xpos appended.
+#' 
+add_group_xpos <- function(data, group_cols, group_order = NULL) {
+  if(is.null(group_order)) {
+    group_order_df <- data %>%
+      dplyr::select(one_of(group_cols$id)) %>%
+      unique() %>%
+      dplyr::arrange_(group_cols$id) %>%
+      dplyr::mutate(xpos = 1:n())
+    
+    data <- data %>%
+      dplyr::left_join(group_order_df, by = group_cols$id)
+  } else {
+    group_order_df <- data.frame(group = group_order) %>%
+      dplyr::mutate(xpos = 1:n())
+    names(group_order_df)[1] <- group_cols$id
+    
+    data <- data %>%
+      dplyr::left_join(group_order_df, by = group_cols$id)
+  }
+  
+  data
+}
+
+#' Build data.frames for maximum value positions in plot space
+#' 
+#' @param n_stats count statistics made by get_n_stats()
+#' @param width_stat The count used to determine x-position. In sample plots, use "samples". in group plots, use "groups".
+#' @param max_vals maximum values per gene generated by max_gene_vals()
+#' @param max_width the percentage of the plot that the max values should occupy.
+#' 
+#' @return a list with 3 data.frames: labels with label positions and values; header, with header position and label; width with the width in plot space. 
+build_max_dfs <- function(n_stats, width_stat = "samples", max_vals, max_width) {
+  xpos <- ifelse(width_stat == "samples",
+                 n_stats[[width_stat]] * 1.01,
+                 n_stats[[width_stat]] + 0.75)
+  labels <- data.frame(x = xpos,
+                       y = 1:n_stats$genes + 0.5,
+                       label = sci_label(max_vals))
+  header <- data.frame(x = xpos,
+                       y = n_stats$genes + 1,
+                       label = "Max value")
+  width <- n_stats[[width_stat]] * (max_width / 100) / (1 - max_width / 100)
+  
+  return(list(labels = labels,
+              header = header,
+              width = width))
+}
+
+#' Scale values to plot space
+#' 
+#' @param x A vector of values to scale
+#' @param min_ps The minimum value in plot space to use
+#' @param max_ps The maximum value in plot space to use. Default is NULL, which will use min_ps + 1.
+#' @param min_val The minimum value to plot. Default is 0. If NULL, will use min(x)
+#' @param max_val The maximum value to plot. Default is NULL, which will use max(x)
+#' @param extent The fraction of the space between min_ps and max_ps to use. Default is 0.9.
+#' 
+#' @return a vector of scaled values.
+scale_values_plot_space <- function(x, 
+                                    min_ps, 
+                                    max_ps = NULL, 
+                                    min_val = 0, 
+                                    max_val = NULL, 
+                                    extent = 0.9) {
+  if(is.null(max_ps)) { max_ps <- min_ps + 1 }
+  if(is.null(min_val)) { min_val <- min(x, na.rm = TRUE) }
+  if(min_val > 0) { x <- x - min_val; x[x < 0] <- 0 }
+  if(is.null(max_val)) { max_val = max(x, na.rm = TRUE) }
+  x / max_val * extent * (max_ps - min_ps) + min_ps
+}
+
+#' Add header labels objects to a ggplot
+#' 
+#' @param p The plot to add headers to
+#' @param header_labels A data.frame of header label coordinates generated by build_header_labels()
+#' @param header_polygons An optional data.frame of header polygons generated by build_header_polygons(). Default is NULL.
+#' @param font_size The font size in pt to use for header label plotting.
+#' 
+#' @return a ggplot2 object
+#' 
+ggplot_header_labels <- function(p, header_labels, header_polygons = NULL, font_size) {
+  p <- p + 
+    geom_rect(data = header_labels,
+              aes(xmin = xmin , 
+                  xmax = xmax, 
+                  ymin = ymin, 
+                  ymax = ymax, 
+                  fill = color) ) +
+    geom_text(data = header_labels, 
+              aes(x = (xmin + xmax) / 2, 
+                  y = ymin + 0.05, 
+                  label = label),
+              angle = 90, 
+              vjust = 0.35, 
+              hjust = 0, 
+              size = pt2mm(font_size))
+  
+  
+  if(!is.null(header_polygons)) {
+    p <- p +
+      geom_polygon(data = header_polygons,
+                   aes(x = poly.x, 
+                       y = poly.y, 
+                       fill = color, 
+                       group = id) )
+  }
+  
+  p
+}
+
+#' Add scale bar objects to a ggplot
+#' 
+#' @param p The plot to add scale bars to
+#' @param n_genes The number of genes in the plot
+#' @param n_samples The number of samples in the plot
+#' @param extent The amount of space in the plot row that each row of data uses.
+#' 
+#' @return a ggplot2 object
+#' 
+ggplot_scale_bars <- function(p, n_genes, n_samples, extent = 0.9) {
+  # Calculate Plot Scale bars
+  scale_bars <- data.frame(ymin = 1:n_genes,
+                           ymid = 1:n_genes + extent / 2,
+                           ymax = 1:n_genes + extent,
+                           xmin = -n_samples * 0.01,
+                           xmax = 0)
+  
+  p +
+    geom_hline(data = scale_bars,
+               aes(yintercept = ymin), 
+               size = 0.2) +
+    geom_segment(data = scale_bars, 
+                 aes(x = xmin,
+                     xend = xmax,
+                     y = ymid, 
+                     yend = ymid),
+                 size = 0.2) +
+    geom_segment(data = scale_bars,
+                 aes(x = xmin, 
+                     xend = xmax, 
+                     y = ymax, 
+                     yend = ymax),
+                 size = 0.2) +
+    geom_segment(data = scale_bars,
+                 aes(x = xmax, 
+                     xend = xmax, 
+                     y = ymin, 
+                     yend = ymax),
+                 size = 0.2)
+}
+
+#' Add max value labels to a ggplot
+#' 
+#' @param p The plot to add max values to
+#' @param n_stats Tcount statistics made by get_n_stats()
+#' @param width_stat The count used to determine x-position. In sample plots, use "samples". in group plots, use "groups".
+#' @param max_value_dfs The max value list generated by build_max_dfs()
+#' @param font_size The font size in pt to use for header label plotting.
+#' 
+#' @return a ggplot2 object
+#' 
+ggplot_max_vals <- function(p, n_stats, width_stat = "samples", max_val_dfs, font_size) {
+
+  p +
+    geom_rect(aes(xmin = n_stats[[width_stat]] + 1,
+                  xmax = n_stats[[width_stat]] + max_val_dfs$width,
+                  ymin = 1,
+                  ymax = 1),
+              fill = "#FFFFFF") +
+    geom_text(data = max_val_dfs$header,
+              aes(x = x, 
+                  y = y, 
+                  label = label),
+              angle = 90, 
+              hjust = 0, 
+              vjust = 0.5, 
+              size = pt2mm(font_size) ) +
+    geom_text(data = max_val_dfs$labels,
+              aes(x = x, 
+                  y = y, 
+                  label = label),
+              hjust = 0, 
+              vjust = 0.5, 
+              size = pt2mm(font_size) , 
+              parse = TRUE)
 }

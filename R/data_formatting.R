@@ -1,44 +1,61 @@
 #' Convert a matrix to a data.frame for plotting
-#' 
-#' @param mat a matrix or sparse matrix object from the Matrix package.
-#' @param cols_are Whether columns are "gene_names" (default) or "sample_names".
-#' 
+#'
+#' @param mat a matrix or sparse matrix dgCMatrix object from the Matrix package. 
+#' @param cols_are whether columns are "gene_names" or "sample_names"
+#' @return dataframe 
+#' @export
+#'
+#' @examples
+#' mat_to_data_df(matrix, cols_are = "gene_names")
+#' mat_to_data_df(matrix, cols_are = "sample_names)
 mat_to_data_df <- function(mat,
                            cols_are = "gene_names") {
-  library(Matrix)
-  
-  if(grepl("sample", cols_are)) {
-    if(class(mat) == "matrix") {
+
+  if (grepl("sample", cols_are) == TRUE) {
+    if (class(mat) == "matrix") {
       mat <- t(mat)
     } else {
       mat <- Matrix::t(mat)
     }
   }
   
+
   df <- cbind(sample_name = rownames(mat),
-              data.frame(mat))
+              as.data.frame(as.matrix(mat)),
+              stringsAsFactors = FALSE)
+  
   rownames(df) <- NULL
   
-  df
+  return(df)
   
 }
+
 
 #' Melt a data_df to prepare for plot parameters
 #' 
 #' @param data_df a data.frame with sample_name or grouping as well as value columns
 #' @param grouping grouping for the samples. Default = "sample_name", but if this is output from group_stats, provide the same grouping.
 #' @param value_cols The value columns to include. If NULL (default), will automatically choose all non-grouping columns.
-#' 
-melt_data_df <- function(data_df, grouping = "sample_name", value_cols = NULL) {
-  library(reshape2)
+#' @return melted dataframe
+#' @examples 
+#' melt_data_df(df,grouping = "sample_name", value_cols = NULL)
+#' @export
+melt_data_df <- function(data_df, 
+                         grouping = "sample_name", 
+                         value_cols = NULL) {
   
-  if(is.null(value_cols)) {
+  if (is.null(value_cols)) {
     value_cols <- names(data_df)[!names(data_df) %in% grouping]
   }
   
-  melted <- melt(data_df, id.vars = grouping, measure.vars = value_cols)
+  melted <- reshape2::melt(data_df, 
+                           id.vars = grouping, 
+                           measure.vars = value_cols)
   
   names(melted)[names(melted) == "variable"] <- "gene_name"
+  
+  melted$sample_name <- as.character(melted$sample_name)
+  melted$gene_name <- as.character(melted$gene_name)
   
   return(melted)
   
@@ -48,7 +65,7 @@ melt_data_df <- function(data_df, grouping = "sample_name", value_cols = NULL) {
 #' 
 #' @param data_df a data.frame with sample_name and expression values
 #' @param value_cols The values to use for computation. If NULL (default), will select all columns in data_df except sample_name.
-#' @param anno a data.frame sample_name and sample annotations
+#' @param anno a data.frame with sample_name and sample annotations
 #' @param grouping one or more column names of anno to use for sample grouping
 #' @param stat Which statistic to compute for grouped samples. \cr
 #' options are: 
@@ -56,53 +73,59 @@ melt_data_df <- function(data_df, grouping = "sample_name", value_cols = NULL) {
 #'   \item "median"
 #'   \item "mean"
 #'   \item "tmean" (25\% trimmed mean)
+#'   \item "nzmean" (mean of non-zero values)
+#'   \item "nzmedian" (median of non-zero values)
 #'   \item "prop_gt0" (proportion of samples > 0)
 #'   \item "prop_gt1" (proportion of samples > 1)
+#'   \item "prop_gt_cutoff" (proportion of samples > cutoff)
 #'   \item "min"
 #'   \item "max"
 #'   }
+#' @param cutoff A cutoff for use in stats calculations. Most ignore this value. Default is 0.
+#' @examples group_stats(melt_df, value_cols = NULL, anno, grouping = "mouse_line", stat = "mean")
 group_stats <- function(data_df,
                         value_cols = NULL,
                         anno,
                         grouping,
-                        stat = c("median","mean","tmean","prop_gt0","prop_gt1","min","max")) {
-  library(dplyr)
-  library(purrr)
-  
-  if(is.character(grouping)) {
+                        stat = c("median","mean","tmean","prop_gt0","prop_gt1","prop_gt_cutoff","min","max"),
+                        cutoff = NULL) {
+
+  if (is.character(grouping) == TRUE) {
     grouping_quo <- rlang::syms(grouping)
   } else {
-    grouping_quo <- quo(grouping)
+    grouping_quo <- dplyr::quo(grouping)
   }
   
-  if(is.null(value_cols)) {
+  if (is.null(value_cols) == TRUE) {
     value_cols <- names(data_df)[-1]
   }
   
   data_df <- data_df %>%
-    select(one_of(c("sample_name", value_cols)))
+    dplyr::select(dplyr::one_of(c("sample_name", value_cols)))
   
   anno_data_df <- anno %>%
-    select(one_of(c("sample_name", grouping))) %>%
-    left_join(data_df)
+    dplyr::select(dplyr::one_of(c("sample_name", grouping))) %>%
+    dplyr::left_join(data_df, by = "sample_name")
   
   results_df <- anno_data_df %>%
-    select(one_of(grouping)) %>%
+    dplyr::select(dplyr::one_of(grouping)) %>%
     unique()
   
-  for(v in value_cols) {
-    val_col <- sym(v)
+  for (v in value_cols) {
+    val_col <- rlang::sym(v)
     val_df <- anno_data_df %>%
-      group_by(!!!grouping_quo) %>%
-      summarise(val_stat = text_stat(!!val_col, stat))
+      dplyr::group_by(!!!grouping_quo) %>%
+      dplyr::summarise(val_stat = text_stat(!!val_col, stat, cutoff))
     names(val_df)[names(val_df) == "val_stat"] <- v
-    results_df <- left_join(results_df, val_df, by = grouping)
+    results_df <- dplyr::left_join(results_df, val_df, by = grouping)
   }
   
   rownames(results_df) <- NULL
   
   return(results_df)
 }
+
+
 
 #' Convert expression data to heatmap colors for plotting
 #' 
@@ -124,17 +147,17 @@ data_df_to_colors <- function(df,
   
   library(purrr)
   
-  if(is.null(value_cols)) {
+  if (is.null(value_cols)) {
     value_cols <- names(df)[-1]
   }
   
-  if(scale == "log2") {
+  if (scale == "log2") {
     df[[value_cols]] <- log2(df[[value_cols]])
-  } else if(scale == "log10") {
+  } else if (scale == "log10") {
     df[[value_cols]] <- log10(df[[value_cols]])
   }
   
-  if(is.null(max_val) & per_col == FALSE) {
+  if (is.null(max_val) & per_col == FALSE) {
     max_val <- max(unlist(df[, value_cols]), na.rm = TRUE)
   }
   
@@ -142,7 +165,7 @@ data_df_to_colors <- function(df,
                          function(x) {
                            vals <- unlist(df[[x]])
                            
-                           if(is.null(colorset)) {
+                           if (is.null(colorset)) {
                              values_to_colors(vals,
                                               min_val = min_val,
                                               max_val = max_val)
@@ -160,9 +183,10 @@ data_df_to_colors <- function(df,
   
 }
 
+
 #' Build plot positions for a character vector
 #' 
-#' @param vec a character vector
+#' @param vec a character vector (like gene names)
 #' @param sort how to resort the vector, if necessary. Default is "none", which keeps input order. 
 #' Options: "none","rev","random","alpha".
 #' @param axis_name which axis to use. Default is "y"
@@ -182,7 +206,8 @@ build_vec_pos <- function(vec,
   }
   
   pos_df <- data.frame(vec_name = vec,
-                       pos = 1:length(vec))
+                       pos = 1:length(vec),
+                       stringsAsFactors = FALSE)
   
   names(pos_df) <- c(vec_name, axis_name)
 

@@ -5,8 +5,9 @@
 \title{Fire Heatmaps of gene expression for individual samples}
 \usage{
 sample_fire_plot(data, anno, genes, grouping, group_order = NULL,
-  log_scale = TRUE, normalize_rows = FALSE, top_values = "lowest",
-  font_size = 7, label_height = 25, max_width = 10)
+  log_scale = TRUE, normalize_rows = FALSE, colorset = NULL,
+  top_values = "lowest", font_size = 7, label_height = 25,
+  max_width = 10, return_type = "plot")
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}
@@ -28,6 +29,8 @@ sample_fire_plot(data, anno, genes, grouping, group_order = NULL,
 \item{label_height}{numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.}
 
 \item{max_width}{numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.}
+
+\item{return_type}{What values to return - can be "plot", "data", or "both". Default is "plot".}
 }
 \value{
 a ggplot2 plot object

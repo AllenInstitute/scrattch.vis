@@ -4,6 +4,8 @@ Single-cell RNA-seq visualization tools.
 
 This package is under heavy development and optimization.  
 
+<img src="https://upload.wikimedia.org/wikipedia/commons/c/c0/Animal-Cat-Black-cat-watching-fish-bowl.jpg" alt="Seeing into the fishbowl" width="300px"/>
+
 ## Installation
 
 All of the dependencies for `scrattch.vis` are available from CRAN. You can install scrattch.vis from Github using:

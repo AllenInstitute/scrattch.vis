@@ -664,7 +664,8 @@ group_violin_plot <- function(data,
                                                  y = genes[i], 
                                                  fill = group_cols$color),
                              scale = "width",
-                             adjust = 2)
+                             adjust = 2,
+                             size = 0.1)
     }
     
     p <- p +
@@ -850,7 +851,7 @@ group_quasirandom_plot <- function(data,
                          aes_string(x = "xpos", 
                                     y = genes[i], 
                                     color = group_cols$color),
-                         size = 0.5,
+                         size = 0.2,
                          groupOnX = TRUE)
     }
     
@@ -1023,7 +1024,8 @@ group_box_plot <- function(data,
                                 y = genes[i], 
                                 fill = group_cols$color),
                      width = 0.8,
-                     outlier.size = 0.6)
+                     outlier.size = 0.2,
+                     size = 0.1)
     }
     
   }

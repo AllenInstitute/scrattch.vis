@@ -54,6 +54,11 @@ sample_bar_plot <- function(data,
                                 group_order, 
                                 "sample_name")
   
+  # Filter annotations if group_order is provided
+  if(!is.null(group_order)) {
+    anno <- anno[anno[[group_cols$id]] %in% group_order,]
+  }
+  
   # Get maximum values for each gene before rescaling to plot space.
   max_vals_unscaled <- max_gene_vals(gene_data, genes)
   
@@ -233,6 +238,11 @@ sample_heatmap_plot <- function(data,
                                 group_order, 
                                 "sample_name")
   
+  # Filter annotations if group_order is provided
+  if(!is.null(group_order)) {
+    anno <- anno[anno[[group_cols$id]] %in% group_order,]
+  }
+  
   # Get maximum values for each gene before rescaling to plot space.
   max_vals_unscaled <- max_gene_vals(gene_data, genes)
   
@@ -392,6 +402,11 @@ sample_fire_plot <- function(data,
                                 group_cols,
                                 group_order, 
                                 "sample_name")
+  
+  # Filter annotations if group_order is provided
+  if(!is.null(group_order)) {
+    anno <- anno[anno[[group_cols$id]] %in% group_order,]
+  }
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals_unscaled <- max_gene_vals(gene_data, genes)
@@ -573,16 +588,16 @@ group_violin_plot <- function(data,
                                 group_order, 
                                 "sample_name")
   
+  # Filter annotations if group_order is provided
+  if(!is.null(group_order)) {
+    anno <- anno[anno[[group_cols$id]] %in% group_order,]
+  }
+  
   # Get maximum values for each gene before rescaling to plot space.
   max_vals_unscaled <- max_gene_vals(gene_data, genes)
-  
+
   # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
   plot_data <- dplyr::left_join(anno, gene_data, by = "sample_name")
-  
-  # Rescale values if needed
-  if(log_scale) {
-    plot_data <- scale_gene_data(plot_data, genes, scale_type = "log10")
-  }
   
   max_vals_scaled <- max_vals_unscaled
   
@@ -593,7 +608,7 @@ group_violin_plot <- function(data,
   }
   
   ## Arrange
-  
+
   # Add x-positions for each group
   plot_data <- add_group_xpos(plot_data,
                               group_cols = group_cols,
@@ -610,6 +625,8 @@ group_violin_plot <- function(data,
     
     plot_data[[gene]] <- scale_values_plot_space(plot_data[[gene]],
                                                  min_ps = i)
+    
+    
   }
   
   header_labels <- build_header_labels(data = plot_data, 
@@ -649,6 +666,7 @@ group_violin_plot <- function(data,
 
     # Check for lack of variance. If no variance, we only plot the median value
     # instead of a violin.
+
     if(sum(plot_data[[gene]] == 0) == nrow(plot_data)) {
       has_variance <- FALSE
     } else if(var(plot_data[[gene]]) == 0) {
@@ -781,6 +799,11 @@ group_quasirandom_plot <- function(data,
                                 group_cols,
                                 group_order, 
                                 "sample_name")
+  
+  # Filter annotations if group_order is provided
+  if(!is.null(group_order)) {
+    anno <- anno[anno[[group_cols$id]] %in% group_order,]
+  }
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals_unscaled <- max_gene_vals(gene_data, genes)
@@ -954,6 +977,11 @@ group_box_plot <- function(data,
                                 group_cols,
                                 group_order, 
                                 "sample_name")
+  
+  # Filter annotations if group_order is provided
+  if(!is.null(group_order)) {
+    anno <- anno[anno[[group_cols$id]] %in% group_order,]
+  }
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals_unscaled <- max_gene_vals(gene_data, genes)
@@ -1145,6 +1173,11 @@ group_heatmap_plot <- function(data,
                                 group_cols,
                                 group_order, 
                                 "sample_name")
+  
+  # Filter annotations if group_order is provided
+  if(!is.null(group_order)) {
+    anno <- anno[anno[[group_cols$id]] %in% group_order,]
+  }
   
   gene_stats <- group_stats(gene_data,
                             value_cols = genes,
@@ -1348,6 +1381,11 @@ group_dot_plot <- function(data,
                                 group_cols,
                                 group_order, 
                                 "sample_name")
+  
+  # Filter annotations if group_order is provided
+  if(!is.null(group_order)) {
+    anno <- anno[anno[[group_cols$id]] %in% group_order,]
+  }
   
   gene_fill_stats <- group_stats(gene_data,
                                  value_cols = genes,

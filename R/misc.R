@@ -243,9 +243,10 @@ values_to_colors <- function(x,
 #' 
 #' @param x A numeric vector
 #' @param trim the amount to trim
+#' @param na.rm Whether or not to remove NA values. Default = TRUE.
 #' 
-tmean <- function(x, trim = 0.25) {
-  mean(x, trim = trim, na.rm = TRUE)
+tmean <- function(x, trim = 0.25, na.rm = TRUE) {
+  mean(x, trim = trim, na.rm = na.rm)
 }
 
 #' Compute the proportion/fraction of values > 0 in a numeric vector

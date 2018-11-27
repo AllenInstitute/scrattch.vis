@@ -1,7 +1,7 @@
 Package: scrattch.vis
 Type: Package
 Title: Visualization from scrattch
-Version: 0.0.208
+Version: 0.0.209
 Date: 2018-08-18
 Authors@R: c(person("Lucas", "Graybuck", role = c("aut", "cre"), email =
     "lucasg@alleninstitute.org"),

@@ -4,12 +4,14 @@
 \alias{tmean}
 \title{Compute Trimmed Mean of a numeric vector}
 \usage{
-tmean(x, trim = 0.25)
+tmean(x, trim = 0.25, na.rm = TRUE)
 }
 \arguments{
 \item{x}{A numeric vector}
 
 \item{trim}{the amount to trim}
+
+\item{na.rm}{Whether or not to remove NA values. Default = TRUE.}
 }
 \description{
 This is a simple wrapper around mean(x, trim)

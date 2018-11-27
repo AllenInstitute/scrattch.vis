@@ -2,6 +2,10 @@
 
 Single-cell RNA-seq visualization tools.  
 
+This package is under heavy development and optimization.  
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/c/c0/Animal-Cat-Black-cat-watching-fish-bowl.jpg" alt="Seeing into the fishbowl" width="200px"/>
+
 ## Installation
 
 All of the dependencies for `scrattch.vis` are available from CRAN. You can install scrattch.vis from Github using:
@@ -28,7 +32,7 @@ sample_fire_plot()
 
 ### Group-centric plots:
 
-group_violing_plot()
+group_violin_plot()
 ![](man/figures/group_violin_plot.png?raw=true)  
 
 group_quasirandom_plot()

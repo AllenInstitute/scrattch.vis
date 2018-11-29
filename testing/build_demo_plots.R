@@ -12,8 +12,10 @@ sample_bar_plot(data_df,
                 anno, 
                 genes = c("Pvalb","Sst","Rorb"), 
                 grouping = "primary_type", 
+                group_order = c(1,7,2),
                 log_scale = FALSE,
-                font_size = 5)
+                font_size = 5,
+                label_type = "angle")
 ggsave("man/figures/sample_bar_plot.png", width = 4, height = 2.5)
 
 sample_fire_plot(data_df, 

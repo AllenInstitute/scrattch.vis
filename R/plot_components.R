@@ -534,7 +534,7 @@ add_sample_xpos <- function(data, group_cols, group_order = NULL) {
   } else {
     group_order_df <- data.frame(group = group_order) %>%
       dplyr::mutate(.plot_order = 1:n())
-    names(group_order_df)[1] <- group_id
+    names(group_order_df)[1] <- group_cols$id
     
     group_filter <- data[[group_cols$id]] %in% group_order
     

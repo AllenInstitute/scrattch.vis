@@ -17,30 +17,117 @@ Once installed, `scrattch.vis` provides a variety of functions for visualizing s
 
 ### Sample-centric plots:
 
+Load packages and data:
+```
+library(tasic2016data)
+library(scrattch.vis)
+options(stringsAsFactors = F)
+
+anno <- tasic_2016_anno
+anno <- anno[anno$cluster_id > 0,]
+data <- tasic_2016_rpkm
+data_df <- cbind(sample_name = colnames(data),
+                 as.data.frame(t(data[c("Pvalb","Sst","Rorb"),])))
+```
+
 sample_bar_plot()
+```
+sample_bar_plot(data_df, 
+                anno, 
+                genes = c("Pvalb","Sst","Rorb"), 
+                grouping = "primary_type", 
+                group_order = c(1,6,2,9,4),
+                log_scale = FALSE,
+                font_size = 5,
+                label_type = "angle")
+```
 ![](man/figures/sample_bar_plot.png?raw=true)  
 
 sample_heatmap_plot()
+```
+sample_heatmap_plot(data_df, 
+                    anno, 
+                    genes = c("Pvalb","Sst","Rorb"), 
+                    grouping = "primary_type", 
+                    log_scale = TRUE,
+                    font_size = 5)
+```
 ![](man/figures/sample_heatmap_plot.png?raw=true)  
 
 sample_fire_plot()
+```
+sample_fire_plot(data_df, 
+                 anno, 
+                 genes = c("Pvalb","Sst","Rorb"), 
+                 grouping = "primary_type", 
+                 log_scale = TRUE,
+                 top_value = "lowest",
+                 font_size = 5)
+```
 ![](man/figures/sample_fire_plot.png?raw=true)
 
 ### Group-centric plots:
 
-group_violing_plot()
+group_violin_plot()
+```
+group_violin_plot(data_df, 
+                  anno, 
+                  genes = c("Pvalb","Sst","Rorb"), 
+                  grouping = "primary_type", 
+                  log_scale = FALSE,
+                  font_size = 5,
+                  rotate_counts = TRUE)
+```
 ![](man/figures/group_violin_plot.png?raw=true)  
 
 group_quasirandom_plot()
+```
+group_quasirandom_plot(data_df, 
+                       anno, 
+                       genes = c("Pvalb","Sst","Rorb"), 
+                       grouping = "primary_type", 
+                       log_scale = FALSE,
+                       font_size = 5,
+                       rotate_counts = TRUE)
+```
 ![](man/figures/group_quasirandom_plot.png?raw=true)  
 
 group_dot_plot()
+```
+group_dot_plot(data_df, 
+               anno, 
+               genes = c("Pvalb","Sst","Rorb"), 
+               grouping = "primary_type", 
+               log_scale = TRUE,
+               font_size = 5,
+               max_size = 5,
+               rotate_counts = TRUE)
+```
 ![](man/figures/group_dot_plot.png?raw=true)  
 
 group_box_plot()
+```
+group_box_plot(data_df, 
+               anno, 
+               genes = c("Pvalb","Sst","Rorb"), 
+               grouping = "primary_type", 
+               log_scale = FALSE,
+               font_size = 5,
+               rotate_counts = TRUE)
+```
 ![](man/figures/group_box_plot.png?raw=true)  
 
 group_heatmap_plot()
+```
+group_heatmap_plot(data_df, 
+                   anno, 
+                   genes = c("Pvalb","Sst","Rorb"), 
+                   grouping = "primary_type", 
+                   stat = "tmean",
+                   log_scale = TRUE,
+                   font_size = 5,
+                   rotate_counts = TRUE)
+```
 ![](man/figures/group_heatmap_plot.png?raw=true)  
 
 ## The `scrattch` suite

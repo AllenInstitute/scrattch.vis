@@ -1,9 +1,9 @@
-devtools::load_all()
-
 library(tasic2016data)
+library(scrattch.vis)
 options(stringsAsFactors = F)
 
 anno <- tasic_2016_anno
+anno <- anno[anno$primary_type_id > 0,]
 data <- tasic_2016_rpkm
 data_df <- cbind(sample_name = colnames(data),
                  as.data.frame(t(data[c("Pvalb","Sst","Rorb"),])))
@@ -12,7 +12,7 @@ sample_bar_plot(data_df,
                 anno, 
                 genes = c("Pvalb","Sst","Rorb"), 
                 grouping = "primary_type", 
-                group_order = c(1,7,2),
+                group_order = c(1,6,2,9,4),
                 log_scale = FALSE,
                 font_size = 5,
                 label_type = "angle")

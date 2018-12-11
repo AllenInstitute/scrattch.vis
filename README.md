@@ -2,6 +2,10 @@
 
 Single-cell RNA-seq visualization tools.  
 
+This package is under heavy development and optimization.  
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/c/c0/Animal-Cat-Black-cat-watching-fish-bowl.jpg" alt="Seeing into the fishbowl" width="200px"/>
+
 ## Installation
 
 All of the dependencies for `scrattch.vis` are available from CRAN. You can install scrattch.vis from Github using:
@@ -15,8 +19,6 @@ devtools::install_github("AllenInstitute/scrattch.vis")
 
 Once installed, `scrattch.vis` provides a variety of functions for visualizing scRNA-seq data based on sample annotations. Each of these returns a `ggplot2` plot object:
 
-### Sample-centric plots:
-
 Load packages and data:
 ```
 library(tasic2016data)
@@ -29,6 +31,8 @@ data <- tasic_2016_rpkm
 data_df <- cbind(sample_name = colnames(data),
                  as.data.frame(t(data[c("Pvalb","Sst","Rorb"),])))
 ```
+
+### Sample-centric plots:
 
 sample_bar_plot()
 ```
@@ -78,6 +82,7 @@ group_violin_plot(data_df,
                   font_size = 5,
                   rotate_counts = TRUE)
 ```
+
 ![](man/figures/group_violin_plot.png?raw=true)  
 
 group_quasirandom_plot()

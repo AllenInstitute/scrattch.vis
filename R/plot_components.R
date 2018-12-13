@@ -150,7 +150,7 @@ build_header_polygons <- function(data,
   # Add an x position to each group
   
   data <- dplyr::left_join(anno, data, by = "sample_name")
-  
+
   if(!"xpos" %in% names(data)) {
     if(!is.null(group_order)) {
       group_order_df <- build_vec_pos(group_order,
@@ -176,6 +176,7 @@ build_header_polygons <- function(data,
     summarise(color = .data[[group_color]][1],
               x1 = max(xpos),
               x2 = min(xpos) - 1) %>%
+    arrange(x1) %>%
     mutate(x3 = (n_samples) * (1:n_groups - 1) / n_groups,
            x4 = (n_samples) * (1:n_groups) / n_groups,
            # ymin is the top of the plot body
@@ -278,7 +279,8 @@ build_header_labels <- function(data,
   data <- data %>%
     dplyr::group_by_(group_id, group_label, group_color) %>%
     summarise(minx = min(xpos),
-              maxx = max(xpos))
+              maxx = max(xpos)) %>%
+    arrange(minx)
   
   if (label_type == "simple") {
     xlab.rect <- data.frame(xmin = data$minx - 0.5,
@@ -534,7 +536,7 @@ add_sample_xpos <- function(data, group_cols, group_order = NULL) {
   } else {
     group_order_df <- data.frame(group = group_order) %>%
       dplyr::mutate(.plot_order = 1:n())
-    names(group_order_df)[1] <- group_id
+    names(group_order_df)[1] <- group_cols$id
     
     group_filter <- data[[group_cols$id]] %in% group_order
     

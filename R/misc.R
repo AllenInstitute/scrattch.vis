@@ -157,7 +157,7 @@ split_text <- function(in_string) {
   if (length(in_string) != 1)
     warning("Input might not be a character string.")
   
-  out_chr <- strsplit(in_string,"[,.;: \t\r\n]+")[[1]]
+  out_chr <- strsplit(in_string,"[, \t\r\n]+")[[1]]
   return(out_chr)
 }
 

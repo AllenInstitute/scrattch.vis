@@ -1542,13 +1542,16 @@ group_dot_plot <- function(data,
 
 #' Build a heatmap legend plot
 #' 
-#' @param minval numeric, the minimum value in the plot scale (default = 0)
-#' @param maxval numeric, the maximum value in the plot scale (default = 4)
+#' @param min_val numeric, the minimum value in the plot scale (default = 0)
+#' @param max_val numeric, the maximum value in the plot scale (default = 4)
 #' @param scale_name character, the name for the values displayed (default = "FPKM")
 #' @param colorset character vector, the colors to interpolate between using colorRampPalette.
 #' 
 #' @return a ggplot2 heatmap legend plot
-heatmap_legend_plot <- function(minval = 0, maxval = 4, scale_name = "FPKM", colorset=c("darkblue","dodgerblue","gray80","orange","orangered")) {
+heatmap_legend_plot <- function(min_val = 0, 
+                                max_val = 4, 
+                                scale_name = "FPKM", 
+                                colorset = c("darkblue","dodgerblue","gray80","orange","orangered")) {
   
   library(ggplot2)
   
@@ -1556,18 +1559,22 @@ heatmap_legend_plot <- function(minval = 0, maxval = 4, scale_name = "FPKM", col
   
   ## Build geom_rect() compatible table
   legend_data <- data.frame(xmin = 1:1001,
-                            xmax = 1:1001+1,
+                            xmax = 1:1001 + 1,
                             ymin = 0,
                             ymax = 1,
                             fill = colors)
   
   legend_plot <- ggplot(legend_data) +
-    geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = fill)) +
-    geom_segment(aes(x = min(xmin), xend = max(xmax), y = 0, yend = 0)) +
+    geom_rect(aes(xmin = xmin, xmax = xmax, 
+                  ymin = ymin, ymax = ymax, 
+                  fill = fill)) +
+    geom_segment(aes(x = min(xmin), xend = max(xmax), 
+                     y = 0, yend = 0)) +
     scale_fill_identity() +
     scale_y_continuous(expand = c(0,0)) +
-    scale_x_continuous(scale_name, breaks=c(0,250,500,750,1000),
-                       labels=round(seq(minval, maxval, by = (maxval-minval)/4),2)) +
+    scale_x_continuous(scale_name, 
+                       breaks = c(0, 250, 500, 750, 1000),
+                       labels = round(seq(min_val, max_val, by = (max_val - min_val) / 4), 2)) +
     theme_classic() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
@@ -1577,4 +1584,45 @@ heatmap_legend_plot <- function(minval = 0, maxval = 4, scale_name = "FPKM", col
   
   return(legend_plot)
   
+}
+
+#' Build a point size legend plot
+#' 
+#' @param min_val numeric, the minimum value in the plot scale (default = 0)
+#' @param max_val numeric, the maximum value in the plot scale (default = 1)
+#' @param max_size numeric, the max size of the point scale (default = 6, default for scale_size_area() )
+#' @param scale_name character, the name for the values displayed (default = "Fraction of cells")
+#' @param n_sizes numeric, the number of points in the scale from min_val to max_val, inclusive (default = 6)
+#' 
+#' @return a ggplot2 point size legend plot
+#' 
+point_size_legend_plot <- function(min_val = 0,
+                                   max_val = 1,
+                                   max_size = 6,
+                                   scale_name = "Fraction of cells",
+                                   n_sizes = 6) {
+  data <- data.frame(x = 1:n_sizes,
+                     y = 1,
+                     vals = seq(min_val, max_val, length.out = n_sizes))
+  
+  legend_plot <- ggplot() +
+    geom_point(data = data,
+               aes(x = x,
+                   y = y,
+                   size = vals),
+               pch = 21,
+               fill = NA) +
+    scale_size_area(max_size = max_size) +
+    scale_x_continuous(scale_name,
+                       breaks = data$x,
+                       labels = data$vals) +
+    scale_y_continuous("") +
+    theme_classic() +
+    theme(legend.position = "none",
+          axis.text.y = element_blank(),
+          panel.border = element_blank(),
+          axis.line = element_blank(),
+          axis.ticks = element_blank())
+  
+  return(legend_plot)
 }

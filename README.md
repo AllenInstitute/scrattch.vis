@@ -26,7 +26,7 @@ library(scrattch.vis)
 options(stringsAsFactors = F)
 
 anno <- tasic_2016_anno
-anno <- anno[anno$cluster_id > 0,]
+anno <- anno[anno$primary_type_id > 0,]
 data <- tasic_2016_rpkm
 data_df <- cbind(sample_name = colnames(data),
                  as.data.frame(t(data[c("Pvalb","Sst","Rorb"),])))

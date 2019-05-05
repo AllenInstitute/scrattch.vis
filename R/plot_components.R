@@ -94,14 +94,13 @@ sci_label <- function(in_num,
 #'  labs(x = NULL)
 theme_no_x <- function(base_size = 12, base_family = "") {
   library(ggplot2)
-  theme_classic(base_size = base_size, base_family = base_family) %+replace%
-    theme(plot.margin = unit(c(rep(0,4)),"line"),
-          axis.text = element_text(size = rel(1)),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.margin = unit(0,"cm"),
-          axis.ticks.x = element_blank())
+  ggplot2::theme_classic(base_size = base_size, base_family = base_family) %+replace%
+    ggplot2::theme(plot.margin = unit(c(rep(0,4)),"line"),
+                   axis.text = element_text(size = rel(1)),
+                   axis.text.x = element_blank(),
+                   axis.ticks.x = element_blank(),
+                   axis.title.x = element_blank(),
+                   axis.ticks.margin = unit(0,"cm"))
 }
 
 #' Build polygons from plot data for fancy headers built into the plot area

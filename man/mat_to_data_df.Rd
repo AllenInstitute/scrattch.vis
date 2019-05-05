@@ -17,3 +17,7 @@ dataframe
 \description{
 Convert a matrix to a data.frame for plotting
 }
+\examples{
+mat_to_data_df(matrix, cols_are = "gene_names")
+mat_to_data_df(matrix, cols_are = "sample_names")
+}

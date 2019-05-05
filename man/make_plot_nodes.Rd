@@ -9,9 +9,12 @@ make_plot_nodes(group_nodes, pad = 0.1, width = 0.1)
 \arguments{
 \item{group_nodes}{output from make_group_nodes()}
 
-\item{pad}{}
+\item{pad}{the fraction of y-axis space to use as padding between nodes. Default = 0.1.}
 
-\item{width}{}
+\item{width}{the width of the nodes in plot space. Default = 0.1.}
+}
+\value{
+a data.frame with coordinates compatible with geom_rect() in ggplot2
 }
 \description{
 Make plot nodes

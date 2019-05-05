@@ -2,15 +2,18 @@
 % Please edit documentation in R/sankey.R
 \name{make_plot_links}
 \alias{make_plot_links}
-\title{Title}
+\title{Generate links in plot space between nodes for a river plot}
 \usage{
 make_plot_links(group_links, fill = NULL)
 }
 \arguments{
-\item{group_links}{}
+\item{group_links}{output of make_group_links()}
 
-\item{fill}{}
+\item{fill}{the group to use for fill colors}
+}
+\value{
+a data.frame compatible with geom_ribbon() in ggplot2.
 }
 \description{
-Title
+Generate links in plot space between nodes for a river plot
 }

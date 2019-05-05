@@ -13,6 +13,9 @@ make_group_links(anno, group_by, plot_nodes)
 
 \item{plot_nodes}{output of make_plot_nodes()}
 }
+\value{
+a data.frame with starts, ends, and group details for generating links
+}
 \description{
 Make group links
 }

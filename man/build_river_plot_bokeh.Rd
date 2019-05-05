@@ -7,13 +7,16 @@
 build_river_plot_bokeh(anno, group_by, pad = 0.1, fill_group = NULL)
 }
 \arguments{
-\item{anno}{}
+\item{anno}{The sample annotations to use. Must have _id, _label, and _color columns for each grouping.}
 
-\item{group_by}{}
+\item{group_by}{The bases to use for the river plot, from left to right.}
 
-\item{pad}{}
+\item{pad}{The fraction of vertical space to use as padding between groups. Default = 0.1.}
 
-\item{fill_group}{}
+\item{fill_group}{One group to use as a source for ribbon colors. Default is NULL.}
+}
+\value{
+an interactive rbokeh plot object.
 }
 \description{
 River plot bokeh

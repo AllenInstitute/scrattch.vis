@@ -88,7 +88,7 @@ sigribbon <- function(sigline, height, from = "top") {
 #' @param anno sample annotations
 #' @param group_by which columns of anno to use for sample grouping (should be at least 2). Group must have "_id", "_label", "_color" columns.
 #' @examples 
-#' make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type)
+#' make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type")
 make_group_nodes <- function(anno,
                              group_by,
                              value_col,
@@ -141,13 +141,12 @@ make_group_nodes <- function(anno,
 #' Make plot nodes
 #'
 #' @param group_nodes output from make_group_nodes()
-#' @param pad 
-#' @param width 
+#' @param pad the fraction of y-axis space to use as padding between nodes. Default = 0.1.
+#' @param width the width of the nodes in plot space. Default = 0.1.
 #'
-#' @return
+#' @return a data.frame with coordinates compatible with geom_rect() in ggplot2
 #' @export
 #'
-#' @examples
 make_plot_nodes <- function(group_nodes,
                             # % of height to distribute for padding between nodes
                             pad = 0.1,
@@ -186,10 +185,9 @@ make_plot_nodes <- function(group_nodes,
 #' @param group_by grouping
 #' @param plot_nodes output of make_plot_nodes()
 #'
-#' @return
+#' @return a data.frame with starts, ends, and group details for generating links
 #' @export
 #'
-#' @examples
 make_group_links <- function(anno,
                         group_by,
                         plot_nodes) {
@@ -272,15 +270,14 @@ make_group_links <- function(anno,
 
 
 
-#' Title
+#' Generate links in plot space between nodes for a river plot
 #'
-#' @param group_links 
-#' @param fill 
+#' @param group_links output of make_group_links()
+#' @param fill the group to use for fill colors
 #'
-#' @return
+#' @return a data.frame compatible with geom_ribbon() in ggplot2.
 #' @export
 #'
-#' @examples
 make_plot_links <- function(group_links,
                             fill = NULL) {
   
@@ -400,15 +397,14 @@ build_river_plot <- function(anno,
 
 #' River plot bokeh
 #'
-#' @param anno 
-#' @param group_by 
-#' @param pad 
-#' @param fill_group 
+#' @param anno The sample annotations to use. Must have _id, _label, and _color columns for each grouping.
+#' @param group_by The bases to use for the river plot, from left to right.
+#' @param pad The fraction of vertical space to use as padding between groups. Default = 0.1.
+#' @param fill_group One group to use as a source for ribbon colors. Default is NULL.
 #'
-#' @return
+#' @return an interactive rbokeh plot object.
 #' @export
 #'
-#' @examples
 build_river_plot_bokeh <- function(anno, group_by, pad = 0.1, fill_group = NULL) {
   library(rbokeh)
   

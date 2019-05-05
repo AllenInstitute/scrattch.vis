@@ -14,3 +14,6 @@ make_group_nodes(anno, group_by, value_col, xpos = NULL)
 \description{
 Make group nodes for categorical data
 }
+\examples{
+make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type")
+}

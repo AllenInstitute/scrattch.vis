@@ -541,100 +541,82 @@ write_database <- function(desc=NULL,anno=NULL,data=NULL,file = stop("'file' mus
   
 }
 
-#' Title
-#'
-#' @param n 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-auto_sample_names <- function(n) {
-  
-  sample_names <- character()
-  
-  for(i in 1:n) {
-    sample_name <- "S"
-    
-    if(nchar(i) < nchar(n)) {
-      sample_name <- paste0(sample_name,paste0(rep("0",nchar(n)-nchar(i)),collapse=""))
-    }
-    
-    sample_name <- paste0(sample_name,i)
-    
-    sample_names <- c(sample_names,sample_name)
-  }
-  
-  return(sample_names)
-  
-}
 
-#' Title
-#'
-#' @param df 
-#' @param sample_id 
-#' @param anno_cols 
-#' @param data_cols 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-auto_format <- function(df,sample_id=NULL,anno_cols=NULL,data_cols=NULL) {
-  library(dplyr)
-  
-  # Build the desc table based on the annotation columns
-  if(!is.null(anno_cols)) {
-    if(is.numeric(anno_cols)) {
-      anno_names <- names(df)[anno_cols]
-    } else if (is.character(anno_cols)) {
-      anno_names <- anno_cols
-    }
-    desc <- data.frame(base=anno_names,name=anno_names)
-  } else {
-    desc <- data.frame(base=character(),name=character())
-  }
-  
-  # Get the sample_id data set.
-  if(!is.null(sample_id)) {
-    sample_ids <- sample_id
-  } else {
-    sample_ids <- auto_sample_names(nrow(df))
-  }
+# auto_sample_names <- function(n) {
+#   
+#   sample_names <- character()
+#   
+#   for(i in 1:n) {
+#     sample_name <- "S"
+#     
+#     if(nchar(i) < nchar(n)) {
+#       sample_name <- paste0(sample_name,paste0(rep("0",nchar(n)-nchar(i)),collapse=""))
+#     }
+#     
+#     sample_name <- paste0(sample_name,i)
+#     
+#     sample_names <- c(sample_names,sample_name)
+#   }
+#   
+#   return(sample_names)
+#   
+# }
 
-  anno <- data.frame(sample_id=sample_ids)
-  
-  if(!is.null(anno_cols)) {
-    label_names <- paste0(anno_cols,"_label")
-    id_names <- paste0(anno_cols,"_id")
-    color_names <- paste0(anno_cols,"_color")
-    
-    anno <- cbind(anno,df[,anno_cols])
-    names(anno)[2:length(anno)] <- label_names
-    
-    for(i in 1:length(anno_cols)) {
-      anno_set <- anno %>% select_(label_names[i]) %>%
-        arrange_(label_names[i]) %>%
-        unique() %>%
-        mutate(id=1:n(),
-               color=rainbow(n()))
-      names(anno_set)[2:3] <- c(id_names[i],color_names[i])
-      
-      anno <- anno %>% left_join(anno_set,by=label_names[i])
-      df <- df %>% select_(paste0("-",anno_cols[i]))
-    }
-  }
-  
-  if(!is.null(data_cols)) {
-  } else {
-    data <- df[,sapply(df,is.numeric)]
-    data <- cbind(data,df[,sapply(df,is.integer)])
-    data <- data %>% t() %>% as.data.frame()
-    names(data) <- sample_ids
-    gene <- rownames(data)
-    data <- cbind(gene,data)
-  }
-  
-  return(list(desc=desc,anno=anno,data=data))
-  
-}
+# auto_format <- function(df,sample_id=NULL,anno_cols=NULL,data_cols=NULL) {
+#   library(dplyr)
+#   
+#   # Build the desc table based on the annotation columns
+#   if(!is.null(anno_cols)) {
+#     if(is.numeric(anno_cols)) {
+#       anno_names <- names(df)[anno_cols]
+#     } else if (is.character(anno_cols)) {
+#       anno_names <- anno_cols
+#     }
+#     desc <- data.frame(base=anno_names,name=anno_names)
+#   } else {
+#     desc <- data.frame(base=character(),name=character())
+#   }
+#   
+#   # Get the sample_id data set.
+#   if(!is.null(sample_id)) {
+#     sample_ids <- sample_id
+#   } else {
+#     sample_ids <- auto_sample_names(nrow(df))
+#   }
+# 
+#   anno <- data.frame(sample_id=sample_ids)
+#   
+#   if(!is.null(anno_cols)) {
+#     label_names <- paste0(anno_cols,"_label")
+#     id_names <- paste0(anno_cols,"_id")
+#     color_names <- paste0(anno_cols,"_color")
+#     
+#     anno <- cbind(anno,df[,anno_cols])
+#     names(anno)[2:length(anno)] <- label_names
+#     
+#     for(i in 1:length(anno_cols)) {
+#       anno_set <- anno %>% select_(label_names[i]) %>%
+#         arrange_(label_names[i]) %>%
+#         unique() %>%
+#         mutate(id=1:n(),
+#                color=rainbow(n()))
+#       names(anno_set)[2:3] <- c(id_names[i],color_names[i])
+#       
+#       anno <- anno %>% left_join(anno_set,by=label_names[i])
+#       df <- df %>% select_(paste0("-",anno_cols[i]))
+#     }
+#   }
+#   
+#   if(!is.null(data_cols)) {
+#   } else {
+#     data <- df[,sapply(df,is.numeric)]
+#     data <- cbind(data,df[,sapply(df,is.integer)])
+#     data <- data %>% t() %>% as.data.frame()
+#     names(data) <- sample_ids
+#     gene <- rownames(data)
+#     data <- cbind(gene,data)
+#   }
+#   
+#   return(list(desc=desc,anno=anno,data=data))
+#   
+# }

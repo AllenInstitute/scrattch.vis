@@ -36,7 +36,8 @@ sample_heatmap_plot(data_df,
                     genes = c("Pvalb","Sst","Rorb"), 
                     grouping = "primary_type", 
                     log_scale = TRUE,
-                    font_size = 5)
+                    font_size = 5,
+                    label_type = "simple")
 ggsave("man/figures/sample_heatmap_plot.png", width = 4, height = 2.5, type = "cairo")
 
 group_dot_plot(data_df, 

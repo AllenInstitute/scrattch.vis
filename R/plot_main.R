@@ -1540,6 +1540,42 @@ group_dot_plot <- function(data,
   }
 }
 
+#' Dot-plot Heatmap plots of group summary statistics with additional vertical splitting
+#' 
+#' This will work best if split_by is a categorical group with relatively few distinct values - 2 to 4 should be OK.
+#' 
+#' @param data A data frame containing gene expression values. The first column should be sample_name
+#' @param anno Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns
+#' @param genes A character vector containing gene symbols to be plotted. 
+#' @param grouping A character vector specifying the desc base that should be used to group cells
+#' @param group_order Optional: Explicit specification of group order by supplying a vector of group_ids.
+#' @param split_by A character vector specifying the desc base that should be used to split groups vertically within each gene row.
+#' @param split_order Optional: Explicit specification of split order by supplying a vector of group_ids.
+#' @param fill_stat The statistic to apply to each group for use as dot fill color. Default = "median". Options are: 
+#' \itemize{
+#'   \item "median"
+#'   \item "mean"
+#'   \item "tmean" (25\% trimmed mean)
+#'   \item "nzmean" (mean of non-zero values)
+#'   \item "nzmedian" (median of non-zero values)
+#'   \item "prop_gt0" (proportion of samples > 0)
+#'   \item "prop_gt1" (proportion of samples > 1)
+#'   \item "min"
+#'   \item "max"
+#'   }
+#' @param size_stat The statistic to apply to each group for scaling dot size. Same options as fill_stat. Default = "prop_gt0".
+#' @param max_size Maximum size of dots, in pts.
+#' @param log_scale Logical , determines if data is log scaled before plotting. Default = FALSE.
+#' @param normalize_rows Logical, whether or not to rescale data within each row of the plot. Default = FALSE.
+#' @param font_size numeric object, the font size (in pts) used to make the plot.
+#' @param label_height numeric object, Percent of the plot height that should be used for the labels (0 to 100). Default is 25.
+#' @param show_counts Logical, whether or not to display sample counts at the top of labels. Default = TRUE.
+#' @param rotate_counts Logical, whether or not to rotate sample counts by 90 degrees. Default = FALSE.
+#' @param max_width numeric object, percent of plot width that should be used for maximum expression values (0 to 100). Default is 10.
+#' @param row_padding A fraction of vertical space per line to use to separate genes. Increasing this value pushes groups within each gene closer together.
+#' 
+#' @return a ggplot2 plot object
+#'
 group_split_dot_plot <- function(data,
                                  anno,
                                  genes,

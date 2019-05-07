@@ -22,11 +22,17 @@ Once installed, `scrattch.vis` provides a variety of functions for visualizing s
 Load packages and data:
 ```
 library(tasic2016data)
+library(scrattch.io)
 library(scrattch.vis)
 options(stringsAsFactors = F)
 
 anno <- tasic_2016_anno
 anno <- anno[anno$cluster_id > 0,]
+
+anno$core_intermediate <- sub("ermediate","",anno$core_intermediate)
+anno <- anno %>%
+  annotate_cat(core_intermediate)
+
 data <- tasic_2016_rpkm
 data_df <- cbind(sample_name = colnames(data),
                  as.data.frame(t(data[c("Pvalb","Sst","Rorb"),])))
@@ -109,6 +115,20 @@ group_dot_plot(data_df,
                rotate_counts = TRUE)
 ```
 ![](man/figures/group_dot_plot.png?raw=true)  
+
+group_split_dot_plot()
+```
+group_dot_plot(data_df, 
+               anno, 
+               genes = c("Pvalb","Sst","Rorb"), 
+               grouping = "primary_type",
+               split_by = "core_intermediate"
+               log_scale = TRUE,
+               font_size = 5,
+               max_size = 5,
+               show_counts = FALSE)
+```
+![](man/figures/group_split_dot_plot.png?raw=true)  
 
 group_box_plot()
 ```

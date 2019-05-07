@@ -1540,6 +1540,365 @@ group_dot_plot <- function(data,
   }
 }
 
+group_split_dot_plot <- function(data,
+                                 anno,
+                                 genes,
+                                 grouping,
+                                 group_order = NULL,
+                                 split_by = NULL,
+                                 split_order = NULL,
+                                 max_size = 10,
+                                 fill_stat = "median",
+                                 size_stat = "prop_gt0",
+                                 log_scale = TRUE,
+                                 normalize_rows = FALSE,
+                                 colorset = NULL,
+                                 font_size = 7, 
+                                 label_height = 25,
+                                 show_counts = TRUE, 
+                                 rotate_counts = FALSE,
+                                 max_width = 10,
+                                 row_padding = 0.1) {
+  library(dplyr)
+  library(ggplot2)
+  library(purrr)
+  
+  genes <- rev(genes)
+  
+  group_id <- paste0(grouping, "_id")
+  group_label <- paste0(grouping, "_label")
+  group_color <- paste0(grouping, "_color")
+  
+  if(!is.null(split_by)) {
+    split_id <- paste0(split_by, "_id")
+    split_label <- paste0(split_by, "_label")
+    split_color <- paste0(split_by, "_color")
+    split_ids <- unique(anno[[split_id]])
+    split_samples <- map(split_ids, function(x) anno$sample_name[anno[[split_id]] == x])
+    names(split_samples) <- split_ids
+  }
+  
+  gene_data <- data[,c("sample_name",genes)]
+  gene_data <- gene_data[match(anno$sample_name, data$sample_name),]
+  
+  if(is.null(split_by)) {
+    gene_fill_stats <- group_stats(gene_data,
+                                   value_cols = genes,
+                                   anno = anno,
+                                   grouping = group_id,
+                                   stat = fill_stat)
+  } else {
+    gene_fill_stats <- group_stats(gene_data,
+                                   value_cols = genes,
+                                   anno = anno,
+                                   grouping = c(group_id, split_id),
+                                   stat = fill_stat)
+  }
+  
+  
+  # Get maximum values for each gene before rescaling to plot space.
+  if(is.null(split_by)) {
+    max_vals <- map_dbl(genes, function(x) { max(gene_fill_stats[[x]]) })
+    names(max_vals) <- genes
+    
+    gene_size_stats <- group_stats(gene_data,
+                                   value_cols = genes,
+                                   anno = anno,
+                                   grouping = group_id,
+                                   stat = size_stat)
+  } else {
+    max_vals <- map_dfr(split_ids,
+                        function(x) {
+                          split_data <- gene_fill_stats[gene_fill_stats[[split_id]] == x,]
+                          max_vals <- map_dfc(genes, function(x) { max(split_data[[x]]) })
+                          names(max_vals) <- genes
+                          max_vals
+                        })
+    max_vals <- cbind(split_col = split_ids, max_vals)
+    names(max_vals)[1] <- split_id
+    
+    gene_size_stats <- group_stats(gene_data,
+                                   value_cols = genes,
+                                   anno = anno,
+                                   grouping = c(group_id, split_id),
+                                   stat = size_stat)
+  }
+  
+  
+  
+  if(log_scale) {
+    gene_fill_stats[,genes] <- log10(gene_fill_stats[,genes] + 1)
+  }
+  
+  # Convert the data values to heatmap colors
+  if(is.null(split_by)) {
+    gene_fill_data <- data_df_to_colors(gene_fill_stats,
+                                        value_cols = genes,
+                                        per_col = normalize_rows,
+                                        colorset = colorset)
+    
+  } else {
+    gene_fill_data <- map_dfr(split_ids,
+                              function(x) {
+                                split_fill_stats <- gene_fill_stats[gene_fill_stats[[split_id]] == x,]
+                                data_df_to_colors(split_fill_stats,
+                                                  value_cols = genes,
+                                                  per_col = normalize_rows,
+                                                  colorset = colorset)
+                              })
+  }
+  
+  
+  names(gene_fill_data)[match(genes, names(gene_fill_data))] <- paste0(genes, "_fill")
+  names(gene_size_stats)[match(genes, names(gene_size_stats))] <- paste0(genes, "_size")
+  
+  # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
+  if(is.null(split_by)) {
+    plot_anno <- anno %>%
+      select(one_of(group_id, group_label, group_color)) %>%
+      unique()
+    
+    group_n <- anno %>%
+      group_by_(group_id) %>%
+      summarise(group_n = n())
+    
+    plot_data <- plot_anno %>%
+      left_join(gene_fill_data, by = group_id) %>%
+      left_join(gene_size_stats, by = group_id) %>%
+      left_join(group_n, by = c(group_id))
+  } else {
+    plot_anno <- anno %>%
+      select(one_of(group_id, group_label, group_color, split_id, split_label, split_color)) %>%
+      unique()
+    
+    group_n <- anno %>%
+      group_by_(group_id, split_id) %>%
+      summarise(group_n = n())
+    
+    plot_data <- plot_anno %>%
+      left_join(gene_fill_data, by = c(group_id, split_id)) %>%
+      left_join(gene_size_stats, by = c(group_id, split_id)) %>%
+      left_join(group_n, by = c(group_id, split_id))
+  }
+  
+  
+  # Add an x position to each group
+  if(!is.null(group_order)) {
+    # Because we allow ranges, and groups may not necessarily be continuous integer sets
+    # We have to filter out any that don't match first.
+    group_order <- group_order[group_order %in% anno[[group_id]]]
+    
+    group_order_df <- data.frame(group = group_order) %>%
+      mutate(xpos = 1:n())
+    names(group_order_df)[1] <- group_id
+    
+    plot_data <- plot_data %>%
+      filter_(paste0(group_id, " %in% group_order")) %>%
+      left_join(group_order_df, by = group_id)
+    
+  } else {
+    # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
+    group_order_df <- plot_data %>%
+      select(one_of(group_id)) %>%
+      unique() %>%
+      arrange_(group_id) %>%
+      mutate(xpos = 1:n())
+    
+    plot_data <- plot_data %>%
+      left_join(group_order_df, by = group_id)
+  }
+  
+  # Add a y position adjustment for each group
+  if(is.null(split_by)) {
+    plot_data <- plot_data %>%
+      mutate(ypos_adj = 0)
+  } else {
+    
+    adj_vals <- seq(1 - row_padding, row_padding, length.out = length(split_ids)*2 + 1)[1:length(split_ids) * 2]
+    
+    if(!is.null(split_order)) {
+      split_order <- split_order[split_order %in% anno[[split_id]]]
+      
+      split_order_df <- data.frame(split_val = split_order) %>%
+        mutate(ypos_adj = adj_vals)
+      names(split_order_df)[1] <- split_id
+      
+      plot_data <- plot_data %>%
+        filter_(paste0(split_id, " %in% split_order")) %>%
+        left_join(split_order_df, by = split_id)
+    } else {
+      split_order_df <- plot_data %>%
+        select(one_of(split_id)) %>%
+        arrange_(split_id) %>%
+        unique() %>%
+        mutate(ypos_adj = adj_vals)
+      
+      plot_data <- plot_data %>%
+        left_join(split_order_df, by = split_id)
+    }
+  }
+  
+  n_genes <- length(genes)
+  n_groups <- length(unique(plot_data[[group_id]]))
+  n_samples <- nrow(data)
+  
+  header_labels <- build_header_labels(data = plot_data, 
+                                       grouping = grouping,
+                                       group_order = group_order,
+                                       ymin = n_genes + 1, 
+                                       label_height = label_height, 
+                                       label_type = "simple")
+  
+  # Build the maximum value labels for the right edge
+  if(is.null(split_by)) {
+    max_labels <- data.frame(x = (n_groups + 0.5) * 1.01,
+                             y = 1:n_genes + 0.5,
+                             label = sci_label(max_vals) )
+  } else {
+    split_pos <- plot_data %>%
+      select(one_of(split_id, "ypos_adj")) %>%
+      unique()
+    max_labels <- map_dfr(1:length(split_ids), function(idx) {
+      data.frame(x = (n_groups + 0.5) * 1.01,
+                 y = 1:n_genes + split_pos$ypos_adj[split_pos[[split_id]] == split_ids[idx]],
+                 label = sci_label(max_vals[max_vals[[split_id]] == split_ids[idx],genes]))
+    })
+  }
+  
+  max_header <- data.frame(x = (n_groups + 0.5) * 1.01,
+                           y = n_genes + 1,
+                           label = paste0("Max ",fill_stat," value"))
+  max_width <- n_groups*(max_width/100)/(1-max_width/100)
+  
+  label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
+  
+  group_data <- plot_data %>%
+    select(xpos, group_n) %>%
+    mutate(label_y = n_genes + label_y_size * 0.05,
+           group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
+  
+  
+  # Plot setup
+  p <- ggplot() +
+    scale_fill_identity() +
+    scale_size_area(max_size = pt2mm(max_size)) +
+    scale_y_continuous("", 
+                       breaks = 1:length(genes) + 0.5, 
+                       labels = genes, 
+                       expand = c(0, 0)) +
+    scale_x_continuous("", 
+                       limits = c(-2.5, n_groups + 0.5 + max_width),
+                       expand = c(0, 0)) +
+    theme_classic(font_size) +
+    theme(axis.text.y = element_text(size = rel(2), face = "italic"),
+          axis.text.x = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none",
+          axis.line.y = element_blank()) +
+    geom_hline(aes(yintercept = 1:(n_genes)), size = 0.2)
+  
+  # Plot split lines and split group labels if splitting
+  if(!is.null(split_by)) {
+    split_line_adj <- seq(1 - row_padding, row_padding, length.out = length(split_ids) + 1)
+    split_line_adj <- split_line_adj[-length(split_line_adj)]
+    split_line_adj <- split_line_adj[-1]
+    
+    p <- p +
+      geom_hline(aes(yintercept = 1:n_genes + split_line_adj), 
+                 size = 0.2, 
+                 linetype = "dashed")
+    
+    split_anno <- anno %>%
+      select(one_of(split_id, split_label)) %>%
+      unique() %>%
+      left_join(split_order_df, by = split_id)
+    
+    split_label_pos <- data.frame(gene = rep(1:n_genes, each = length(split_ids)),
+                                  split_col = rep(split_ids, n_genes))
+    names(split_label_pos)[2] <- split_id
+    split_label_pos <- split_label_pos %>%
+      left_join(split_anno, by = split_id) %>%
+      mutate(ypos = gene + ypos_adj)
+    
+    p <- p +
+      geom_text(data = split_label_pos,
+                aes_string(x = "0",
+                           y = "ypos",
+                           label = split_label),
+                hjust = 1,
+                vjust = 0.3,
+                size = pt2mm(font_size))
+  }
+  
+  # plot the dots for each gene
+  for(i in 1:length(genes)) {
+    gene <- genes[[i]]
+    gene_fill <- paste0(gene, "_fill")
+    gene_size <- paste0(gene, "_size")
+    ypos <- paste0(i, " + ypos_adj")
+    p <- p + 
+      geom_point(data = plot_data,
+                 aes_string(x = "xpos",
+                            y = ypos, 
+                            fill = gene_fill,
+                            size = gene_size),
+                 pch = 21)
+    
+    
+  }
+  
+  # Cluster labels
+  p <- p +
+    geom_rect(data = header_labels, 
+              aes(xmin = xmin, ymin = ymin, 
+                  xmax = xmax, ymax = ymax, 
+                  fill = color)) +
+    geom_text(data = header_labels,
+              aes(x = (xmin + xmax) / 2, 
+                  y = ymin + 0.05, 
+                  label = label),
+              angle = 90, 
+              vjust = 0.35, hjust = 0, 
+              size = pt2mm(font_size)) +
+    # Maximum value labels on right side of plot
+    # geom_rect(aes(xmin = n_groups + 0.5, xmax = n_groups + 0.5 + max_width, 
+    #               ymin = 1, ymax = max(header_labels$ymax)),
+    #           fill = "white") +
+    geom_text(data = max_header,
+              aes(x = x, y = y, 
+                  label = label),
+              angle = 90, 
+              hjust = 0, vjust = 0.35, 
+              size = pt2mm(font_size)) +
+    geom_text(data = max_labels,
+              aes(x = x, y = y, 
+                  label = label),
+              hjust = 0, vjust = 0.35, 
+              size = pt2mm(font_size), 
+              parse = TRUE)
+  
+  # Cluster counts
+  if(show_counts) {
+    if(rotate_counts) {
+      p <- p + geom_text(data = group_data,
+                         aes(x = xpos,
+                             y = group_n_y, 
+                             label = group_n),
+                         angle = 90,
+                         hjust = 1, vjust = 0.35, 
+                         size = pt2mm(font_size))
+    } else {
+      p <- p + geom_text(data = group_data,
+                         aes(x = xpos,
+                             y = group_n_y, 
+                             label = group_n),
+                         size = pt2mm(font_size))
+    }
+  }
+  
+  return(p)
+}
+
 #' Build a heatmap legend plot
 #' 
 #' @param min_val numeric, the minimum value in the plot scale (default = 0)

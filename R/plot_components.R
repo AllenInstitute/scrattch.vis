@@ -287,7 +287,8 @@ build_header_labels <- function(data,
                             ymin = ymin,
                             ymax = ymin + labheight,
                             color = data[[group_color]],
-                            label = data[[group_label]] )
+                            label = data[[group_label]])
+    xlab.rect <- unique(xlab.rect)
   } else if (label_type == "angle") {
     xlab.rect <- data.frame(xmin = (n_samples) * (1:n_clust - 1) / n_clust,
                             xmax = (n_samples) * (1:n_clust) / n_clust,
@@ -297,14 +298,22 @@ build_header_labels <- function(data,
                             color = data[[group_color]],
                             label = data[[group_label]] )
   } else if (label_type == "square") {
-    xlab.rect <- data %>% 
-      group_by_(group_id) %>%
-      summarise(xmin = minx - 1,
-                xmax = maxx,
-                ymin = ymin + labheight * 0.1,
-                ymax = ymin + labheight,
-                color = .[[group_color]][1],
-                label = .[[group_label]][1])
+    xlab.rect <- data.frame(xmin = data$minx - 1,
+                            xmax = data$maxx,
+                            ymin = ymin + labheight * 0.1,
+                            ymax = ymin + labheight,
+                            color = data[[group_color]],
+                            label = data[[group_label]])
+    xlab.rect <- unique(xlab.rect)
+    # 
+    # xlab.rect <- data %>% 
+    #   group_by_(group_id) %>%
+    #   summarise(xmin = minx - 1,
+    #             xmax = maxx,
+    #             ymin = ymin + labheight * 0.1,
+    #             ymax = ymin + labheight,
+    #             color = .[[group_color]][1],
+    #             label = .[[group_label]][1])
   }
 
   xlab.rect  

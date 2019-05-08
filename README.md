@@ -60,7 +60,8 @@ sample_heatmap_plot(data_df,
                     genes = c("Pvalb","Sst","Rorb"), 
                     grouping = "primary_type", 
                     log_scale = TRUE,
-                    font_size = 5)
+                    font_size = 5,
+                    label_type = "square")
 ```
 ![](man/figures/sample_heatmap_plot.png?raw=true)  
 

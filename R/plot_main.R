@@ -140,13 +140,17 @@ sample_bar_plot <- function(data,
   ### Cluster labels at the top of the plot
   
   # build_header_polygons from plot_components.R
-  header_polygons <- build_header_polygons(data = gene_data, 
-                                           anno = anno,
-                                           grouping = grouping,
-                                           group_order = group_order,
-                                           ymin = n_stats$genes + 1, 
-                                           label_height = label_height, 
-                                           poly_type = label_type)
+  if(label_type != "simple") {
+    header_polygons <- build_header_polygons(data = gene_data, 
+                                             anno = anno,
+                                             grouping = grouping,
+                                             group_order = group_order,
+                                             ymin = n_stats$genes + 1, 
+                                             label_height = label_height, 
+                                             poly_type = label_type)
+  } else {
+    header_polygons <- NULL
+  }
   
   # Build the cell type label rectangles from plot_components.R
   header_labels <- build_header_labels(data = plot_data, 
@@ -280,7 +284,7 @@ sample_heatmap_plot <- function(data,
           axis.text.x = element_blank()) +
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0), 
-                       breaks = 1:n_stats$genes + 0.45, 
+                       breaks = 1:n_stats$genes + 0.5, 
                        labels = genes)
   
   # plot the rectangles for each gene
@@ -307,13 +311,17 @@ sample_heatmap_plot <- function(data,
   ### Cluster labels at the top of the plot
   
   # build_header_polygons from plot_components.R
-  header_polygons <- build_header_polygons(data = gene_data, 
-                                           anno = anno,
-                                           grouping = grouping,
-                                           group_order = group_order,
-                                           ymin = n_stats$genes + 1, 
-                                           label_height = label_height, 
-                                           poly_type = label_type)
+  if(label_type != "simple") {
+    header_polygons <- build_header_polygons(data = gene_data, 
+                                             anno = anno,
+                                             grouping = grouping,
+                                             group_order = group_order,
+                                             ymin = n_stats$genes + 1, 
+                                             label_height = label_height, 
+                                             poly_type = label_type)
+  } else {
+    header_polygons <- NULL
+  }
   
   # Build the cell type label rectangles from plot_components.R
   header_labels <- build_header_labels(data = plot_data, 
@@ -326,12 +334,6 @@ sample_heatmap_plot <- function(data,
                             header_labels = header_labels,
                             header_polygons = header_polygons,
                             font_size = font_size)
-  
-  ### Scale bar elements
-  p <- ggplot_scale_bars(p, 
-                         n_genes = n_stats$genes, 
-                         n_samples = n_stats$samples,
-                         extent = 0.9)
   
   ### Maximum value labels at the right edge of the plot
   max_val_dfs <- build_max_dfs(n_stats, width_stat = "samples", max_vals_unscaled, max_width)
@@ -447,7 +449,7 @@ sample_fire_plot <- function(data,
           axis.text.x = element_blank()) +
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0), 
-                       breaks = 1:n_stats$genes + 0.45, 
+                       breaks = 1:n_stats$genes + 0.5, 
                        labels = genes)
   
   # plot the rectangles for each gene
@@ -1237,7 +1239,7 @@ group_heatmap_plot <- function(data,
   p <- ggplot() +
     scale_fill_identity() +
     scale_y_continuous("", 
-                       breaks = 1:length(genes) + 0.45, 
+                       breaks = 1:length(genes) + 0.5, 
                        labels = genes, 
                        expand = c(0, 0)) +
     scale_x_continuous("", 
@@ -1457,7 +1459,7 @@ group_dot_plot <- function(data,
     scale_fill_identity() +
     scale_size_area(max_size = pt2mm(max_size)) +
     scale_y_continuous("", 
-                       breaks = 1:length(genes) + 0.45, 
+                       breaks = 1:length(genes) + 0.5, 
                        labels = genes, 
                        expand = c(0, 0)) +
     scale_x_continuous("", 

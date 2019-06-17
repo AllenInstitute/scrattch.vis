@@ -5,8 +5,10 @@
 \title{Dendrogram plots for grouped samples with annotation barplots}
 \usage{
 group_dend_bar_plot(anno, dend, dend_group, leaf_labels = TRUE,
-  font_size = 7, grouping = NULL, count_bars = TRUE,
-  count_cutoff = NULL, count_log = FALSE, panel_pad = 0.05)
+  font_size = 7, grouping = NULL, group_guides = TRUE,
+  group_guide_breaks = seq(0, 1, 0.25), count_bars = TRUE,
+  count_cutoff = NULL, count_log = FALSE, count_guides = TRUE,
+  count_guide_breaks = NULL, panel_guides = TRUE, panel_pad = 0.05)
 }
 \arguments{
 \item{anno}{Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns}
@@ -21,11 +23,21 @@ group_dend_bar_plot(anno, dend, dend_group, leaf_labels = TRUE,
 
 \item{grouping}{The base(s) of groups to use for generating barplots (e.g. "cluster" for "cluster_label" in anno). Default is NULL.}
 
+\item{group_guides}{Logical, whether or not to display lines for the fraction of cells in each group panel. Default = TRUE.}
+
+\item{group_guide_breaks}{Numeric, custom breaks for group barplots. Must be between 0 and 1. Defaults = seq(0, 1, 0.25).}
+
 \item{count_bars}{Logical, whether or not to display a barplot showing the size of each dend_group.}
 
 \item{count_cutoff}{Numeric, the maximum size to display in the count_bars. Clusters with > count_cutoff will have truncated bars.}
 
 \item{count_log}{Logical, whether or not to log scale the count_bars. Helpful for showing small groups.}
+
+\item{count_guides}{Logical, whether or not to display lines for the number of cells in the count barplot. Default = TRUE.}
+
+\item{count_guide_breaks}{Numeric, custom breaks for the count barplot. If NULL, will be automatically determined. Default = NULL.}
+
+\item{panel_guides}{Logical, whether or not to draw a line at the top and bottom of each grouping panel and count_bars.}
 
 \item{panel_pad}{Numeric, the fraction of the dendrogram/bar line to use as padding between panels.}
 }

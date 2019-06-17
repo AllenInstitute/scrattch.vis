@@ -6,9 +6,14 @@
 #' @param leaf_labels Logical, whether or not to plot the leaf labels. Default is TRUE.
 #' @param font_size Numeric, the size of the leaf labels to plot. Default is 7.
 #' @param grouping The base(s) of groups to use for generating barplots (e.g. "cluster" for "cluster_label" in anno). Default is NULL.
+#' @param group_guides Logical, whether or not to display lines for the fraction of cells in each group panel. Default = TRUE.
+#' @param group_guide_breaks Numeric, custom breaks for group barplots. Must be between 0 and 1. Defaults = seq(0, 1, 0.25).
 #' @param count_bars Logical, whether or not to display a barplot showing the size of each dend_group.
 #' @param count_cutoff Numeric, the maximum size to display in the count_bars. Clusters with > count_cutoff will have truncated bars.
 #' @param count_log Logical, whether or not to log scale the count_bars. Helpful for showing small groups.
+#' @param count_guides Logical, whether or not to display lines for the number of cells in the count barplot. Default = TRUE.
+#' @param count_guide_breaks Numeric, custom breaks for the count barplot. If NULL, will be automatically determined. Default = NULL.
+#' @param panel_guides Logical, whether or not to draw a line at the top and bottom of each grouping panel and count_bars.
 #' @param panel_pad Numeric, the fraction of the dendrogram/bar line to use as padding between panels.
 #' 
 #' @return a ggplot2 plot object
@@ -21,9 +26,14 @@ group_dend_bar_plot <- function(anno,
                                 leaf_labels = TRUE,
                                 font_size = 7,
                                 grouping = NULL,
+                                group_guides = TRUE,
+                                group_guide_breaks = seq(0, 1, 0.25),
                                 count_bars = TRUE,
                                 count_cutoff = NULL,
                                 count_log = FALSE,
+                                count_guides = TRUE,
+                                count_guide_breaks = NULL,
+                                panel_guides = TRUE,
                                 panel_pad = 0.05) {
   
   if(!paste0(dend_group,"_id") %in% names(anno)) {
@@ -80,8 +90,6 @@ group_dend_bar_plot <- function(anno,
       }
     )
     
-    group_rects <- list()
-    
     for(i in 1:length(grouping)) {
       group_syms <- grouping_syms[[i]]
       
@@ -106,8 +114,6 @@ group_dend_bar_plot <- function(anno,
                ymax = -1 * (i - 1) - lag(dg_cum_frac, default = 0) - panel_pad * i,
                ymin = -1 * (i - 1) - dg_cum_frac - panel_pad * i)
       
-      group_rects[[i]] <- rects
-      
       p <- p +
         ggplot2::geom_rect(data = rects,
                            ggplot2::aes(xmin = xmin,
@@ -115,6 +121,54 @@ group_dend_bar_plot <- function(anno,
                                         ymin = ymin,
                                         ymax = ymax,
                                         fill = !!group_syms$group_color))
+      
+      if(panel_guides) {
+        panel_guide_segments <- data.frame(x = min(rects$xmin),
+                                           xend = max(rects$xmax),
+                                           y = c(min(rects$ymin), max(rects$ymax)),
+                                           yend = c(min(rects$ymin), max(rects$ymax)))
+        
+        p <- p +
+          ggplot2::geom_segment(data = panel_guide_segments,
+                                ggplot2::aes(x = x, xend = xend,
+                                             y = y, yend = yend),
+                                color = "#000000",
+                                size = 0.5)
+      }
+      
+      if(group_guides) {
+        if(min(group_guide_breaks) < 0 || max(group_guide_breaks) > 1) {
+          stop("group_guide_breaks error: guide values must be between 0 and 1.")
+        }
+        
+        guide_segments <- data.frame(x = min(rects$xmin),
+                                     xend = max(rects$xmax),
+                                     y = -1 * group_guide_breaks + max(rects$ymax),
+                                     yend = -1 * group_guide_breaks + max(rects$ymax),
+                                     label = rev(group_guide_breaks))
+        
+        guide_labels <- guide_segments[,c("x","y","label")]
+        
+        if(panel_guides) {
+          guide_segments <- guide_segments[!group_guide_breaks %in% c(0,1),]
+        }
+        
+        p <- p +
+          ggplot2::geom_segment(data = guide_segments,
+                                ggplot2::aes(x = x, xend = xend,
+                                             y = y, yend = yend),
+                                color = "#808080",
+                                size = 0.5,
+                                linetype = "dashed") +
+          ggplot2::geom_text(data = guide_labels,
+                             ggplot2::aes(x = x - 0.2,
+                                          y = y,
+                                          label = round(label,2)),
+                             size = pt2mm(font_size),
+                             hjust = 1,
+                             vjust = 0.3)
+      }
+      
     }
     
     
@@ -169,6 +223,83 @@ group_dend_bar_plot <- function(anno,
                                       ymin = ymin,
                                       ymax = ymax,
                                       fill = !!dend_group_color))
+    
+    if(panel_guides) {
+      panel_guide_segments <- data.frame(x = min(count_rects$xmin),
+                                         xend = max(count_rects$xmax),
+                                         y = c(min(count_rects$ymin), max(count_rects$ymax)),
+                                         yend = c(min(count_rects$ymin), max(count_rects$ymax)))
+      
+      p <- p +
+        ggplot2::geom_segment(data = panel_guide_segments,
+                              ggplot2::aes(x = x, xend = xend,
+                                           y = y, yend = yend),
+                              color = "#000000",
+                              size = 0.5)
+    }
+    
+    if(count_guides) {
+      if(is.null(count_guide_breaks)) {
+        if(count_log) {
+          count_guide_breaks <- seq(0, floor(max(count_rects$dg_n)), 1)
+          
+          count_guide_segments <- data.frame(x = min(count_rects$xmin),
+                                             xend = max(count_rects$xmax),
+                                             y = max(count_rects$ymax) - count_guide_breaks / max(count_rects$dg_n),
+                                             yend = max(count_rects$ymax) - count_guide_breaks / max(count_rects$dg_n),
+                                             label = 10^count_guide_breaks)
+        } else {
+          count_guide_max <- max(count_rects$dg_n)
+          count_guide_scale <- floor(log10(count_guide_max))
+          count_guide_step <- 10^count_guide_scale / 5
+          count_guide_breaks <- seq(0, count_guide_max, count_guide_step)
+          count_guide_breaks <- count_guide_breaks[count_guide_breaks < count_guide_max]
+          
+          count_guide_segments <- data.frame(x = min(count_rects$xmin),
+                                             xend = max(count_rects$xmax),
+                                             y = max(count_rects$ymax) - count_guide_breaks / max(count_rects$dg_n),
+                                             yend = max(count_rects$ymax) - count_guide_breaks / max(count_rects$dg_n),
+                                             label = count_guide_breaks)
+        }
+      } else {
+        if(count_log) {
+          count_guide_segments <- data.frame(x = min(count_rects$xmin),
+                                             xend = max(count_rects$xmax),
+                                             y = max(count_rects$ymax) - log10(count_guide_breaks + 1) / max(count_rects$dg_n),
+                                             yend = max(count_rects$ymax) - log10(count_guide_breaks + 1) / max(count_rects$dg_n),
+                                             label = count_guide_breaks)
+        } else {
+          count_guide_segments <- data.frame(x = min(count_rects$xmin),
+                                             xend = max(count_rects$xmax),
+                                             y = max(count_rects$ymax) - count_guide_breaks / max(count_rects$dg_n),
+                                             yend = max(count_rects$ymax) - count_guide_breaks / max(count_rects$dg_n),
+                                             label = count_guide_breaks)
+        }
+        
+      } 
+    }
+    
+    count_guide_labels <- count_guide_segments[,c("x","y","label")]
+    
+    if(panel_guides) {
+      count_guide_segments <- count_guide_segments[!count_guide_segments$y %in% c(min(count_rects$ymin),
+                                                                                  max(count_rects$ymax)),]
+    }
+    
+    p <- p +
+      ggplot2::geom_segment(data = count_guide_segments,
+                            ggplot2::aes(x = x, xend = xend,
+                                         y = y, yend = yend),
+                            color = "#808080",
+                            size = 0.5,
+                            linetype = "dashed") +
+      ggplot2::geom_text(data = count_guide_segments,
+                         ggplot2::aes(x = x - 0.2,
+                                      y = y,
+                                      label = label),
+                         size = pt2mm(font_size),
+                         hjust = 1,
+                         vjust = 0.3)
     
   }
   

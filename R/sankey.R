@@ -58,25 +58,24 @@ sigline <- function(x = 0, xend = 1,
 #' 
 #' @return a data.frame with coordinates x, y, and ymin for the ribbon.
 sigribbon <- function(sigline, height, from = "top") {
-  library(dplyr)
   
   if (!is.numeric(height)) 
     warning("Your height input should be numeric.")
   
   if (height == Inf | is.na(height))
     warning("Your height input is NA or infinite.")
-    
+  
   if (from == "top") {
     ribbon <- sigline %>%
-      mutate(ymin = y - height)
+      dplyr::mutate(ymin = y - height)
   } else if (from == "bot") {
     ribbon <- sigline %>%
-      rename(ymin = y) %>%
-      mutate(y = ymin + height)
+      dplyr::rename(ymin = y) %>%
+      dplyr::mutate(y = ymin + height)
   } else if (from == "mid") {
     ribbon <- sigline %>%
-      mutate(y = y + height/2,
-             ymin = y - height/2)
+      dplyr::mutate(y = y + height/2,
+                    ymin = y - height/2)
   }
   
   ribbon
@@ -98,8 +97,6 @@ make_group_nodes <- function(anno,
   if (length(group_by) == 1) 
     stop("Group_by should have at least 2 elements.")
   
-  library(dplyr)
-  
   nodes <- data.frame(id = numeric(),
                       name = character(),
                       color = character(),
@@ -114,19 +111,20 @@ make_group_nodes <- function(anno,
     anno_color <- paste0(base,"_color")
     
     grouping <- c(anno_id,anno_label,anno_color)
+    grouping <- purrr::map(grouping, rlang::parse_expr)
     
     group_nodes <- anno %>%
-      select(one_of(grouping)) %>%
-      group_by_(.dots = grouping) %>%
+      select(!!!grouping) %>%
+      group_by(!!!grouping) %>%
       summarise(n = n()) %>%
-      arrange_(anno_id) %>%
+      arrange(!!parse_expr(anno_id)) %>%
       mutate(group = base) %>%
       ungroup()
     
     if (is.null(xpos)) {
-      group_nodes <- mutate(group_nodes, xpos = i)
+      group_nodes <- dplyr::mutate(group_nodes, xpos = i)
     } else {
-      group_nodes <- mutate(group_nodes, xpos = xpos[i])
+      group_nodes <- dplyr::mutate(group_nodes, xpos = xpos[i])
     }
     
     names(group_nodes) <- c("id","name","color","n","group","xpos")
@@ -160,20 +158,20 @@ make_plot_nodes <- function(group_nodes,
   total_pad <- total_n * pad
   
   group_rects <- group_nodes %>%
-    group_by(group) %>%
-    mutate(xmin = xpos - width/2,
-           xmax = xpos + width/2,
-           n_groups = n(),
-           group_pad = ifelse(n_groups > 1, 
-                              total_pad/(n() - 1), 
-                              total_pad),
-           n_cum = cumsum(n),
-           ymin = ifelse(n_groups > 1,
-                         lag(n_cum, default = 0) + (1:n() - 1)*group_pad,
-                         group_pad / 2),
-           ymax = ifelse(n_groups > 1,
-                         n_cum + (0:(n()-1))*group_pad,
-                         group_pad /2 + n))
+    dplyr::group_by(group) %>%
+    dplyr::mutate(xmin = xpos - width/2,
+                  xmax = xpos + width/2,
+                  n_groups = n(),
+                  group_pad = ifelse(n_groups > 1, 
+                                     total_pad/(n() - 1), 
+                                     total_pad),
+                  n_cum = cumsum(n),
+                  ymin = ifelse(n_groups > 1,
+                                lag(n_cum, default = 0) + (1:n() - 1)*group_pad,
+                                group_pad / 2),
+                  ymax = ifelse(n_groups > 1,
+                                n_cum + (0:(n()-1))*group_pad,
+                                group_pad /2 + n))
   
   group_rects
   
@@ -191,10 +189,8 @@ make_plot_nodes <- function(group_nodes,
 #'
 #' @examples
 make_group_links <- function(anno,
-                        group_by,
-                        plot_nodes) {
-  
-  library(dplyr)
+                             group_by,
+                             plot_nodes) {
   
   if (length(group_by) == 1)
     stop("Group_by should have at least 2 elements.")
@@ -213,36 +209,39 @@ make_group_links <- function(anno,
     anno_color <- paste0(base,"_color")
     
     group1_nodes <- plot_nodes %>%
-      filter(group == base[1]) %>%
-      select(group, id, xmax, ymin)
+      dplyr::filter(group == base[1]) %>%
+      dplyr::select(group, id, xmax, ymin)
     names(group1_nodes) <- c("group1",anno_id[1],"x","group1_min")
     
     group2_nodes <- plot_nodes %>%
-      filter(group == base[2]) %>%
-      select(group, id, xmin, ymin)
+      dplyr::filter(group == base[2]) %>%
+      dplyr::select(group, id, xmin, ymin)
     names(group2_nodes) <- c("group2",anno_id[2],"xend","group2_min")
     
-    grouping <- c(anno_id, anno_label, anno_color)
+    grouping <- c(anno_id,anno_label,anno_color)
+    grouping <- purrr::map(grouping, rlang::parse_expr)
+    
+    anno_id <- purrr::map(anno_id, rlang::parse_expr)
     
     group_links <- anno %>%
-      select(one_of(grouping)) %>%
-      group_by_(.dots = grouping) %>%
-      summarise(n = n()) %>%
-      arrange_(.dots = anno_id) %>%
-      mutate(group1 = base[1],
-             group2 = base[2]) %>%
-      ungroup() %>%
-      left_join(group1_nodes) %>%
-      left_join(group2_nodes) %>%
-      group_by_(.dots = anno_id[1]) %>%
-      arrange_(.dots = anno_id[2]) %>%
-      mutate(y = group1_min + cumsum(n)) %>%
-      ungroup() %>%
-      group_by_(.dots = anno_id[2]) %>%
-      arrange_(.dots = anno_id[1]) %>%
-      mutate(yend = group2_min + cumsum(n)) %>%
-      ungroup()
-      
+      dplyr::select(!!!grouping) %>%
+      dplyr::group_by(!!!grouping) %>%
+      dplyr::summarise(n = n()) %>%
+      dplyr::arrange(!!!anno_id) %>%
+      dplyr::mutate(group1 = base[1],
+                    group2 = base[2]) %>%
+      dplyr::ungroup() %>%
+      dplyr::left_join(group1_nodes) %>%
+      dplyr::left_join(group2_nodes) %>%
+      dplyr::group_by(!!anno_id[[1]]) %>%
+      dplyr::arrange(!!anno_id[[2]]) %>%
+      dplyr::mutate(y = group1_min + cumsum(n)) %>%
+      dplyr::ungroup() %>%
+      dplyr::group_by(!!anno_id[[2]]) %>%
+      dplyr::arrange(!!anno_id[[1]]) %>%
+      dplyr::mutate(yend = group2_min + cumsum(n)) %>%
+      dplyr::ungroup()
+    
     names(group_links) <- c("group1_id","group2_id",
                             "group1_label","group2_label",
                             "group1_color","group2_color",
@@ -251,9 +250,9 @@ make_group_links <- function(anno,
                             "y","yend")
     
     group_links <- group_links %>%
-      rowwise() %>%
-      mutate(link_id = paste0(group1_label,"_",group1_id,"_to_",
-                              group2_label,"_",group2_id)) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(link_id = paste0(group1_label,"_",group1_id,"_to_",
+                                     group2_label,"_",group2_id)) %>%
       ungroup()
     
     if (exists("all_links")) {
@@ -292,16 +291,16 @@ make_plot_links <- function(group_links,
     link_ribbon <- sigribbon(link_line, h = group_links$n[i])
     
     if (is.null(fill)) {
-      link_ribbon <- mutate(link_ribbon, fill = "#808080")
+      link_ribbon <- dplyr::mutate(link_ribbon, fill = "#808080")
     } else if (fill == group_links$group1[i]) {
-      link_ribbon <- mutate(link_ribbon, fill = group_links$group1_color[i])
+      link_ribbon <- dplyr::mutate(link_ribbon, fill = group_links$group1_color[i])
     } else if (fill == group_links$group2[i]) {
-      link_ribbon <- mutate(link_ribbon, fill = group_links$group2_color[i])
+      link_ribbon <- dplyr::mutate(link_ribbon, fill = group_links$group2_color[i])
     } else {
-      link_ribbon <- mutate(link_ribbon, fill = "#808080")
+      link_ribbon <- dplyr::mutate(link_ribbon, fill = "#808080")
     }
     
-    link_ribbon <- mutate(link_ribbon, link_id = i)
+    link_ribbon <- dplyr::mutate(link_ribbon, link_id = i)
     
     if (exists("all_ribbons")) {
       all_ribbons <- rbind(all_ribbons, link_ribbon)
@@ -332,9 +331,6 @@ build_river_plot <- function(anno,
                              pad = 0.1, 
                              fill_group = NULL) {
   
-  library(dplyr)
-  library(ggplot2)
-  
   group_nodes <- make_group_nodes(anno, grouping)
   plot_nodes <- make_plot_nodes(group_nodes, pad = pad)
   
@@ -347,46 +343,46 @@ build_river_plot <- function(anno,
                            label_pos = label_pos)
     
     node_labels <- plot_nodes %>%
-      left_join(align_df) %>%
-      group_by(group, name) %>%
-      summarise(label_xpos = case_when(label_pos[1] == "left" ~ xpos[1] - 0.075,
-                                       label_pos[1] == "center" ~ as.numeric(xpos[1]),
-                                       label_pos[1] == "right" ~ xpos[1] + 0.075),
-                label_hjust = case_when(label_pos[1] == "left" ~ as.numeric(1),
-                                        label_pos[1] == "center" ~ 0.5,
-                                        label_pos[1] == "right" ~ as.numeric(0)),
-                label_ypos = (ymin[1] + ymax[1]) / 2)
+      dplyr::left_join(align_df) %>%
+      dplyr::group_by(group, name) %>%
+      dplyr::summarise(label_xpos = case_when(label_pos[1] == "left" ~ xpos[1] - 0.075,
+                                              label_pos[1] == "center" ~ as.numeric(xpos[1]),
+                                              label_pos[1] == "right" ~ xpos[1] + 0.075),
+                       label_hjust = case_when(label_pos[1] == "left" ~ as.numeric(1),
+                                               label_pos[1] == "center" ~ 0.5,
+                                               label_pos[1] == "right" ~ as.numeric(0)),
+                       label_ypos = (ymin[1] + ymax[1]) / 2)
     
   }
   
   group_links <- make_group_links(anno, grouping, plot_nodes)
   plot_links <- make_plot_links(group_links, fill = fill_group)
   
-  p <- ggplot() +
-    geom_rect(data = plot_nodes,
-              aes(xmin = xmin, xmax = xmax,
-                  ymin = ymin, ymax = ymax,
-                  fill = color),
-              color = "#808080") +
-    geom_ribbon(data = plot_links,
-                aes(x = x, ymax = y,
-                    ymin = ymin,
-                    group = link_id,
-                    fill = fill),
-                color = "#808080",
-                alpha = 0.4) +
-    scale_fill_identity() +
-    scale_y_reverse() +
-    theme_void()
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_rect(data = plot_nodes,
+                       ggplot2::aes(xmin = xmin, xmax = xmax,
+                                    ymin = ymin, ymax = ymax,
+                                    fill = color),
+                       color = "#808080") +
+    ggplot2::geom_ribbon(data = plot_links,
+                         ggplot2::aes(x = x, ymax = y,
+                                      ymin = ymin,
+                                      group = link_id,
+                                      fill = fill),
+                         color = "#808080",
+                         alpha = 0.4) +
+    ggplot2::scale_fill_identity() +
+    ggplot2::scale_y_reverse() +
+    ggplot2::theme_void()
   
   if (show_labels) {
     p <- p +
-      geom_text(data = node_labels,
-                aes(x = label_xpos,
-                    y = label_ypos,
-                    hjust = label_hjust,
-                    label = name),
-                vjust = 0.3)
+      ggplot2::geom_text(data = node_labels,
+                         ggplot2::aes(x = label_xpos,
+                                      y = label_ypos,
+                                      hjust = label_hjust,
+                                      label = name),
+                         vjust = 0.3)
   }
   
   p
@@ -423,7 +419,7 @@ build_river_plot_bokeh <- function(anno, group_by, pad = 0.1, fill_group = NULL)
                             link_id = rep(plot_links$link_id, 2))
     
     poly_links <- rbind(poly_links, poly_link)
-      
+    
   }
   
   # hover behavior is strange - it doesn't follow grouping,

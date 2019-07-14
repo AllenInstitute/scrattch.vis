@@ -16,7 +16,8 @@ Imports:
     ggbeeswarm (>= 0.6.0),
     grid (>= 3.2.2),
     lazyeval (>= 0.2.0),
-    purrr
+    purrr,
+    rlang (>= 0.4.0)
 RoxygenNote: 6.1.0
 Suggests: knitr,
     rmarkdown,

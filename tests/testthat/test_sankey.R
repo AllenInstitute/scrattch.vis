@@ -2,16 +2,20 @@ library(scrattch.vis)
 
 context("sankey.R")
 
-test_that("erf() calculates error margins required to generate a sigmoidal curve",
-          {
-            expect_equal(erf(0.0000000000000000001), 0)
-            expect_equal(erf(0.0000000000001), 1.127987e-13)
-            expect_equal(erf(10), 1)
-            x <- 0.5
-            expect_is(x, "numeric")
-            expect_error(erf("string"))
-            expect_error(erf(tasic_2016_anno))
-          })
+library(tasic2016data)
+library(dplyr)
+
+test_that(
+  "erf() calculates error margins required to generate a sigmoidal curve",
+  {
+    expect_equal(erf(0.0000000000000000001), 0)
+    expect_equal(erf(0.0000000000001), 1.127987e-13)
+    expect_equal(erf(10), 1)
+    x <- 0.5
+    expect_is(x, "numeric")
+    expect_error(erf("string"))
+    expect_error(erf(tasic_2016_anno))
+  })
 
 
 
@@ -84,8 +88,6 @@ test_that("make_plot_nodes() generates the plot nodes from make_group_nodes() ou
 
 test_that("make_group_links() generates the group links from the plot notes",
           {
-            library(tasic2016data)
-            library(tidyverse)
             inputnodes <-
               make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type")) %>%
               make_plot_nodes(.)
@@ -133,8 +135,7 @@ test_that("make_group_links() generates the group links from the plot notes",
 
 test_that("make_plot_links() generates the link ids",
           {
-            library(tasic2016data)
-            library(tidyverse)
+
             input <-
               make_group_nodes(tasic_2016_anno, c("primary_type", "secondary_type")) %>%
               make_plot_nodes(.) %>%
@@ -152,7 +153,6 @@ test_that("make_plot_links() generates the link ids",
 
 test_that("build_river_plot() generates a river plot",
           {
-            library(tasic2016data)
             expect_error(build_river_plot())
             expect_error(build_river_plot(tasic_2016_anno, "primary_type"))
             expect_warning(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")))

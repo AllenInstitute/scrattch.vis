@@ -1,1 +1,5 @@
 exportPattern("^[[:alpha:]]+")
+
+importFrom(dplyr,`%>%`)
+importFrom(ggplot2,`%+replace%`)
+import(rlang)

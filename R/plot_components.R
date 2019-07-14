@@ -26,7 +26,7 @@ sci_label <- function(in_num,
     x <- in_num[i]
     
     if(x < 0) {
-
+      
       neg <- "-"
       x <- abs(x)
     } else {
@@ -93,15 +93,14 @@ sci_label <- function(in_num,
 #'  theme_no_x() +
 #'  labs(x = NULL)
 theme_no_x <- function(base_size = 12, base_family = "") {
-  library(ggplot2)
-  theme_classic(base_size = base_size, base_family = base_family) %+replace%
-    theme(plot.margin = unit(c(rep(0,4)),"line"),
-          axis.text = element_text(size = rel(1)),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks.margin = unit(0,"cm"),
-          axis.ticks.x = element_blank())
+  ggplot2::theme_classic(base_size = base_size, base_family = base_family) %+replace%
+    ggplot2::theme(plot.margin = unit(c(rep(0,4)),"line"),
+                   axis.text = element_text(size = rel(1)),
+                   axis.text.x = element_blank(),
+                   axis.ticks.x = element_blank(),
+                   axis.title.x = element_blank(),
+                   axis.ticks.margin = unit(0,"cm"),
+                   axis.ticks.x = element_blank())
 }
 
 #' Build polygons from plot data for fancy headers built into the plot area
@@ -166,30 +165,30 @@ build_header_polygons <- function(data,
     } else {
       # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
       data <- data %>%
-        dplyr::arrange_(group_id) %>%
-        mutate(xpos = 1:n())
+        dplyr::arrange({{ group_id }}) %>%
+        dplyr::mutate(xpos = 1:n())
     }
   }
   
   poly.data <- data %>% 
-    group_by_(group_id) %>%
-    summarise(color = .data[[group_color]][1],
-              x1 = max(xpos),
-              x2 = min(xpos) - 1) %>%
-    mutate(x3 = (n_samples) * (1:n_groups - 1) / n_groups,
-           x4 = (n_samples) * (1:n_groups) / n_groups,
-           # ymin is the top of the plot body
-           y1 = ymin,
-           y2 = ymin,
-           # The angled portion of the label will be 10% of the total label height 
-           y3 = ymin + labheight * fraction_of_label,
-           y4 = ymin + labheight * fraction_of_label)
+    dplyr::group_by(!!rlang::parse_expr(group_id)) %>%
+    dplyr::summarise(color = .data[[group_color]][1],
+                     x1 = max(xpos),
+                     x2 = min(xpos) - 1) %>%
+    dplyr::mutate(x3 = (n_samples) * (1:n_groups - 1) / n_groups,
+                  x4 = (n_samples) * (1:n_groups) / n_groups,
+                  # ymin is the top of the plot body
+                  y1 = ymin,
+                  y2 = ymin,
+                  # The angled portion of the label will be 10% of the total label height 
+                  y3 = ymin + labheight * fraction_of_label,
+                  y4 = ymin + labheight * fraction_of_label)
   
   # For a simpler square label, set the top and bottom x-positions to be the same
   if (poly_type == "square") {
     poly.data <- poly.data %>%
-      mutate(x3 = x2,
-             x4 = x1)
+      dplyr::mutate(x3 = x2,
+                    x4 = x1)
   }
   
   # Restructure the polygons for ggplot2's geom_poly().
@@ -265,20 +264,23 @@ build_header_labels <- function(data,
                                       axis_name = "xpos")
       
       data <- data %>%
-        left_join(group_order_df, by = group_id)
+        dplyr::left_join(group_order_df, by = group_id)
       
     } else {
       # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
       data <- data %>%
-        arrange_(group_id) %>%
-        mutate(xpos = 1:n())
+        dplyr::arrange(!!rlang::parse_expr(group_id)) %>%
+        dplyr::mutate(xpos = 1:n())
     }
   }
   
+  grouping <- lapply(c(group_id, group_label, group_color),
+                     rlang::parse_expr)
+  
   data <- data %>%
-    dplyr::group_by_(group_id, group_label, group_color) %>%
-    summarise(minx = min(xpos),
-              maxx = max(xpos))
+    dplyr::group_by(!!!grouping) %>%
+    dplyr::summarise(minx = min(xpos),
+                     maxx = max(xpos))
   
   if (label_type == "simple") {
     xlab.rect <- data.frame(xmin = data$minx - 0.5,
@@ -297,7 +299,7 @@ build_header_labels <- function(data,
                             label = data[[group_label]] )
   } else if (label_type == "square") {
     xlab.rect <- data %>% 
-      group_by_(group_id) %>%
+      dplyr::group_by(!!parse_expr(group_id)) %>%
       summarise(xmin = minx - 1,
                 xmax = maxx,
                 ymin = ymin + labheight * 0.1,
@@ -305,7 +307,7 @@ build_header_labels <- function(data,
                 color = .[[group_color]][1],
                 label = .[[group_label]][1])
   }
-
+  
   xlab.rect  
 }
 
@@ -317,11 +319,8 @@ build_header_labels <- function(data,
 #' @return a data.frame with segment values for ggplot2's geom_seg. columns: "x","xend","y","yend".
 hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
   
-  require(ggdendro)
-  require(dplyr)
-  
   hc.dendro <- as.dendrogram(hc)
-  hc.segs <- as.data.frame(segment(dendro_data(hc.dendro)))
+  hc.segs <- dendextend::as.ggdend(hc.dendro)$segments
   
   ymin = min(dir.lims)
   ymax = max(dir.lims)
@@ -376,7 +375,13 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
 #' @param ratio golden
 #' @examples 
 #' spiral_jitter(x,y)
-spiral_jitter <- function(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1, ratio = "golden") {
+spiral_jitter <- function(x, 
+                          y, 
+                          n = NULL, 
+                          max_n = NULL, 
+                          radius = 1, 
+                          aspect = 1, 
+                          ratio = "golden") {
   
   if (is.null(n)) {
     n <- length(x)

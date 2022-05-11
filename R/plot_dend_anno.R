@@ -309,32 +309,58 @@ dend_anno_barplot <- function(anno,
 #'   
 
 
-
-
-dend_anno_dotplot <- function(plot_anno, 
-                              dend, 
-                              y_group, 
-                              c_group="none", 
-                              prefix=NULL, 
-                              denom=NULL )  {
+dend_anno_dotplot<- function(anno, 
+                             dend, 
+                             y_group, 
+                             c_group="none", 
+                             prefix=NULL, 
+                             denom=NULL, 
+                             xlab.size=2,
+                             ylab.size=3,
+                             panel_width=0.4,
+                             panel_pad=0.1)  {
   
-  #####       
-  # dotplot
-  #####       
   
   library(dplyr)
   library(ggplot2)
   library(cowplot)
   
-  ########
-  ## anno dotplot
-  ########
+  rect.offset= c()
+  
+  
+  # cluster_id order doesn't match dendrogram order
+  n_clusters <- length(labels(dend))
+  
+  
+  #########################
+  ## build dend elements ##
+  #########################
+  
+  ## dend is always 1 high?
+  
+  
+  # convert to ggdend
+  dend_gg <- dendextend::as.ggdend(dend)
+  # extract segments for separate plotting later
+  dend_seg <- dend_gg$segments
+  
+  dend_nodes <- dend_gg[["nodes"]]
+  dend_nodes <- dend_nodes[!is.na(dend_nodes$pch),]
+  
+  
+  ## build anno dotplot ##
+  
+  # set padding of dotplot below dend
+  offset= 2*panel_pad
+  rect.offset= c(rect.offset, offset)
+  panel_width = panel_width 
+  
   
   cl_id <- paste0(prefix, "cluster_id")
   
   
   x_id <- paste0(prefix, "cluster_id")
-  #x_cl <- paste0(prefix, "cl")
+  x_cl <- paste0(prefix, "cl")
   x_label <- paste0(prefix, "cluster_label")
   x_color <- paste0(prefix, "cluster_color")
   x_name <- x_label
@@ -345,9 +371,8 @@ dend_anno_dotplot <- function(plot_anno,
   y_color <- paste0(y_group,"_color")
   y_name <- y_group
   
-  # plot_anno <- anno
+  plot_anno <- anno
   
-  #x_order <- data.frame(id=train.cl.df$cluster_id,xpos = train.cl.df$cluster_id)
   x_order <- data.frame(id=labels(dend), xpos=1:length(labels(dend)) )
   names(x_order)[1] <- x_label
   
@@ -356,13 +381,16 @@ dend_anno_dotplot <- function(plot_anno,
   
   y_order <- data.frame(id = unique(plot_anno[[y_id]])) %>%
     arrange(id) %>%
-    mutate(ypos = n():1)
+    mutate(new_id=1:length(id)) %>%
+    mutate(ly_n=n()) %>%
+    mutate(ly_frac = new_id/ly_n) %>%
+    mutate(ypos =-offset  - lag(ly_frac, default = 0) *panel_width)
+  #mutate(ly_cum_frac = cumsum(ly_frac)) %>%
+  #mutate(ypos2 = -offset - lag(ly_cum_frac, default = 0) *panel_width)
   
   names(y_order)[1] <- y_id
   plot_anno <- plot_anno %>% 
     left_join(y_order)
-  
-  
   
   if(c_group == "none") {
     
@@ -378,15 +406,9 @@ dend_anno_dotplot <- function(plot_anno,
   }
   
   
-  x_labels <- plot_anno %>%
-    select(one_of("xpos",x_label)) %>%
-    unique() %>%
-    arrange(xpos) %>%
-    rename_("x_label" = x_label)
-  
   
   y_labels <- plot_anno %>%
-    select(one_of("ypos",y_label)) %>%
+    dplyr::select(one_of("ypos",y_label)) %>%
     unique() %>%
     arrange(ypos) %>%
     rename_("y_label" = y_label)
@@ -397,25 +419,50 @@ dend_anno_dotplot <- function(plot_anno,
     summarise(n = n()) %>%
     ungroup()
   
+  ## add grid lines behind
+  #grid_lines <-
   
-  # convert to ggdend
-  dend_gg <- dendextend::as.ggdend(dend)
-  # extract segments for separate plotting later
-  dend_seg <- dend_gg$segments
+  offset = min(y_labels$ypos)  - 2*panel_pad
   
-  dend_nodes <- dend_gg[["nodes"]]
-  dend_nodes <- dend_nodes[!is.na(dend_nodes$pch),]
+  dend_leaves <- dend_gg$labels %>%
+    mutate(cluster_label = label,
+           y =  offset, cex=0.3)
   
-  dend_seg$y <- dend_seg$y +max(plot_anno$ypos) +1
-  dend_seg$yend <- dend_seg$yend +max(plot_anno$ypos) +1
-  dend_nodes$y <- dend_nodes$y +max(plot_anno$ypos) +1
   
+  
+  
+  ## Plotting ##
   
   p <- ggplot() +
-    scale_color_identity() +
-    theme_bw(14) +
-    theme(panel.border = element_blank()) +
-    theme(line=element_line(size=0.2))
+    geom_segment(data = dend_seg,
+                 aes(x = x,
+                     xend = xend,
+                     y = y,
+                     yend = yend,
+                     size = 0.5,
+                     color = "black"),
+                 lineend = "square") +
+    geom_point(data=dend_nodes,
+               aes(x=x,
+                   y=y,
+                   color=col), 
+               shape=dend_nodes$pch,
+               cex=1)  +
+    geom_segment(data =y_labels, 
+               aes(x= 0,
+                   xend= n_clusters,
+                   y=  ypos,
+                   yend=  ypos,
+                   color="grey95"))+
+    geom_segment(data =dend_leaves, 
+                 aes(x= x,
+                     xend= x,
+                     y=  dend_nodes$y-0.1,
+                     yend= dend_nodes$y + min(y_labels$ypos),
+                     color="grey95"))
+  
+  
+  
   
   
   if(!is.null(denom)) {
@@ -467,33 +514,45 @@ dend_anno_dotplot <- function(plot_anno,
     }
   
   
+  
+  p <- p +  
+    # Leaf Labels
+    geom_text(data = dend_leaves,
+              aes(x = x,
+                  y = y,
+                  label = label,
+                  color = col),
+              angle = 90,
+              hjust = 1,
+              vjust = 0.3,
+              size = xlab.size)  +
+    geom_text(data = y_labels,
+              #aes(x = -(n_clusters/20),
+              aes(x = -5,
+                  y = ypos,
+                  label = y_label,
+                  color = "black"),
+              hjust = 1,
+              vjust = 0.5,
+              size = ylab.size)
+  
+  #n_clusters <- max(plot_anno$xpos)
+  
+  
   p <- p +
     scale_size_area() +
-    scale_x_continuous(x_name, breaks = x_labels$xpos, labels = x_labels$x_label) +
-    scale_y_continuous(y_name, breaks = y_labels$ypos, labels = y_labels$y_label) +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
-  
-  ########
-  ## dendrogram
-  ########
-  
-  p<- p +
-    geom_segment(data = dend_seg,
-                 aes(x = x,
-                     xend = xend,
-                     y = y,
-                     yend = yend,
-                     size = 0.5,
-                     color = col),
-                 lineend = "square") +
-    geom_point(data=dend_nodes,
-               aes(x=x,
-                   y=y,
-                   color=col), 
-               shape=dend_nodes$pch,
-               cex=1)
+    scale_color_identity() +
+    scale_fill_identity() +
+    #theme(legend.position = "none")
+  #scale_y_continuous(expand = c(0.25,0),y_name, breaks = y_labels$ypos, labels = y_labels$y_label) +
+    #scale_x_continuous(limits = c(-1,n_clusters + 1)) +
+    theme_void()
   
   
-
+  
+  
+  
   return(p)
+  
+  
 } 

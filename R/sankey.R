@@ -110,16 +110,18 @@ make_group_nodes <- function(anno,
   for (i in 1:length(group_by)) {
     base <- group_by[i]
     anno_id <- paste0(base,"_id")
+    parsed_anno_id <- rlang::parse_expr(anno_id)
     anno_label <- paste0(base,"_label")
     anno_color <- paste0(base,"_color")
     
     grouping <- c(anno_id,anno_label,anno_color)
+    parsed_grouping <- lapply(grouping, rlang::parse_expr)
     
     group_nodes <- anno %>%
       select(one_of(grouping)) %>%
-      group_by_(.dots = grouping) %>%
+      group_by(!!!parsed_grouping) %>%
       summarise(n = n()) %>%
-      arrange_(anno_id) %>%
+      arrange(!!parsed_anno_id) %>%
       mutate(group = base) %>%
       ungroup()
     
@@ -207,6 +209,7 @@ make_group_links <- function(anno,
   for (pair in pairs) {
     base <- pair
     anno_id <- paste0(base,"_id")
+    parsed_anno_id <- lapply(anno_id, rlang::parse_expr)
     anno_label <- paste0(base,"_label")
     anno_color <- paste0(base,"_color")
     
@@ -221,23 +224,24 @@ make_group_links <- function(anno,
     names(group2_nodes) <- c("group2",anno_id[2],"xend","group2_min", "group2_n")
     
     grouping <- c(anno_id, anno_label, anno_color)
+    parsed_grouping <- lapply(grouping, rlang::parse_expr)
     
     group_links <- anno %>%
       select(one_of(grouping)) %>%
-      group_by_(.dots = grouping) %>%
+      group_by(!!!parsed_grouping) %>%
       summarise(n = n()) %>%
-      arrange_(.dots = anno_id) %>%
+      arrange(parsed_anno_id) %>%
       mutate(group1 = base[1],
              group2 = base[2]) %>%
       ungroup() %>%
-      left_join(group1_nodes) %>%
-      left_join(group2_nodes) %>%
-      group_by_(.dots = anno_id[1]) %>%
-      arrange_(.dots = anno_id[2]) %>%
+      left_join(group1_nodes, by = c(anno_id[1], "group1")) %>%
+      left_join(group2_nodes, by = c(anno_id[2]), "group2")) %>%
+      group_by(!!parsed_anno_id[[1]]) %>%
+      arrange(!!parsed_anno_id[[2]]) %>%
       mutate(y = group1_min + cumsum(n)) %>%
       ungroup() %>%
-      group_by_(.dots = anno_id[2]) %>%
-      arrange_(.dots = anno_id[1]) %>%
+      group_by(!!parsed_anno_id[[2]]) %>%
+      arrange(!!parsed_anno_id[[1]]) %>%
       mutate(yend = group2_min + cumsum(n)) %>%
       ungroup()
       
@@ -348,7 +352,7 @@ build_river_plot <- function(anno,
                            label_pos = label_pos)
     
     node_labels <- plot_nodes %>%
-      left_join(align_df) %>%
+      left_join(align_df, by = "group") %>%
       group_by(group, name) %>%
       summarise(label_xpos = case_when(label_pos[1] == "left" ~ xpos[1] - 0.075,
                                        label_pos[1] == "center" ~ as.numeric(xpos[1]),

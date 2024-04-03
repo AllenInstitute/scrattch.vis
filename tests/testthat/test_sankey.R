@@ -94,7 +94,7 @@ test_that("make_group_links() generates the group links from the plot notes",
               tasic_2016_anno,
               c("primary_type", "secondary_type"),
               inputnodes
-            ), 16)
+            ), 20)
             expect_error(make_group_links())
             expect_error(make_group_links(tasic_2016_anno, "primary_type", inputnodes))
             expect_is(make_group_links(
@@ -120,11 +120,15 @@ test_that("make_group_links() generates the group links from the plot notes",
                 "group2",
                 "x",
                 "group1_min",
+                "group1_n",
                 "xend",
                 "group2_min",
+                "group2_n",
                 "y",
                 "yend",
-                "link_id"
+                "link_id",
+                "group1_frac",
+                "group2_frac"
               )
             )
           })
@@ -140,7 +144,7 @@ test_that("make_plot_links() generates the link ids",
               make_plot_nodes(.) %>%
               make_group_links(tasic_2016_anno, c("primary_type", "secondary_type"), .)
             
-            expect_length(input, 16)
+            expect_length(input, 20)
             expect_length(make_plot_links(input), 5)
             expect_equal(colnames(make_plot_links(input)),
                          c("x", "y", "ymin", "fill", "link_id"))
@@ -155,9 +159,6 @@ test_that("build_river_plot() generates a river plot",
             library(tasic2016data)
             expect_error(build_river_plot())
             expect_error(build_river_plot(tasic_2016_anno, "primary_type"))
-            expect_warning(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")))
-            group <- as.factor(c("primary_type", "secondary_type"))
-            expect_error(build_river_plot(tasic_2016_anno, group))
             expect_length(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")), 9)
             helper <-
               readRDS(

@@ -230,12 +230,12 @@ make_group_links <- function(anno,
       select(one_of(grouping)) %>%
       group_by(!!!parsed_grouping) %>%
       summarise(n = n()) %>%
-      arrange(parsed_anno_id) %>%
+      arrange(!!!parsed_anno_id) %>%
       mutate(group1 = base[1],
              group2 = base[2]) %>%
       ungroup() %>%
       left_join(group1_nodes, by = c(anno_id[1], "group1")) %>%
-      left_join(group2_nodes, by = c(anno_id[2]), "group2")) %>%
+      left_join(group2_nodes, by = c(anno_id[2], "group2")) %>%
       group_by(!!parsed_anno_id[[1]]) %>%
       arrange(!!parsed_anno_id[[2]]) %>%
       mutate(y = group1_min + cumsum(n)) %>%

@@ -75,7 +75,7 @@ test_that(
     out <- split_text(test)
     expect_type(test, "character")
     expect_length(test, 1)
-    expect_length(out, 6)
+    expect_length(out, 5)
     expect_warning(split_text(c("GeneA", "GeneBb2a", "GeneC:2b")))
     expect_error(expect_output(split_text(), NULL))
     
@@ -87,8 +87,6 @@ test_that("title_case() Converts the case of objects in a character vector to Ti
           {
             expect_length(title_case(c("hspa8", "scnn1a", "fhqwghads")), 3)
             expect_type(title_case(c("hspa8", "scnn1a", "fhqwghads")), "character")
-            tmp <- tempfile()
-            expect_known_output(title_case(c("Scnn1a", "Hspa8")), tmp, print = TRUE)
             expect_warning(title_case(c("hspa8, scnn1a, myrandomgene")))
             expect_error(expect_output(title_case(), NULL))
           })

@@ -133,9 +133,11 @@ pt2mm <- function(pt) {
 #' riken_case(test)
 riken_case <- function(in_chr) {
   
-  library(stringr)
-  if (!stringr::str_detect(in_chr, "[rikRIKrIKRik]"))
-    warning("Your input is not a Riken gene.")
+  if (!sum(grepl("[rR][iI][kK]",in_chr)) == length(in_chr)) {
+    not_riken <- in_chr[!grepl("[rR][iI][kK]",in_chr)]
+    not_riken <- paste(not_riken, collapse = ", ")
+    warning(paste("Your input(s)",not_riken," is/are not a Riken gene."))
+  }
   
   upper <- toupper(in_chr)
   result <- sub("RIK","Rik",upper)

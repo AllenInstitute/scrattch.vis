@@ -4,8 +4,15 @@
 \alias{sigline}
 \title{Build a sigmoidal line using sigfun}
 \usage{
-sigline(x = 0, xend = 1, y = 0, yend = 1, steps = 50,
-  sigfun = "erf", sigx = 1.5)
+sigline(
+  x = 0,
+  xend = 1,
+  y = 0,
+  yend = 1,
+  steps = 50,
+  sigfun = "erf",
+  sigx = 1.5
+)
 }
 \arguments{
 \item{x}{starting x position. Default = 0}

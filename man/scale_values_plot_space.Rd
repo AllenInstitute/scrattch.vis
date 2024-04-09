@@ -4,8 +4,14 @@
 \alias{scale_values_plot_space}
 \title{Scale values to plot space}
 \usage{
-scale_values_plot_space(x, min_ps, max_ps = NULL, min_val = 0,
-  max_val = NULL, extent = 0.9)
+scale_values_plot_space(
+  x,
+  min_ps,
+  max_ps = NULL,
+  min_val = 0,
+  max_val = NULL,
+  extent = 0.9
+)
 }
 \arguments{
 \item{x}{A vector of values to scale}

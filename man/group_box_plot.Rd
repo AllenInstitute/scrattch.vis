@@ -4,10 +4,20 @@
 \alias{group_box_plot}
 \title{Box Plots plots of gene expression for grouped samples}
 \usage{
-group_box_plot(data, anno, genes, grouping, group_order = NULL,
-  log_scale = TRUE, font_size = 7, label_height = 25,
-  show_counts = TRUE, rotate_counts = FALSE, max_width = 10,
-  return_type = "plot")
+group_box_plot(
+  data,
+  anno,
+  genes,
+  grouping,
+  group_order = NULL,
+  log_scale = TRUE,
+  font_size = 7,
+  label_height = 25,
+  show_counts = TRUE,
+  rotate_counts = FALSE,
+  max_width = 10,
+  return_type = "plot"
+)
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}

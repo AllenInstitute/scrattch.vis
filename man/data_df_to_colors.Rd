@@ -4,8 +4,15 @@
 \alias{data_df_to_colors}
 \title{Convert expression data to heatmap colors for plotting}
 \usage{
-data_df_to_colors(df, value_cols = NULL, colorset = NULL,
-  scale = "linear", per_col = FALSE, min_val = 0, max_val = NULL)
+data_df_to_colors(
+  df,
+  value_cols = NULL,
+  colorset = NULL,
+  scale = "linear",
+  per_col = FALSE,
+  min_val = 0,
+  max_val = NULL
+)
 }
 \arguments{
 \item{df}{data.frame with sample_name and expression values}

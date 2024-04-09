@@ -4,8 +4,13 @@
 \alias{point_size_legend_plot}
 \title{Build a point size legend plot}
 \usage{
-point_size_legend_plot(min_val = 0, max_val = 1, max_size = 6,
-  scale_name = "Fraction of cells", n_sizes = 6)
+point_size_legend_plot(
+  min_val = 0,
+  max_val = 1,
+  max_size = 6,
+  scale_name = "Fraction of cells",
+  n_sizes = 6
+)
 }
 \arguments{
 \item{min_val}{numeric, the minimum value in the plot scale (default = 0)}

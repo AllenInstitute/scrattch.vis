@@ -4,9 +4,12 @@
 \alias{heatmap_legend_plot}
 \title{Build a heatmap legend plot}
 \usage{
-heatmap_legend_plot(min_val = 0, max_val = 4, scale_name = "FPKM",
-  colorset = c("darkblue", "dodgerblue", "gray80", "orange",
-  "orangered"))
+heatmap_legend_plot(
+  min_val = 0,
+  max_val = 4,
+  scale_name = "FPKM",
+  colorset = c("darkblue", "dodgerblue", "gray80", "orange", "orangered")
+)
 }
 \arguments{
 \item{min_val}{numeric, the minimum value in the plot scale (default = 0)}

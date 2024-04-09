@@ -4,8 +4,7 @@
 \alias{ggplot_max_vals}
 \title{Add max value labels to a ggplot}
 \usage{
-ggplot_max_vals(p, n_stats, width_stat = "samples", max_val_dfs,
-  font_size)
+ggplot_max_vals(p, n_stats, width_stat = "samples", max_val_dfs, font_size)
 }
 \arguments{
 \item{p}{The plot to add max values to}

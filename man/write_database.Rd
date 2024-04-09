@@ -4,8 +4,13 @@
 \alias{write_database}
 \title{Write SQLite3 Database}
 \usage{
-write_database(desc = NULL, anno = NULL, data = NULL,
-  file = stop("'file' must be specified"), overwrite = TRUE)
+write_database(
+  desc = NULL,
+  anno = NULL,
+  data = NULL,
+  file = stop("'file' must be specified"),
+  overwrite = TRUE
+)
 }
 \arguments{
 \item{desc}{a data.frame with two columns: base, which correspondes to the beginning of

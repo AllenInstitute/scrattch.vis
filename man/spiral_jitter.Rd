@@ -4,8 +4,15 @@
 \alias{spiral_jitter}
 \title{Jitter x-y coordinates in a spiral pattern}
 \usage{
-spiral_jitter(x, y, n = NULL, max_n = NULL, radius = 1, aspect = 1,
-  ratio = "golden")
+spiral_jitter(
+  x,
+  y,
+  n = NULL,
+  max_n = NULL,
+  radius = 1,
+  aspect = 1,
+  ratio = "golden"
+)
 }
 \arguments{
 \item{x}{coordinate x}

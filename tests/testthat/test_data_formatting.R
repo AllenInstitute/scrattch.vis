@@ -4,7 +4,6 @@ context("data_formatting.R")
 
 
 test_that("mat_to_data_df() Matrix is converted to a df", {
-  library(tasic2016data)
   counts <- tasic2016data::tasic_2016_counts
   df <- mat_to_data_df(counts, cols_are = "sample_names")
   expect_true(class(df) == "data.frame")

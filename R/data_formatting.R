@@ -12,7 +12,7 @@ mat_to_data_df <- function(mat,
                            cols_are = "gene_names") {
 
   if (grepl("sample", cols_are) == TRUE) {
-    if (class(mat) == "matrix") {
+    if ("matrix" %in% class(mat)) {
       mat <- t(mat)
     } else {
       mat <- Matrix::t(mat)

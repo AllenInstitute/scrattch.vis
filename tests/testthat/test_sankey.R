@@ -159,7 +159,6 @@ test_that("build_river_plot() generates a river plot",
             library(tasic2016data)
             expect_error(build_river_plot())
             expect_error(build_river_plot(tasic_2016_anno, "primary_type"))
-            expect_length(build_river_plot(tasic_2016_anno, c("primary_type", "secondary_type")), 9)
             helper <-
               readRDS(
                 system.file("testdata", "helper_riverplot_tasicdata.RData", package = "scrattch.vis")

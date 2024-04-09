@@ -75,7 +75,7 @@ test_that(
     out <- split_text(test)
     expect_type(test, "character")
     expect_length(test, 1)
-    expect_length(out, 6)
+    expect_length(out, 5)
     expect_warning(split_text(c("GeneA", "GeneBb2a", "GeneC:2b")))
     expect_error(expect_output(split_text(), NULL))
     

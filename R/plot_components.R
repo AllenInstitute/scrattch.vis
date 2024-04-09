@@ -130,6 +130,7 @@ build_header_polygons <- function(data,
   library(dplyr)
   
   group_id <- paste0(grouping, "_id")
+  parsed_group_id <- rlang::parse_expr(group_id)
   group_color <- paste0(grouping, "_color")
   n_groups <- length(unique(anno[[group_id]]))
   n_samples <- nrow(anno)
@@ -164,14 +165,15 @@ build_header_polygons <- function(data,
       
     } else {
       # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
+      
       data <- data %>%
-        dplyr::arrange_(group_id) %>%
+        dplyr::arrange(!!parsed_group_id) %>%
         mutate(xpos = 1:n())
     }
   }
   
   poly.data <- data %>% 
-    group_by_(group_id) %>%
+    group_by(!!parsed_group_id) %>%
     summarise(color = .data[[group_color]][1],
               x1 = max(xpos),
               x2 = min(xpos) - 1) %>%
@@ -250,8 +252,11 @@ build_header_labels <- function(data,
   labheight <- (ymin - 1)*(label_height/100)/(1 - label_height/100)
   
   group_id <- paste0(grouping, "_id")
+  parsed_group_id <- rlang::parse_expr(group_id)
   group_label <- paste0(grouping, "_label")
+  parsed_group_label <- rlang::parse_expr(group_label)
   group_color <- paste0(grouping, "_color")
+  parsed_group_color <- rlang::parse_expr(group_color)
   
   n_samples <- nrow(data)
   n_clust <- length(unique(data[[group_id]]))
@@ -270,13 +275,13 @@ build_header_labels <- function(data,
     } else {
       # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
       data <- data %>%
-        arrange_(group_id) %>%
+        arrange(!!parsed_group_id) %>%
         mutate(xpos = 1:n())
     }
   }
   
   data <- data %>%
-    dplyr::group_by_(group_id, group_label, group_color) %>%
+    dplyr::group_by(!!parsed_group_id, !!parsed_group_label, !!parsed_group_color) %>%
     summarise(minx = min(xpos),
               maxx = max(xpos)) %>%
     arrange(minx)
@@ -298,7 +303,7 @@ build_header_labels <- function(data,
                             label = data[[group_label]] )
   } else if (label_type == "square") {
     xlab.rect <- data %>% 
-      group_by_(group_id) %>%
+      group_by(!!parsed_group_id) %>%
       summarise(xmin = minx - 1,
                 xmax = maxx,
                 ymin = ymin + labheight * 0.1,
@@ -528,8 +533,9 @@ scale_gene_data <- function(data, genes, scale_type = "log10") {
 #' 
 add_sample_xpos <- function(data, group_cols, group_order = NULL) {
   if(is.null(group_order)) {
+    parsed_id <- rlang::parse_expr(group_cols$id)
     data %>%
-      dplyr::arrange_(group_cols$id) %>%
+      dplyr::arrange(!!parsed_id) %>%
       dplyr::mutate(xpos = 1:n())
   } else {
     group_order_df <- data.frame(group = group_order) %>%
@@ -557,10 +563,11 @@ add_sample_xpos <- function(data, group_cols, group_order = NULL) {
 #' 
 add_group_xpos <- function(data, group_cols, group_order = NULL) {
   if(is.null(group_order)) {
+    parsed_id <- rlang::parse_expr(group_cols$id)
     group_order_df <- data %>%
       dplyr::select(one_of(group_cols$id)) %>%
       unique() %>%
-      dplyr::arrange_(group_cols$id) %>%
+      dplyr::arrange(!!parsed_id) %>%
       dplyr::mutate(xpos = 1:n())
     
     data <- data %>%

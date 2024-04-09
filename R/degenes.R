@@ -24,17 +24,16 @@ get_sparse_pairwise_deg <- function(data = v1_data, anno = v1_anno, group_by = "
                                     data_cut_up = 0, data_cut_dn = 0,
                                     frac_cut_up = 0.95, frac_cut_dn = 0.05,
                                     top = NULL, give = "genes") {
-  library(dplyr)
-  
+
   group_id <- paste0(group_by,"_id")
   
   group1_anno <- anno[anno[,group_id] %in% class1_groups,]
   group1_data <- data %>%
-    select(one_of("gene",group1_anno$sample_id))
+    dplyr::select(dplyr::one_of("gene",group1_anno$sample_id))
   
   group2_anno <- anno[anno[,group_id] %in% class2_groups,]
   group2_data <- data %>%
-    select(one_of("gene",group2_anno$sample_id))
+    dplyr::select(dplyr::one_of("gene",group2_anno$sample_id))
   
   scores <- data.frame(gene=data$gene)
   
@@ -46,12 +45,12 @@ get_sparse_pairwise_deg <- function(data = v1_data, anno = v1_anno, group_by = "
   scores <- cbind(scores,upcells1,upcells2,dncells1,dncells2)
   
   markers1 <- scores %>%
-    filter(upcells1 > frac_cut_up & dncells2 >= (1 - frac_cut_dn)) %>%
-    arrange(-upcells1)
+    dplyr::filter(upcells1 > frac_cut_up & dncells2 >= (1 - frac_cut_dn)) %>%
+    dplyr::arrange(-upcells1)
   
   markers2 <- scores %>%
-    filter(upcells2 > frac_cut_up & dncells1 >= (1 - frac_cut_dn)) %>%
-    arrange(upcells2)
+    dplyr::filter(upcells2 > frac_cut_up & dncells1 >= (1 - frac_cut_dn)) %>%
+    dplyr::arrange(upcells2)
   
   if(is.null(top)) {
     results <- rbind(markers1,markers2)

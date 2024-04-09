@@ -318,11 +318,10 @@ build_header_labels <- function(data,
 #' @return a data.frame with segment values for ggplot2's geom_seg. columns: "x","xend","y","yend".
 hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
   
-  require(ggdendro)
-  require(dplyr)
+  library(dplyr)
   
   hc.dendro <- as.dendrogram(hc)
-  hc.segs <- as.data.frame(segment(dendro_data(hc.dendro)))
+  hc.segs <- as.data.frame(ggdendro::segment(ggdendro::dendro_data(hc.dendro)))
   
   ymin = min(dir.lims)
   ymax = max(dir.lims)

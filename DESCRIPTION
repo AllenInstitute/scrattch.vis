@@ -15,6 +15,7 @@ Depends:
     dplyr (>= 0.4.3),
     ggplot2 (>= 1.0.1),
     ggbeeswarm (>= 0.6.0),
+    ggdendro,
     purrr
 Imports:
     dendextend (>= 1.2.0),

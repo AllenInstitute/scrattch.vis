@@ -22,7 +22,8 @@ Imports:
     dendextend (>= 1.2.0),
     grid (>= 3.2.2),
     lazyeval (>= 0.2.0),
-    magrittr
+    magrittr (>= 2.0.3),
+    rlang (>= 1.1.3)
 RoxygenNote: 7.3.1
 Suggests: knitr,
     rmarkdown,

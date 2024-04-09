@@ -80,8 +80,9 @@ sample_bar_plot <- function(data,
   n_stats <- get_n_stats(plot_data, group_cols, genes)
   
   # Calculate segments for cluster sepration lines
+  parsed_id <- rlang::parse_expr(group_cols$id)
   segment_lines <- plot_data %>%
-    dplyr::group_by_(group_cols$id) %>%
+    dplyr::group_by(!!parsed_id) %>%
     dplyr::summarise(x = max(xpos) )
   
   # The background of the plot is a rectangular object.
@@ -92,32 +93,32 @@ sample_bar_plot <- function(data,
                                 fill = bg_color)
   
   ### Plot setup
-  p <- ggplot() +
-    scale_fill_identity() +
-    scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0), 
-                       breaks = 1:n_stats$genes + 0.45, 
-                       labels = genes) +
-    theme_classic(base_size = font_size) +
-    theme(axis.text = element_text(size=rel(1), face = "italic"),
-          axis.ticks = element_blank(),
-          axis.line = element_blank(),
-          axis.title = element_blank(),
-          axis.text.x = element_blank()) +
-    geom_rect(data = background_data,
-              aes(xmin = xmin,
-                  xmax = xmax,
-                  ymin = ymin,
-                  ymax = ymax,
-                  fill = fill)) +
-    geom_segment(data = segment_lines,
-                 aes(x = x, 
-                     xend = x, 
-                     y = 1, 
-                     yend = n_stats$genes + 1),
-                 size = 0.2, 
-                 color = "gray60", 
-                 linetype = "dashed")
+  p <-ggplot2::ggplot() +
+    ggplot2::scale_fill_identity() +
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::scale_y_continuous(expand = c(0, 0), 
+                                breaks = 1:n_stats$genes + 0.45, 
+                                labels = genes) +
+    ggplot2::theme_classic(base_size = font_size) +
+    theme(axis.text = ggplot2::element_text(size=ggplot2::rel(1), face = "italic"),
+          axis.ticks = ggplot2::element_blank(),
+          axis.line = ggplot2::element_blank(),
+          axis.title = ggplot2::element_blank(),
+          axis.text.x = ggplot2::element_blank()) +
+    ggplot2::geom_rect(data = background_data,
+                       ggplot2::aes(xmin = xmin,
+                                    xmax = xmax,
+                                    ymin = ymin,
+                                    ymax = ymax,
+                                    fill = fill)) +
+    ggplot2::geom_segment(data = segment_lines,
+                          ggplot2::aes(x = x, 
+                                       xend = x, 
+                                       y = 1, 
+                                       yend = n_stats$genes + 1),
+                          size = 0.2, 
+                          color = "gray60", 
+                          linetype = "dashed")
   
   ### plot the bars for each gene
   for(i in 1:n_stats$genes) {
@@ -126,14 +127,18 @@ sample_bar_plot <- function(data,
     
     plot_data[[gene]] <- scale_values_plot_space(plot_data[[gene]],
                                                  min_ps = i)
+    
     # plot the rectangles for the barplots
+    parsed_i <- rlang::parse_expr(i)
+    parsed_gene <- rlang::parse_expr(gene)
+    parsed_color <- rlang::parse_expr(group_cols$color)
     p <- p + 
-      geom_rect(data = plot_data,
-                aes_string(xmin = "xpos - 1",
-                           xmax = "xpos",
-                           ymin = i,
-                           ymax = gene,
-                           fill = group_cols$color))
+      ggplot2::geom_rect(data = plot_data,
+                         ggplot2::aes(xmin = xpos - 1,
+                                      xmax = xpos,
+                                      ymin = !!parsed_i,
+                                      ymax = !!parsed_gene,
+                                      fill = !!parsed_color))
     
   }
   
@@ -223,9 +228,6 @@ sample_heatmap_plot <- function(data,
                                 max_width = 10,
                                 return_type = "plot") {
   
-  library(dplyr)
-  library(ggplot2)
-  
   genes <- rev(genes)
   
   group_cols <- group_columns(grouping)
@@ -270,18 +272,18 @@ sample_heatmap_plot <- function(data,
   n_stats <- get_n_stats(plot_data, group_cols, genes)
   
   # Plot setup
-  p <- ggplot(plot_data) +
-    scale_fill_identity() +
-    theme_classic(base_size = font_size) +
-    theme(axis.text = element_text(size=rel(1), face = "italic"),
-          axis.ticks = element_blank(),
-          axis.line = element_blank(),
-          axis.title = element_blank(),
-          axis.text.x = element_blank()) +
-    scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0), 
-                       breaks = 1:n_stats$genes + 0.45, 
-                       labels = genes)
+  p <-ggplot2::ggplot(plot_data) +
+    ggplot2::scale_fill_identity() +
+    ggplot2::theme_classic(base_size = font_size) +
+    theme(axis.text = ggplot2::element_text(size=ggplot2::rel(1), face = "italic"),
+          axis.ticks = ggplot2::element_blank(),
+          axis.line = ggplot2::element_blank(),
+          axis.title = ggplot2::element_blank(),
+          axis.text.x = ggplot2::element_blank()) +
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::scale_y_continuous(expand = c(0, 0), 
+                                breaks = 1:n_stats$genes + 0.45, 
+                                labels = genes)
   
   # plot the rectangles for each gene
   for(i in seq_along(genes)) {
@@ -295,12 +297,12 @@ sample_heatmap_plot <- function(data,
                             fill = plot_data[[genes[i]]])
     
     # plot the rectangles for the heatmap
-    p <- p + geom_rect(data = rect_data,
-                       aes(xmin = xmin, 
-                           xmax = xmax, 
-                           ymin = ymin, 
-                           ymax = ymax + 1, 
-                           fill = fill))
+    p <- p + ggplot2::geom_rect(data = rect_data,
+                                ggplot2::aes(xmin = xmin, 
+                                             xmax = xmax, 
+                                             ymin = ymin, 
+                                             ymax = ymax + 1, 
+                                             fill = fill))
     
   }
   
@@ -430,25 +432,25 @@ sample_fire_plot <- function(data,
   
   # Build the cell type label rectangles from plot_components.R
   header_labels <- build_header_labels(data = plot_data, 
-                                      grouping = grouping,
-                                      group_order = group_order,
-                                      ymin = n_stats$genes + 1, 
-                                      label_height = label_height, 
-                                      label_type = "simple")
+                                       grouping = grouping,
+                                       group_order = group_order,
+                                       ymin = n_stats$genes + 1, 
+                                       label_height = label_height, 
+                                       label_type = "simple")
   
   # Plot setup
-  p <- ggplot(data) +
-    scale_fill_identity() +
-    theme_classic(base_size = font_size) +
-    theme(axis.text = element_text(size = rel(1), face = "italic"),
-          axis.ticks = element_blank(),
-          axis.line = element_blank(),
-          axis.title = element_blank(),
-          axis.text.x = element_blank()) +
-    scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0), 
-                       breaks = 1:n_stats$genes + 0.45, 
-                       labels = genes)
+  p <-ggplot2::ggplot(data) +
+    ggplot2::scale_fill_identity() +
+    ggplot2::theme_classic(base_size = font_size) +
+    theme(axis.text = ggplot2::element_text(size = ggplot2::rel(1), face = "italic"),
+          axis.ticks = ggplot2::element_blank(),
+          axis.line = ggplot2::element_blank(),
+          axis.title = ggplot2::element_blank(),
+          axis.text.x = ggplot2::element_blank()) +
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::scale_y_continuous(expand = c(0, 0), 
+                                breaks = 1:n_stats$genes + 0.45, 
+                                labels = genes)
   
   # plot the rectangles for each gene
   for (i in seq_along(genes)) {
@@ -466,36 +468,38 @@ sample_fire_plot <- function(data,
     names(gene_colors)[names(gene_colors) == gene] <- "plot_fill"
     
     if (top_values == "highest") {
+      parsed_gene <- rlang::parse_expr(gene)
       rect_data <- plot_data %>%
         dplyr::left_join(gene_colors, by = "sample_name") %>%
-        dplyr::arrange_(gene) %>%
+        dplyr::arrange(!!parsed_gene) %>%
         dplyr::group_by(xpos) %>%
         dplyr::mutate(group_n = dplyr::n()) %>%
         dplyr::mutate(xmin = xpos - 0.5,
-               xmax = xpos + 0.5,
-               ymin = seq(i, i + 1, length.out = group_n[1] + 1)[-(group_n[1] + 1)],
-               ymax = seq(i, i + 1, length.out = group_n[1] + 1)[-1])
+                      xmax = xpos + 0.5,
+                      ymin = seq(i, i + 1, length.out = group_n[1] + 1)[-(group_n[1] + 1)],
+                      ymax = seq(i, i + 1, length.out = group_n[1] + 1)[-1])
     } else {
       arr_gene <- paste0("-",gene)
+      parsed_arr_gene <- rlang::parse_expr(arr_gene)
       rect_data <- plot_data %>%
         dplyr::left_join(gene_colors, by = "sample_name") %>%
-        dplyr::arrange_(arr_gene) %>%
+        dplyr::arrange(!!parsed_arr_gene) %>%
         dplyr::group_by(xpos) %>%
         dplyr::mutate(group_n = dplyr::n()) %>%
         dplyr::mutate(xmin = xpos - 0.5,
-               xmax = xpos + 0.5,
-               ymin = seq(i, i + 1, length.out = group_n[1] + 1)[-(group_n[1] + 1)],
-               ymax = seq(i, i + 1, length.out = group_n[1] + 1)[-1])
+                      xmax = xpos + 0.5,
+                      ymin = seq(i, i + 1, length.out = group_n[1] + 1)[-(group_n[1] + 1)],
+                      ymax = seq(i, i + 1, length.out = group_n[1] + 1)[-1])
     }
-
-             
+    
+    
     # plot the rectangles for the heatmap
-    p <- p + geom_rect(data = rect_data,
-                       aes(xmin = xmin, 
-                           xmax = xmax, 
-                           ymin = ymin, 
-                           ymax = ymax, 
-                           fill = plot_fill))
+    p <- p + ggplot2::geom_rect(data = rect_data,
+                                ggplot2::aes(xmin = xmin, 
+                                             xmax = xmax, 
+                                             ymin = ymin, 
+                                             ymax = ymax, 
+                                             fill = plot_fill))
     
   }
   
@@ -573,7 +577,7 @@ group_violin_plot <- function(data,
                               rotate_counts = FALSE,
                               max_width = 10,
                               return_type = "plot") {
-
+  
   # Reverse so that genes go from top to bottom
   # instead of bottom to top.
   genes <- rev(genes)
@@ -595,7 +599,7 @@ group_violin_plot <- function(data,
   
   # Get maximum values for each gene before rescaling to plot space.
   max_vals_unscaled <- max_gene_vals(gene_data, genes)
-
+  
   # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
   plot_data <- dplyr::left_join(anno, gene_data, by = "sample_name")
   
@@ -608,7 +612,7 @@ group_violin_plot <- function(data,
   }
   
   ## Arrange
-
+  
   # Add x-positions for each group
   plot_data <- add_group_xpos(plot_data,
                               group_cols = group_cols,
@@ -630,11 +634,11 @@ group_violin_plot <- function(data,
   }
   
   header_labels <- build_header_labels(data = plot_data, 
-                                      grouping = grouping,
-                                      group_order = group_order,
-                                      ymin = n_stats$genes + 1, 
-                                      label_height = label_height, 
-                                      label_type = "simple")
+                                       grouping = grouping,
+                                       group_order = group_order,
+                                       ymin = n_stats$genes + 1, 
+                                       label_height = label_height, 
+                                       label_type = "simple")
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
@@ -663,10 +667,10 @@ group_violin_plot <- function(data,
   # plot the violins for each gene
   for (i in 1:length(genes)) {
     gene <- genes[[i]]
-
+    
     # Check for lack of variance. If no variance, we only plot the median value
     # instead of a violin.
-
+    
     if(sum(plot_data[[gene]] == 0) == nrow(plot_data)) {
       has_variance <- FALSE
     } else if(var(plot_data[[gene]]) == 0) {
@@ -685,11 +689,11 @@ group_violin_plot <- function(data,
                              adjust = 2,
                              size = 0.1)
     }
-    
+    parsed_gene <- rlang::parse_expr(genes[i])
     p <- p +
       ggplot2::stat_summary(data = plot_data,
-                            ggplot2::aes_string(x = "xpos", 
-                                                y = genes[i]),
+                            ggplot2::aes(x = xpos, 
+                                         y = !!parsed_gene),
                             fun.y = "median", 
                             fun.ymin = "median", 
                             fun.ymax = "median", 
@@ -726,7 +730,7 @@ group_violin_plot <- function(data,
                            angle = 90,
                            hjust = 1, vjust = 0.35, 
                            size = pt2mm(font_size))
-
+      
     } else {
       p <- p + 
         ggplot2::geom_text(data = group_data,
@@ -834,48 +838,50 @@ group_quasirandom_plot <- function(data,
   }
   
   header_labels <- build_header_labels(data = plot_data, 
-                                      grouping = grouping,
-                                      group_order = group_order,
-                                      ymin = n_stats$genes + 1, 
-                                      label_height = label_height, 
-                                      label_type = "simple")
+                                       grouping = grouping,
+                                       group_order = group_order,
+                                       ymin = n_stats$genes + 1, 
+                                       label_height = label_height, 
+                                       label_type = "simple")
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
   group_data <- plot_data %>%
-    group_by(xpos) %>%
-    summarise(group_n = n()) %>%
-    mutate(label_y = n_stats$genes + label_y_size * 0.05,
-           group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
+    dplyr::group_by(xpos) %>%
+    dplyr::summarise(group_n = dplyr::n()) %>%
+    dplyr::mutate(label_y = n_stats$genes + label_y_size * 0.05,
+                  group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
   
   # Plot setup
-  p <- ggplot() +
-    scale_color_identity() +
-    scale_fill_identity() +
-    scale_y_continuous("", 
-                       breaks = 1:length(genes) + 0.45, 
-                       labels = genes, 
-                       expand = c(0, 0)) +
-    scale_x_continuous("", 
-                       expand = c(0, 0)) +
-    theme_classic(font_size) +
-    theme(axis.text = element_text(size = rel(1), face = "italic"),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
+  p <-ggplot2::ggplot() +
+    ggplot2::scale_color_identity() +
+    ggplot2::scale_fill_identity() +
+    ggplot2::scale_y_continuous("", 
+                                breaks = 1:length(genes) + 0.45, 
+                                labels = genes, 
+                                expand = c(0, 0)) +
+    ggplot2::scale_x_continuous("", 
+                                expand = c(0, 0)) +
+    ggplot2::theme_classic(font_size) +
+    theme(axis.text = ggplot2::element_text(size = ggplot2::rel(1), face = "italic"),
+          axis.text.x = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank(),
           legend.position = "none") +
-    geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
+    ggplot2::geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
   
   # plot the swarms for each gene
   for (i in 1:n_stats$genes) {
     gene <- genes[[i]]
     if (var(plot_data[[gene]]) != 0) {
+      parsed_gene <- rlang::parse_expr(genes[i])
+      parsed_color <- rlang::parse_expr(group_cols$color)
       p <- p + 
         ggbeeswarm::geom_quasirandom(data = plot_data,
-                         aes_string(x = "xpos", 
-                                    y = genes[i], 
-                                    color = group_cols$color),
-                         size = 0.2,
-                         groupOnX = TRUE)
+                                     ggplot2::aes(x = xpos, 
+                                                  y = !!parsed_gene, 
+                                                  color = !!parsed_color),
+                                     size = 0.2,
+                                     groupOnX = TRUE)
     }
     
   }
@@ -901,19 +907,19 @@ group_quasirandom_plot <- function(data,
   # Cluster counts
   if (show_counts) {
     if (rotate_counts) {
-      p <- p + geom_text(data = group_data,
-                         aes(x = xpos,
-                             y = group_n_y, 
-                             label = group_n),
-                         angle = 90,
-                         hjust = 1, vjust = 0.35, 
-                         size = pt2mm(font_size))
+      p <- p + ggplot2::geom_text(data = group_data,
+                                  ggplot2::aes(x = xpos,
+                                               y = group_n_y, 
+                                               label = group_n),
+                                  angle = 90,
+                                  hjust = 1, vjust = 0.35, 
+                                  size = pt2mm(font_size))
     } else {
-      p <- p + geom_text(data = group_data,
-                         aes(x = xpos,
-                             y = group_n_y, 
-                             label = group_n),
-                         size = pt2mm(font_size))
+      p <- p + ggplot2::geom_text(data = group_data,
+                                  ggplot2::aes(x = xpos,
+                                               y = group_n_y, 
+                                               label = group_n),
+                                  size = pt2mm(font_size))
     }
   }
   
@@ -1012,48 +1018,50 @@ group_box_plot <- function(data,
   }
   
   header_labels <- build_header_labels(data = plot_data, 
-                                      grouping = grouping,
-                                      group_order = group_order,
-                                      ymin = n_stats$genes + 1, 
-                                      label_height = label_height, 
-                                      label_type = "simple")
+                                       grouping = grouping,
+                                       group_order = group_order,
+                                       ymin = n_stats$genes + 1, 
+                                       label_height = label_height, 
+                                       label_type = "simple")
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
   group_data <- plot_data %>%
-    group_by(xpos) %>%
-    summarise(group_n = n()) %>%
-    mutate(label_y = n_stats$genes + label_y_size * 0.05,
-           group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
+    dplyr::group_by(xpos) %>%
+    dplyr::summarise(group_n = n()) %>%
+    dplyr::mutate(label_y = n_stats$genes + label_y_size * 0.05,
+                  group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
   
   # Plot setup
-  p <- ggplot() +
-    scale_fill_identity() +
-    scale_y_continuous("", 
-                       breaks = 1:length(genes) + 0.45, 
-                       labels = genes, 
-                       expand = c(0, 0)) +
-    scale_x_continuous("", 
-                       expand = c(0, 0)) +
-    theme_classic(font_size) +
-    theme(axis.text = element_text(size = rel(1), face = "italic"),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
+  p <-ggplot2::ggplot() +
+    ggplot2::scale_fill_identity() +
+    ggplot2::scale_y_continuous("", 
+                                breaks = 1:length(genes) + 0.45, 
+                                labels = genes, 
+                                expand = c(0, 0)) +
+    ggplot2::scale_x_continuous("", 
+                                expand = c(0, 0)) +
+    ggplot2::theme_classic(font_size) +
+    theme(axis.text = ggplot2::element_text(size = ggplot2::rel(1), face = "italic"),
+          axis.text.x = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank(),
           legend.position = "none") +
-    geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
+    ggplot2::geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
   
   # plot the boxplots for each gene
   for (i in 1:length(genes)) {
     gene <- genes[[i]]
     if (var(plot_data[[gene]]) != 0) {
+      parsed_gene <- rlang::parse_expr(genes[i])
+      parsed_color <- rlang::parse_expr(group_cols$color)
       p <- p + 
-        geom_boxplot(data = plot_data,
-                     aes_string(x = "xpos", 
-                                y = genes[i], 
-                                fill = group_cols$color),
-                     width = 0.8,
-                     outlier.size = 0.2,
-                     size = 0.1)
+        ggplot2::geom_boxplot(data = plot_data,
+                              ggplot2::aes(x = "xpos", 
+                                           y = !!parsed_gene, 
+                                           fill = !!parsed_color),
+                              width = 0.8,
+                              outlier.size = 0.2,
+                              size = 0.1)
     }
     
   }
@@ -1079,19 +1087,19 @@ group_box_plot <- function(data,
   # Cluster counts
   if (show_counts) {
     if (rotate_counts) {
-      p <- p + geom_text(data = group_data,
-                         aes(x = xpos,
-                             y = group_n_y, 
-                             label = group_n),
-                         angle = 90,
-                         hjust = 1, vjust = 0.35, 
-                         size = pt2mm(font_size))
+      p <- p + ggplot2::geom_text(data = group_data,
+                                  ggplot2::aes(x = xpos,
+                                               y = group_n_y, 
+                                               label = group_n),
+                                  angle = 90,
+                                  hjust = 1, vjust = 0.35, 
+                                  size = pt2mm(font_size))
     } else {
-      p <- p + geom_text(data = group_data,
-                         aes(x = xpos,
-                             y = group_n_y, 
-                             label = group_n),
-                         size = pt2mm(font_size))
+      p <- p + ggplot2::geom_text(data = group_data,
+                                  ggplot2::aes(x = xpos,
+                                               y = group_n_y, 
+                                               label = group_n),
+                                  size = pt2mm(font_size))
     }
   }
   
@@ -1203,8 +1211,9 @@ group_heatmap_plot <- function(data,
     dplyr::select(dplyr::one_of(group_cols$id, group_cols$label, group_cols$color)) %>%
     unique()
   
+  parsed_id <- rlang::parse_expr(group_cols$id)
   group_counts <- anno %>%
-    dplyr::group_by_(group_cols$id) %>%
+    dplyr::group_by(!!parsed_id) %>%
     dplyr::summarise(group_n = n())
   
   plot_data <- dplyr::left_join(plot_anno, gene_stats, by = group_cols$label)
@@ -1220,46 +1229,48 @@ group_heatmap_plot <- function(data,
   n_stats <- get_n_stats(plot_data, group_cols, genes)
   
   header_labels <- build_header_labels(data = plot_data, 
-                                      grouping = grouping,
-                                      group_order = group_order,
-                                      ymin = n_stats$genes + 1, 
-                                      label_height = label_height, 
-                                      label_type = "simple")
+                                       grouping = grouping,
+                                       group_order = group_order,
+                                       ymin = n_stats$genes + 1, 
+                                       label_height = label_height, 
+                                       label_type = "simple")
   
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
   group_data <- plot_data %>%
-    select(xpos, group_n) %>%
-    mutate(label_y = n_stats$genes + label_y_size * 0.05,
-           group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
+    dplyr::select(xpos, group_n) %>%
+    dplyr::mutate(label_y = n_stats$genes + label_y_size * 0.05,
+                  group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
   
   # Plot setup
-  p <- ggplot() +
-    scale_fill_identity() +
-    scale_y_continuous("", 
-                       breaks = 1:length(genes) + 0.45, 
-                       labels = genes, 
-                       expand = c(0, 0)) +
-    scale_x_continuous("", 
-                       expand = c(0, 0)) +
-    theme_classic(font_size) +
-    theme(axis.text = element_text(size = rel(1), face = "italic"),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
+  p <-ggplot2::ggplot() +
+    ggplot2::scale_fill_identity() +
+    ggplot2::scale_y_continuous("", 
+                                breaks = 1:length(genes) + 0.45, 
+                                labels = genes, 
+                                expand = c(0, 0)) +
+    ggplot2::scale_x_continuous("", 
+                                expand = c(0, 0)) +
+    ggplot2::theme_classic(font_size) +
+    theme(axis.text = ggplot2::element_text(size = ggplot2::rel(1), face = "italic"),
+          axis.text.x = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank(),
           legend.position = "none") +
-    geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
+    ggplot2::geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
   
   # plot the heatmap for each gene
   for (i in 1:length(genes)) {
     gene <- genes[[i]]
+    parsed_gene <- rlang::parse_expr(gene)
+    parsed_y <- rlang::parse_expr(i)
     
     p <- p + 
-      geom_rect(data = plot_data,
-                aes_string(xmin = "xpos - 0.5", 
-                           xmax = "xpos + 0.5",
-                           ymin = i, 
-                           ymax = i + 1, 
-                           fill = gene))
+      ggplot2::geom_rect(data = plot_data,
+                         ggplot2::aes(xmin = xpos - 0.5, 
+                                      xmax = xpos + 0.5,
+                                      ymin = !!parsed_y, 
+                                      ymax = !!parsed_ + 1, 
+                                      fill = !!parsed_gene))
     
     
   }
@@ -1285,19 +1296,19 @@ group_heatmap_plot <- function(data,
   # Cluster counts
   if (show_counts) {
     if (rotate_counts) {
-      p <- p + geom_text(data = group_data,
-                         aes(x = xpos,
-                             y = group_n_y, 
-                             label = group_n),
-                         angle = 90,
-                         hjust = 1, vjust = 0.35, 
-                         size = pt2mm(font_size))
+      p <- p + ggplot2::geom_text(data = group_data,
+                                  ggplot2::aes(x = xpos,
+                                               y = group_n_y, 
+                                               label = group_n),
+                                  angle = 90,
+                                  hjust = 1, vjust = 0.35, 
+                                  size = pt2mm(font_size))
     } else {
-      p <- p + geom_text(data = group_data,
-                         aes(x = xpos,
-                             y = group_n_y, 
-                             label = group_n),
-                         size = pt2mm(font_size))
+      p <- p + ggplot2::geom_text(data = group_data,
+                                  ggplot2::aes(x = xpos,
+                                               y = group_n_y, 
+                                               label = group_n),
+                                  size = pt2mm(font_size))
     }
   }
   
@@ -1417,17 +1428,18 @@ group_dot_plot <- function(data,
   
   # Left-join data to anno. This will ensure that data is filtered for the cells provided in anno
   plot_anno <- anno %>%
-    select(one_of(group_cols$id, group_cols$label, group_cols$color)) %>%
+    dplyr::select(dplyr::one_of(group_cols$id, group_cols$label, group_cols$color)) %>%
     unique()
   
+  parsed_id <- rlang::parse_expr(group_cols$id)
   group_counts <- anno %>%
-    group_by_(group_cols$id) %>%
-    summarise(group_n = n())
+    dplyr::group_by(!!parsed_id) %>%
+    dplyr::summarise(group_n = dplyr::n())
   
   plot_data <- plot_anno %>%
-    left_join(gene_fill_data, by = group_cols$label) %>%
-    left_join(gene_size_stats, by = group_cols$label) %>%
-    left_join(group_counts, by = group_cols$id)
+    dplyr::left_join(gene_fill_data, by = group_cols$label) %>%
+    dplyr::left_join(gene_size_stats, by = group_cols$label) %>%
+    dplyr::left_join(group_counts, by = group_cols$id)
   
   # Add x-positions for each group
   plot_data <- add_group_xpos(plot_data,
@@ -1448,39 +1460,42 @@ group_dot_plot <- function(data,
   label_y_size <- max(header_labels$ymax) - min(header_labels$ymin)
   
   group_data <- plot_data %>%
-    select(xpos, group_n) %>%
-    mutate(label_y = n_stats$genes + label_y_size * 0.05,
-           group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
+    dplyr::select(xpos, group_n) %>%
+    dplyr::mutate(label_y = n_stats$genes + label_y_size * 0.05,
+                  group_n_y = max(header_labels$ymax) - 0.1 * label_y_size)
   
   # Plot setup
-  p <- ggplot() +
-    scale_fill_identity() +
-    scale_size_area(max_size = pt2mm(max_size)) +
-    scale_y_continuous("", 
-                       breaks = 1:length(genes) + 0.45, 
-                       labels = genes, 
-                       expand = c(0, 0)) +
-    scale_x_continuous("", 
-                       expand = c(0, 0)) +
-    theme_classic(font_size) +
-    theme(axis.text = element_text(size = rel(1), face = "italic"),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
+  p <-ggplot2::ggplot() +
+    ggplot2::scale_fill_identity() +
+    ggplot2::scale_size_area(max_size = pt2mm(max_size)) +
+    ggplot2::scale_y_continuous("", 
+                                breaks = 1:length(genes) + 0.45, 
+                                labels = genes, 
+                                expand = c(0, 0)) +
+    ggplot2::scale_x_continuous("", 
+                                expand = c(0, 0)) +
+    ggplot2::theme_classic(font_size) +
+    theme(axis.text = ggplot2::element_text(size = ggplot2::rel(1), face = "italic"),
+          axis.text.x = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank(),
           legend.position = "none") +
-    geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
+    ggplot2::geom_hline(aes(yintercept = 1:(n_stats$genes)), size = 0.2)
   
   # plot the dots for each gene
   for(i in 1:length(genes)) {
     gene <- genes[[i]]
     gene_fill <- paste0(gene, "_fill")
+    parsed_gene_fill <- rlang::parse(gene_fill)
     gene_size <- paste0(gene, "_size")
+    parsed_gene_size <- rlang::parse(gene_size)
+    parsed_y <- rlange::parse(i)
     p <- p + 
-      geom_point(data = plot_data,
-                 aes_string(x = "xpos",
-                            y = i + 0.5, 
-                            fill = gene_fill,
-                            size = gene_size),
-                 pch = 21)
+      ggplot2::geom_point(data = plot_data,
+                          ggplot2::aes(x = xpos,
+                                       y = !!parsed_y + 0.5, 
+                                       fill = !!parsed_gene_fill,
+                                       size = !!parsed_gene_size),
+                          pch = 21)
     
     
   }
@@ -1506,19 +1521,19 @@ group_dot_plot <- function(data,
   # Cluster counts
   if (show_counts) {
     if (rotate_counts) {
-      p <- p + geom_text(data = group_data,
-                         aes(x = xpos,
-                             y = group_n_y, 
-                             label = group_n),
-                         angle = 90,
-                         hjust = 1, vjust = 0.35, 
-                         size = pt2mm(font_size))
+      p <- p + ggplot2::geom_text(data = group_data,
+                                  ggplot2::aes(x = xpos,
+                                               y = group_n_y, 
+                                               label = group_n),
+                                  angle = 90,
+                                  hjust = 1, vjust = 0.35, 
+                                  size = pt2mm(font_size))
     } else {
-      p <- p + geom_text(data = group_data,
-                         aes(x = xpos,
-                             y = group_n_y, 
-                             label = group_n),
-                         size = pt2mm(font_size))
+      p <- p + ggplot2::geom_text(data = group_data,
+                                  ggplot2::aes(x = xpos,
+                                               y = group_n_y, 
+                                               label = group_n),
+                                  size = pt2mm(font_size))
     }
   }
   
@@ -1544,7 +1559,7 @@ group_dot_plot <- function(data,
 #' 
 #' @param min_val numeric, the minimum value in the plot scale (default = 0)
 #' @param max_val numeric, the maximum value in the plot scale (default = 4)
-#' @param scale_name character, the name for the values displayed (default = "FPKM")
+#' @param ggplot2::scale_name character, the name for the values displayed (default = "FPKM")
 #' @param colorset character vector, the colors to interpolate between using colorRampPalette.
 #' 
 #' @return a ggplot2 heatmap legend plot
@@ -1553,11 +1568,9 @@ heatmap_legend_plot <- function(min_val = 0,
                                 scale_name = "FPKM", 
                                 colorset = c("darkblue","dodgerblue","gray80","orange","orangered")) {
   
-  library(ggplot2)
-  
   colors <- colorRampPalette(colorset)(1001)
   
-  ## Build geom_rect() compatible table
+  ## Build ggplot2::geom_rect() compatible table
   legend_data <- data.frame(xmin = 1:1001,
                             xmax = 1:1001 + 1,
                             ymin = 0,
@@ -1567,26 +1580,26 @@ heatmap_legend_plot <- function(min_val = 0,
   border_data <- data.frame(x = min(legend_data$xmin), 
                             xend = max(legend_data$xmax))
   
-  legend_plot <- ggplot() +
-    geom_rect(data = legend_data,
-      aes(xmin = xmin, xmax = xmax, 
-          ymin = ymin, ymax = ymax, 
-          fill = fill)) +
-    geom_segment(
+  legend_plot <-ggplot2::ggplot() +
+    ggplot2::geom_rect(data = legend_data,
+                       ggplot2::aes(xmin = xmin, xmax = xmax, 
+                                    ymin = ymin, ymax = ymax, 
+                                    fill = fill)) +
+    ggplot2::geom_segment(
       data = border_data,
-      aes(x = x, xend = xend, 
-          y = 0, yend = 0)) +
-    scale_fill_identity() +
-    scale_y_continuous(expand = c(0,0)) +
-    scale_x_continuous(scale_name, 
-                       breaks = c(0, 250, 500, 750, 1000),
-                       labels = round(seq(min_val, max_val, by = (max_val - min_val) / 4), 2)) +
-    theme_classic() +
-    theme(axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.line.y = element_blank(),
-          axis.title.y = element_blank(),
-          axis.line.x = element_blank())
+      ggplot2::aes(x = x, xend = xend, 
+                   y = 0, yend = 0)) +
+    ggplot2::scale_fill_identity() +
+    ggplot2::scale_y_continuous(expand = c(0,0)) +
+    ggplot2::scale_x_continuous(scale_name, 
+                                breaks = c(0, 250, 500, 750, 1000),
+                                labels = round(seq(min_val, max_val, by = (max_val - min_val) / 4), 2)) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(axis.text.y = ggplot2::element_blank(),
+                   axis.ticks.y = ggplot2::element_blank(),
+                   axis.line.y = ggplot2::element_blank(),
+                   axis.title.y = ggplot2::element_blank(),
+                   axis.line.x = ggplot2::element_blank())
   
   return(legend_plot)
   
@@ -1596,8 +1609,8 @@ heatmap_legend_plot <- function(min_val = 0,
 #' 
 #' @param min_val numeric, the minimum value in the plot scale (default = 0)
 #' @param max_val numeric, the maximum value in the plot scale (default = 1)
-#' @param max_size numeric, the max size of the point scale (default = 6, default for scale_size_area() )
-#' @param scale_name character, the name for the values displayed (default = "Fraction of cells")
+#' @param max_size numeric, the max size of the point scale (default = 6, default for ggplot2::scale_size_area() )
+#' @param ggplot2::scale_name character, the name for the values displayed (default = "Fraction of cells")
 #' @param n_sizes numeric, the number of points in the scale from min_val to max_val, inclusive (default = 6)
 #' 
 #' @return a ggplot2 point size legend plot
@@ -1611,24 +1624,24 @@ point_size_legend_plot <- function(min_val = 0,
                      y = 1,
                      vals = seq(min_val, max_val, length.out = n_sizes))
   
-  legend_plot <- ggplot() +
-    geom_point(data = data,
-               aes(x = x,
-                   y = y,
-                   size = vals),
-               pch = 21,
-               fill = NA) +
-    scale_size_area(max_size = max_size) +
-    scale_x_continuous(scale_name,
-                       breaks = data$x,
-                       labels = data$vals) +
-    scale_y_continuous("") +
-    theme_classic() +
-    theme(legend.position = "none",
-          axis.text.y = element_blank(),
-          panel.border = element_blank(),
-          axis.line = element_blank(),
-          axis.ticks = element_blank())
+  legend_plot <-ggplot2::ggplot() +
+    ggplot2::geom_point(data = data,
+                        ggplot2::aes(x = x,
+                                     y = y,
+                                     size = vals),
+                        pch = 21,
+                        fill = NA) +
+    ggplot2::scale_size_area(max_size = max_size) +
+    ggplot2::scale_x_continuous(scale_name,
+                                breaks = data$x,
+                                labels = data$vals) +
+    ggplot2::scale_y_continuous("") +
+    ggplot2::theme_classic() +
+    ggplot2::theme(legend.position = "none",
+                   axis.text.y = ggplot2::element_blank(),
+                   panel.border = ggplot2::element_blank(),
+                   axis.line = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank())
   
   return(legend_plot)
 }

@@ -1564,12 +1564,18 @@ heatmap_legend_plot <- function(min_val = 0,
                             ymax = 1,
                             fill = colors)
   
-  legend_plot <- ggplot(legend_data) +
-    geom_rect(aes(xmin = xmin, xmax = xmax, 
-                  ymin = ymin, ymax = ymax, 
-                  fill = fill)) +
-    geom_segment(aes(x = min(xmin), xend = max(xmax), 
-                     y = 0, yend = 0)) +
+  border_data <- data.frame(x = min(legend_data$xmin), 
+                            xend = max(legend_data$xmax))
+  
+  legend_plot <- ggplot() +
+    geom_rect(data = legend_data,
+      aes(xmin = xmin, xmax = xmax, 
+          ymin = ymin, ymax = ymax, 
+          fill = fill)) +
+    geom_segment(
+      data = border_data,
+      aes(x = x, xend = xend, 
+          y = 0, yend = 0)) +
     scale_fill_identity() +
     scale_y_continuous(expand = c(0,0)) +
     scale_x_continuous(scale_name, 

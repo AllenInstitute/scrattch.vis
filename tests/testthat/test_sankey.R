@@ -28,15 +28,14 @@ test_that("sigline() Generates x-y coordinates for a sigmoidal line", {
 
 
 test_that("sigribbon() Expands a sigmoidal line to a ribbon by adding ymin", {
-  expect_warning(sigribbon(sigline(), height = NA))
+  expect_error(sigribbon(sigline(), height = NA))
   expect_error(sigribbon(sigline(), height = "NA"))
   expect_error(sigribbon())
   expect_length(sigribbon(sigline(), height = 5, from = "top"), 3)
   expect_length(sigribbon(sigline(), height = 5, from = "bot"), 3)
   expect_length(sigribbon(sigline(), height = 5, from = "mid"), 3)
-  expect_warning(sigribbon(sigline(), height = 1 / 0, from = "top"))
-  expect_warning(sigribbon(sigline(), height = 1 / 0, from = "top"))
-  
+  expect_error(sigribbon(sigline(), height = 1 / 0, from = "top"))
+
 })
 
 

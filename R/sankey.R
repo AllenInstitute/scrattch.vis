@@ -61,10 +61,10 @@ sigribbon <- function(sigline, height, from = "top") {
   library(dplyr)
   
   if (!is.numeric(height)) 
-    warning("Your height input should be numeric.")
+    stop("Your height input should be numeric.")
   
   if (height == Inf | is.na(height))
-    warning("Your height input is NA or infinite.")
+    stop("Your height input is NA or infinite.")
     
   if (from == "top") {
     ribbon <- sigline %>%

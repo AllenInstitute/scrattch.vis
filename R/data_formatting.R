@@ -145,8 +145,6 @@ data_df_to_colors <- function(df,
                               min_val = 0,
                               max_val = NULL) {
   
-  library(purrr)
-  
   if (is.null(value_cols)) {
     value_cols <- names(df)[-1]
   }
@@ -161,7 +159,7 @@ data_df_to_colors <- function(df,
     max_val <- max(unlist(df[, value_cols]), na.rm = TRUE)
   }
   
-  df[,value_cols] <- map(value_cols, 
+  df[,value_cols] <- purrr::map(value_cols, 
                          function(x) {
                            vals <- unlist(df[[x]])
                            
@@ -219,11 +217,9 @@ build_vec_pos <- function(vec,
 #' Currently only compatible with data from feather_to_list()
 get_list_data <- function(data_list, genes, group_by, group_ids) {
   
-  library(dplyr)
-  
   # Read annotations and convert factors
   anno <- data_list$anno %>%
-    mutate_if(is.factor, as.character)
+    dplyr::mutate_if(is.factor, as.character)
   
   # If an _id column was a factor, it's now a character. Convert to numeric for sorting.
   id_cols <- names(anno)[grepl("_id$", names(anno)) & names(anno) != "sample_id"]
@@ -249,23 +245,24 @@ get_list_data <- function(data_list, genes, group_by, group_ids) {
   genes <- gsub("-",".",genes)
   
   # rename the _id, _label, and _color for the group_by values for use in plotting
+  new_names <- c(plot_id = paste0(group_by, "_id"),
+                 plot_label = paste0(group_by, "_label"),
+                 plot_color = paste0(group_by, "_color"))
   all_anno <- anno %>%
-    rename_("plot_id" = paste0(group_by,"_id"),
-            "plot_label" = paste0(group_by,"_label"),
-            "plot_color" = paste0(group_by,"_color"))
+    dplyr::rename(all_of(new_names))
   
   # use the group_ids to retain the order provided by the group_ids argument
   cluster_order <- data.frame(group_ids = group_ids) %>%
-    mutate(cluster_x = 1:n())
+    dplyr::mutate(cluster_x = 1:n())
   
   # Filter and order the rows
-  data <- left_join(all_anno, gene.data, by = "sample_id") %>%
-    filter(plot_id %in% group_ids) %>%
-    left_join(cluster_order, by = c("plot_id" = "group_ids")) %>%
-    arrange(cluster_x) %>%
-    mutate(xpos = 1:n()) %>%
-    select(-plot_id) %>%
-    rename_("plot_id" = "cluster_x")
+  data <- dplyr::left_join(all_anno, gene.data, by = "sample_id") %>%
+    dplyr::filter(plot_id %in% group_ids) %>%
+    dplyr::left_join(cluster_order, by = c("plot_id" = "group_ids")) %>%
+    dplyr::arrange(cluster_x) %>%
+    dplyr::mutate(xpos = 1:n()) %>%
+    dplyr::select(-plot_id) %>%
+    dplyr::rename(plot_id = cluster_x)
   
   return(data)
 }

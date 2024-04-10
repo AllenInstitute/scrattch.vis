@@ -681,24 +681,26 @@ group_violin_plot <- function(data,
       has_variance <- TRUE
     }
     
+    parsed_gene <- rlang::parse_expr(genes[i])
+    parsed_color <- rlang::parse_expr(group_cols$color)
+    
     if(has_variance) {
       p <- p + 
         ggplot2::geom_violin(data = plot_data,
-                             ggplot2::aes_string(x = "xpos", 
-                                                 y = genes[i], 
-                                                 fill = group_cols$color),
+                             ggplot2::aes(x = xpos, 
+                                          y = !!parsed_gene, 
+                                          fill = !!parsed_color),
                              scale = "width",
                              adjust = 2,
-                             size = 0.1)
+                             linewidth = 0.1)
     }
-    parsed_gene <- rlang::parse_expr(genes[i])
     p <- p +
       ggplot2::stat_summary(data = plot_data,
                             ggplot2::aes(x = xpos, 
                                          y = !!parsed_gene),
-                            fun.y = "median", 
-                            fun.ymin = "median", 
-                            fun.ymax = "median", 
+                            fun = "median", 
+                            fun.min = "median", 
+                            fun.max = "median", 
                             geom = "point", 
                             size = 0.7)
   }

@@ -4,8 +4,14 @@
 \alias{build_header_labels}
 \title{Build colorful, rectangular labels for plot headers in plot space}
 \usage{
-build_header_labels(data, grouping, group_order = NULL, ymin,
-  label_height = 25, label_type = "simple")
+build_header_labels(
+  data,
+  grouping,
+  group_order = NULL,
+  ymin,
+  label_height = 25,
+  label_type = "simple"
+)
 }
 \arguments{
 \item{data}{A data.frame containing joined annotations and expression data}

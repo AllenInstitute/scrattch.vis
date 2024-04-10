@@ -4,8 +4,14 @@
 \alias{filter_gene_data}
 \title{Filter gene data based on annotations, genes, and groups supplied with group_order.}
 \usage{
-filter_gene_data(data, genes, anno, group_cols, group_order = NULL,
-  sample_key_column = "sample_name")
+filter_gene_data(
+  data,
+  genes,
+  anno,
+  group_cols,
+  group_order = NULL,
+  sample_key_column = "sample_name"
+)
 }
 \arguments{
 \item{data}{a data.frame with gene expression data and a sample_name}

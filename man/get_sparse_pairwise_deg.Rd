@@ -4,10 +4,19 @@
 \alias{get_sparse_pairwise_deg}
 \title{Find sparse, differentially-expressed genes in pairwise comparisons}
 \usage{
-get_sparse_pairwise_deg(data = v1_data, anno = v1_anno,
-  group_by = "final", class1_groups = 1:23, class2_groups = 24:42,
-  data_cut_up = 0, data_cut_dn = 0, frac_cut_up = 0.95,
-  frac_cut_dn = 0.05, top = NULL, give = "genes")
+get_sparse_pairwise_deg(
+  data = v1_data,
+  anno = v1_anno,
+  group_by = "final",
+  class1_groups = 1:23,
+  class2_groups = 24:42,
+  data_cut_up = 0,
+  data_cut_dn = 0,
+  frac_cut_up = 0.95,
+  frac_cut_dn = 0.05,
+  top = NULL,
+  give = "genes"
+)
 }
 \arguments{
 \item{data}{- a data.frame containing the data to be filtered. First column must be "gene", followed by one column per sample.}

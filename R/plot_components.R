@@ -93,14 +93,15 @@ sci_label <- function(in_num,
 #'  theme_no_x() +
 #'  labs(x = NULL)
 theme_no_x <- function(base_size = 12, base_family = "") {
-  library(ggplot2)
-  ggplot2::theme_classic(base_size = base_size, base_family = base_family) %+replace%
+  ggplot2::`%+replace%`(
+    ggplot2::theme_classic(base_size = base_size, base_family = base_family),
     ggplot2::theme(plot.margin = unit(c(rep(0,4)),"line"),
-                   axis.text = element_text(size = rel(1)),
-                   axis.text.x = element_blank(),
-                   axis.ticks.x = element_blank(),
-                   axis.title.x = element_blank(),
-                   axis.ticks.margin = unit(0,"cm"))
+                   axis.text = ggplot2::element_text(size = rel(1)),
+                   axis.text.x = ggplot2::element_blank(),
+                   axis.ticks.x = ggplot2::element_blank(),
+                   axis.title.x = ggplot2::element_blank(),
+                   axis.ticks.margin = ggplot2::unit(0,"cm"))
+  )
 }
 
 #' Build polygons from plot data for fancy headers built into the plot area
@@ -126,8 +127,6 @@ build_header_polygons <- function(data,
   # "angle" will draw a polygon with the base lined up with samples, and the top
   # divided evenly for each cluster.
   # "square" will draw a rectangle with the top points matching bottom points
-  
-  library(dplyr)
   
   group_id <- paste0(grouping, "_id")
   parsed_group_id <- rlang::parse_expr(group_id)
@@ -159,39 +158,39 @@ build_header_polygons <- function(data,
                                       axis_name = "group_order")
       
       data <- data %>%
-        left_join(group_order_df, by = group_id) %>%
-        arrange(group_order) %>%
-        mutate(xpos = 1:n())
+        dplyr::left_join(group_order_df, by = group_id) %>%
+        dplyr::arrange(group_order) %>%
+        dplyr::mutate(xpos = 1:n())
       
     } else {
       # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
       
       data <- data %>%
         dplyr::arrange(!!parsed_group_id) %>%
-        mutate(xpos = 1:n())
+        dplyr::mutate(xpos = 1:n())
     }
   }
   
   poly.data <- data %>% 
-    group_by(!!parsed_group_id) %>%
-    summarise(color = .data[[group_color]][1],
-              x1 = max(xpos),
-              x2 = min(xpos) - 1) %>%
-    arrange(x1) %>%
-    mutate(x3 = (n_samples) * (1:n_groups - 1) / n_groups,
-           x4 = (n_samples) * (1:n_groups) / n_groups,
-           # ymin is the top of the plot body
-           y1 = ymin,
-           y2 = ymin,
-           # The angled portion of the label will be 10% of the total label height 
-           y3 = ymin + labheight * fraction_of_label,
-           y4 = ymin + labheight * fraction_of_label)
+    dplyr::group_by(!!parsed_group_id) %>%
+    dplyr::summarise(color = .data[[group_color]][1],
+                     x1 = max(xpos),
+                     x2 = min(xpos) - 1) %>%
+    dplyr::arrange(x1) %>%
+    dplyr::mutate(x3 = (n_samples) * (1:n_groups - 1) / n_groups,
+                  x4 = (n_samples) * (1:n_groups) / n_groups,
+                  # ymin is the top of the plot body
+                  y1 = ymin,
+                  y2 = ymin,
+                  # The angled portion of the label will be 10% of the total label height 
+                  y3 = ymin + labheight * fraction_of_label,
+                  y4 = ymin + labheight * fraction_of_label)
   
   # For a simpler square label, set the top and bottom x-positions to be the same
   if (poly_type == "square") {
     poly.data <- poly.data %>%
-      mutate(x3 = x2,
-             x4 = x1)
+      dplyr::mutate(x3 = x2,
+                    x4 = x1)
   }
   
   # Restructure the polygons for ggplot2's geom_poly().
@@ -270,21 +269,21 @@ build_header_labels <- function(data,
                                       axis_name = "xpos")
       
       data <- data %>%
-        left_join(group_order_df, by = group_id)
+        dplyr::left_join(group_order_df, by = group_id)
       
     } else {
       # Otherwise, arrange using the group_id for the group_by parameter, and use that order.
       data <- data %>%
-        arrange(!!parsed_group_id) %>%
-        mutate(xpos = 1:n())
+        dplyr::arrange(!!parsed_group_id) %>%
+        dplyr::mutate(xpos = 1:n())
     }
   }
   
   data <- data %>%
     dplyr::group_by(!!parsed_group_id, !!parsed_group_label, !!parsed_group_color) %>%
-    summarise(minx = min(xpos),
-              maxx = max(xpos)) %>%
-    arrange(minx)
+    dplyr::summarise(minx = min(xpos),
+                     maxx = max(xpos)) %>%
+    dplyr::arrange(minx)
   
   if (label_type == "simple") {
     xlab.rect <- data.frame(xmin = data$minx - 0.5,
@@ -303,13 +302,13 @@ build_header_labels <- function(data,
                             label = data[[group_label]] )
   } else if (label_type == "square") {
     xlab.rect <- data %>% 
-      group_by(!!parsed_group_id) %>%
-      summarise(xmin = minx - 1,
-                xmax = maxx,
-                ymin = ymin + labheight * 0.1,
-                ymax = ymin + labheight,
-                color = .[[group_color]][1],
-                label = .[[group_label]][1])
+      dplyr::group_by(!!parsed_group_id) %>%
+      dplyr::summarise(xmin = minx - 1,
+                       xmax = maxx,
+                       ymin = ymin + labheight * 0.1,
+                       ymax = ymin + labheight,
+                       color = .[[group_color]][1],
+                       label = .[[group_label]][1])
   }
 
   xlab.rect  
@@ -323,8 +322,6 @@ build_header_labels <- function(data,
 #' @return a data.frame with segment values for ggplot2's geom_seg. columns: "x","xend","y","yend".
 hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
   
-  library(dplyr)
-  
   hc.dendro <- as.dendrogram(hc)
   hc.segs <- as.data.frame(ggdendro::segment(ggdendro::dendro_data(hc.dendro)))
   
@@ -334,8 +331,8 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
   yheight = ymax - ymin
   
   norm.segs <- hc.segs %>%
-    mutate(y = (y/max(y))*yheight + ymin) %>%
-    mutate(yend = (yend/max(yend))*yheight + ymin)
+    dplyr::mutate(y = (y/max(y))*yheight + ymin) %>%
+    dplyr::mutate(yend = (yend/max(yend))*yheight + ymin)
   
   if (tree.dir == "down") {
     
@@ -346,8 +343,8 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
     ycenter = (ymin + ymax) / 2
     
     plot.segs <- norm.segs %>%
-      mutate(y = ycenter + (ycenter - y),
-             yend = ycenter + (ycenter - yend))
+      dplyr::mutate(y = ycenter + (ycenter - y),
+                    yend = ycenter + (ycenter - yend))
     
   } else if (tree.dir == "left") {
     
@@ -361,8 +358,8 @@ hclust_to_seg <- function(hc, tree.dir = "down", dir.lims = c(0,1)) {
     names(plot.segs) <- c("y","x","yend","xend")
     
     plot.segs <- plot.segs %>%
-      mutate(x = xcenter + (xcenter - x),
-             xend = xcenter + (xcenter - xend))
+      dplyr::mutate(x = xcenter + (xcenter - x),
+                    xend = xcenter + (xcenter - xend))
     
   }
   
@@ -643,16 +640,16 @@ scale_values_plot_space <- function(x,
 #' 
 ggplot_header_labels <- function(p, header_labels, header_polygons = NULL, font_size) {
   p <- p + 
-    geom_rect(data = header_labels,
-              aes(xmin = xmin , 
-                  xmax = xmax, 
-                  ymin = ymin, 
-                  ymax = ymax, 
-                  fill = color) ) +
-    geom_text(data = header_labels, 
-              aes(x = (xmin + xmax) / 2, 
-                  y = ymin + 0.05, 
-                  label = label),
+    ggplot2::geom_rect(data = header_labels,
+                       ggplot2::aes(xmin = xmin , 
+                       xmax = xmax, 
+                       ymin = ymin, 
+                       ymax = ymax, 
+                       fill = color) ) +
+    ggplot2::geom_text(data = header_labels, 
+                       ggplot2::aes(x = (xmin + xmax) / 2, 
+                       y = ymin + 0.05, 
+                       label = label),
               angle = 90, 
               vjust = 0.35, 
               hjust = 0, 
@@ -661,11 +658,11 @@ ggplot_header_labels <- function(p, header_labels, header_polygons = NULL, font_
   
   if(!is.null(header_polygons)) {
     p <- p +
-      geom_polygon(data = header_polygons,
-                   aes(x = poly.x, 
-                       y = poly.y, 
-                       fill = color, 
-                       group = id) )
+      ggplot2::geom_polygon(data = header_polygons,
+                            ggplot2::aes(x = poly.x, 
+                            y = poly.y, 
+                            fill = color, 
+                            group = id) )
   }
   
   p
@@ -689,27 +686,27 @@ ggplot_scale_bars <- function(p, n_genes, n_samples, extent = 0.9) {
                            xmax = 0)
   
   p +
-    geom_hline(data = scale_bars,
-               aes(yintercept = ymin), 
-               size = 0.2) +
-    geom_segment(data = scale_bars, 
-                 aes(x = xmin,
-                     xend = xmax,
-                     y = ymid, 
-                     yend = ymid),
-                 size = 0.2) +
-    geom_segment(data = scale_bars,
-                 aes(x = xmin, 
-                     xend = xmax, 
-                     y = ymax, 
-                     yend = ymax),
-                 size = 0.2) +
-    geom_segment(data = scale_bars,
-                 aes(x = xmax, 
-                     xend = xmax, 
-                     y = ymin, 
-                     yend = ymax),
-                 size = 0.2)
+    ggplot2::geom_hline(data = scale_bars,
+                        ggplot2::aes(yintercept = ymin), 
+                                     linewidth = 0.2) +
+    ggplot2::geom_segment(data = scale_bars, 
+                          ggplot2::aes(x = xmin,
+                                      xend = xmax,
+                                      y = ymid, 
+                                      yend = ymid),
+                          linewidth = 0.2) +
+    ggplot2::geom_segment(data = scale_bars,
+                          ggplot2::aes(x = xmin, 
+                                       xend = xmax, 
+                                       y = ymax, 
+                                       yend = ymax),
+                          linewidth = 0.2) +
+    ggplot2::geom_segment(data = scale_bars,
+                          ggplot2::aes(x = xmax, 
+                                       xend = xmax, 
+                                       y = ymin, 
+                                       yend = ymax),
+                          linewidth = 0.2)
 }
 
 #' Add max value labels to a ggplot
@@ -723,27 +720,31 @@ ggplot_scale_bars <- function(p, n_genes, n_samples, extent = 0.9) {
 #' @return a ggplot2 object
 #' 
 ggplot_max_vals <- function(p, n_stats, width_stat = "samples", max_val_dfs, font_size) {
-
+  
+  right_pad <- data.frame(xmin = n_stats[[width_stat]] + 1,
+                          xmax = n_stats[[width_stat]] + max_val_dfs$width)
+  
   p +
-    geom_rect(aes(xmin = n_stats[[width_stat]] + 1,
-                  xmax = n_stats[[width_stat]] + max_val_dfs$width,
-                  ymin = 1,
-                  ymax = 1),
-              fill = "#FFFFFF") +
-    geom_text(data = max_val_dfs$header,
-              aes(x = x, 
-                  y = y, 
-                  label = label),
-              angle = 90, 
-              hjust = 0, 
-              vjust = 0.5, 
-              size = pt2mm(font_size) ) +
-    geom_text(data = max_val_dfs$labels,
-              aes(x = x, 
-                  y = y, 
-                  label = label),
-              hjust = 0, 
-              vjust = 0.5, 
-              size = pt2mm(font_size) , 
-              parse = TRUE)
+    ggplot2::geom_rect(data = right_pad,
+                       ggplot2::aes(xmin = xmin,
+                                    xmax = xmax,
+                                    ymin = 1,
+                                    ymax = 1),
+                       fill = "#FFFFFF") +
+    ggplot2::geom_text(data = max_val_dfs$header,
+                       ggplot2::aes(x = x, 
+                                    y = y, 
+                                    label = label),
+                       angle = 90, 
+                       hjust = 0, 
+                       vjust = 0.5, 
+                       size = pt2mm(font_size) ) +
+    ggplot2::geom_text(data = max_val_dfs$labels,
+                       ggplot2::aes(x = x, 
+                                    y = y, 
+                                    label = label),
+                       hjust = 0, 
+                       vjust = 0.5, 
+                       size = pt2mm(font_size) , 
+                       parse = TRUE)
 }

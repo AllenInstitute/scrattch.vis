@@ -15,16 +15,14 @@
 #'
 #'check_db_structure(database_file,verbose=F)
 check_db_structure <- function(db.file,verbose=T) {
-  library(DBI)
-  library(RSQLite)
 
   # 5 checks need to pass for the database to work with shiny
   passed_checks <- 0
   
-  con <- dbConnect(RSQLite::SQLite(),db.file)
+  con <- DBI::dbConnect(RSQLite::SQLite(),db.file)
   
   # Check to see if the 3 tables are available.
-  db_tables <- dbListTables(con)
+  db_tables <- DBI::dbListTables(con)
 
   expected_tables <- c("desc","anno","data")
   
@@ -40,9 +38,9 @@ check_db_structure <- function(db.file,verbose=T) {
   # If desc exists, read it to get the annotations we expect in anno.
   if(sum(c("desc","anno") %in% db_tables) == 2) {
     get <- paste("SELECT * FROM desc",sep="")
-    res <- dbSendQuery(con,get)
-    desc <- dbFetch(res,n=-1)
-    dbClearResult(res)
+    res <- DBI::dbSendQuery(con,get)
+    desc <- DBI::dbFetch(res,n=-1)
+    DBI::dbClearResult(res)
     
     if(verbose) {
       cat("Description table:\n")
@@ -56,8 +54,8 @@ check_db_structure <- function(db.file,verbose=T) {
                                paste0(desc$base,"_color"))
     
     get <- "PRAGMA table_info('anno')"
-    res <- dbSendQuery(con,get)
-    anno_columns <- dbFetch(res,n=-1)
+    res <- DBI::dbSendQuery(con,get)
+    anno_columns <- DBI::dbFetch(res,n=-1)
     
     if(sum(expected_anno_columns %in% anno_columns$name) == length(expected_anno_columns)) {
       if(verbose) { cat("all described columns were found! :)\n") }
@@ -87,19 +85,19 @@ check_db_structure <- function(db.file,verbose=T) {
   if(sum(c("anno","data") %in% db_tables) == 2) {
     
     get <- paste("SELECT sample_id FROM anno",sep="")
-    res <- dbSendQuery(con,get)
-    anno_filenames <- dbFetch(res,n=-1)
+    res <- DBI::dbSendQuery(con,get)
+    anno_filenames <- DBI::dbFetch(res,n=-1)
     anno_filenames <- anno_filenames[,1]
-    dbClearResult(res)
+    DBI::dbClearResult(res)
     
     if(verbose) { cat(paste0("found annotations for ",length(anno_filenames)," cells.\n")) }
     
     expected_rpkm_columns <- c("gene",anno_filenames)
     
     get <- "PRAGMA table_info('data')"
-    res <- dbSendQuery(con,get)
-    rpkm_columns <- dbFetch(res,n=-1)
-    dbClearResult(res)
+    res <- DBI::dbSendQuery(con,get)
+    rpkm_columns <- DBI::dbFetch(res,n=-1)
+    DBI::dbClearResult(res)
     
     if(verbose) { cat(paste0("found data for ",nrow(rpkm_columns) - 1," cells.\n")) }
     
@@ -129,7 +127,7 @@ check_db_structure <- function(db.file,verbose=T) {
     
   }
   
-  dbDisconnect(con)
+  DBI::dbDisconnect(con)
 
   if(passed_checks == 5) {
     if(verbose) { cat("The database has passed all essential checks! HOORAY!!\n") 
@@ -158,25 +156,22 @@ check_db_structure <- function(db.file,verbose=T) {
 #'@return A list object containing data.frames for each table in the database, filtered according to genes, group_by, and groups if provided.
 #'
 db_to_list <- function(db.file,get_tables=NULL,genes=NULL,group_by=NULL,groups=NULL) {
-  library(DBI)
-  library(RSQLite)
-  library(dplyr)
   
   if(file.exists(db.file)) {
     
-  con <- dbConnect(RSQLite::SQLite(),db.file)
+  con <- DBI::dbConnect(RSQLite::SQLite(),db.file)
   
   out_list <- list()
   
   if(is.null(get_tables) | "desc" %in% get_tables) {
   
-    desc <- dbReadTable(con,"desc")
+    desc <- DBI::dbReadTable(con,"desc")
     
     out_list[["desc"]] <- desc
     
   }
   
-  anno <- dbReadTable(con,"anno")
+  anno <- DBI::dbReadTable(con,"anno")
   
   if(is.null(group_by) | is.null(groups)) {
     get_samples <- "*"
@@ -197,15 +192,15 @@ db_to_list <- function(db.file,get_tables=NULL,genes=NULL,group_by=NULL,groups=N
   
   if(is.null(genes)) {
     get <- paste("SELECT ",get_samples," FROM data",sep="")
-    data <- dbGetQuery(con,get)
+    data <- DBI::dbGetQuery(con,get)
   } else {
-    get_genes <- chr_to_sql(genes)
+    get_genes <- paste0("('", paste(genes, collapse = "', '"), "')")
     get <- paste0("SELECT ",get_samples," FROM data WHERE gene IN ",get_genes)
     data <- dbGetQuery(con,get)
   }
   
   data <- data %>%
-    select(one_of("gene",anno$sample_id))
+    dplyr::select(one_of("gene",anno$sample_id))
     
     out_list[["data"]] <- data
   }
@@ -364,7 +359,6 @@ check_list_structure <- function(list_data,verbose=T) {
 #'
 #'check_db_structure(feather_dir,verbose=F)
 check_feather_structure <- function(feather_dir,verbose=T) {
-  library(feather)
 
   # 5 checks need to pass for the database to work with shiny
   passed_checks <- 0
@@ -388,7 +382,7 @@ check_feather_structure <- function(feather_dir,verbose=T) {
   
   # If desc exists, read it to get the annotations we expect in anno.
   if(sum(c("desc.feather","anno.feather") %in% feather_files) == 2) {
-    desc <- read_feather(desc_file)
+    desc <- feather::read_feather(desc_file)
     
     if(verbose) {
       cat("Description table:\n")
@@ -401,7 +395,7 @@ check_feather_structure <- function(feather_dir,verbose=T) {
                                paste0(desc$base,"_label"),
                                paste0(desc$base,"_color"))
     
-    anno <- feather(anno_file)
+    anno <- feather::feather(anno_file)
     anno_columns <- names(anno)
     
     if(sum(expected_anno_columns %in% anno_columns) == length(expected_anno_columns)) {
@@ -431,7 +425,7 @@ check_feather_structure <- function(feather_dir,verbose=T) {
   # Check to see if all filenames in anno are found in data (and vice-versa)
   if(sum(c("anno.feather","data.feather") %in% feather_files) == 2) {
     
-    anno <- feather(anno_file)
+    anno <- feather::feather(anno_file)
     anno_samples <- anno$sample_id
     
     
@@ -440,9 +434,9 @@ check_feather_structure <- function(feather_dir,verbose=T) {
     expected_rpkm_columns <- c("gene",anno_filenames)
     
     get <- "PRAGMA table_info('data')"
-    res <- dbSendQuery(con,get)
-    rpkm_columns <- dbFetch(res,n=-1)
-    dbClearResult(res)
+    res <- DBI::dbSendQuery(con,get)
+    rpkm_columns <- DBI::dbFetch(res,n=-1)
+    DBI::dbClearResult(res)
     
     if(verbose) { cat(paste0("found data for ",nrow(rpkm_columns) - 1," cells.\n")) }
     
@@ -472,7 +466,7 @@ check_feather_structure <- function(feather_dir,verbose=T) {
     
   }
   
-  dbDisconnect(con)
+  DBI::dbDisconnect(con)
   
   if(passed_checks == 5) {
     if(verbose) { cat("The database has passed all essential checks! HOORAY!!\n") 
@@ -512,32 +506,30 @@ check_feather_structure <- function(feather_dir,verbose=T) {
 #'
 #'write_database(desc = desc, anno = anno, data = rpkm, file = "v1.db", overwrite=F)
 write_database <- function(desc=NULL,anno=NULL,data=NULL,file = stop("'file' must be specified"),overwrite=TRUE) {
-  library(DBI)
-  library(RSQLite)
   
   # open connection to the database
-  con <- dbConnect(RSQLite::SQLite(),file)
+  con <- DBI::dbConnect(RSQLite::SQLite(),file)
   
   if(!is.null(desc)) {
     cat("Writing desc table\n")
-    dbWriteTable(con,"desc",desc,row.names=F,overwrite=overwrite)
+    DBI::dbWriteTable(con,"desc",desc,row.names=F,overwrite=overwrite)
   }
   
   if(!is.null(anno)) {
     cat("Writing anno table\n")
-    dbWriteTable(con,"anno",anno,row.names=F,overwrite=overwrite)
+    DBI::dbWriteTable(con,"anno",anno,row.names=F,overwrite=overwrite)
   }
   
   if(!is.null(data)) {
     cat("Writing data table\n")
-    dbWriteTable(con,"data",data,row.names=F,overwrite=overwrite)
+    DBI::dbWriteTable(con,"data",data,row.names=F,overwrite=overwrite)
     cat("Indexing data table\n")
     idx <- "CREATE INDEX idx ON data (gene)"
-    res <- dbSendQuery(con,idx)
-    dbClearResult(res)
+    res <- DBI::dbSendQuery(con,idx)
+    DBI::dbClearResult(res)
   }
   
-  dbDisconnect(con)
+  DBI::dbDisconnect(con)
   
 }
 

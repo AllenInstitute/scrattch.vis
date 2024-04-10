@@ -4,9 +4,15 @@
 \alias{group_stats}
 \title{Compute stats for samples grouped by one or more annotations}
 \usage{
-group_stats(data_df, value_cols = NULL, anno, grouping,
-  stat = c("median", "mean", "tmean", "prop_gt0", "prop_gt1",
-  "prop_gt_cutoff", "min", "max"), cutoff = NULL)
+group_stats(
+  data_df,
+  value_cols = NULL,
+  anno,
+  grouping,
+  stat = c("median", "mean", "tmean", "prop_gt0", "prop_gt1", "prop_gt_cutoff", "min",
+    "max"),
+  cutoff = NULL
+)
 }
 \arguments{
 \item{data_df}{a data.frame with sample_name and expression values}

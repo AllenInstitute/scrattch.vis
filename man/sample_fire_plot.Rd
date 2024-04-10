@@ -4,10 +4,21 @@
 \alias{sample_fire_plot}
 \title{Fire Heatmaps of gene expression for individual samples}
 \usage{
-sample_fire_plot(data, anno, genes, grouping, group_order = NULL,
-  log_scale = TRUE, normalize_rows = FALSE, colorset = NULL,
-  top_values = "lowest", font_size = 7, label_height = 25,
-  max_width = 10, return_type = "plot")
+sample_fire_plot(
+  data,
+  anno,
+  genes,
+  grouping,
+  group_order = NULL,
+  log_scale = TRUE,
+  normalize_rows = FALSE,
+  colorset = NULL,
+  top_values = "lowest",
+  font_size = 7,
+  label_height = 25,
+  max_width = 10,
+  return_type = "plot"
+)
 }
 \arguments{
 \item{data}{A data frame containing gene expression values. The first column should be sample_name}

@@ -4,8 +4,13 @@
 \alias{db_to_list}
 \title{Read a SQLite database into a list}
 \usage{
-db_to_list(db.file, get_tables = NULL, genes = NULL, group_by = NULL,
-  groups = NULL)
+db_to_list(
+  db.file,
+  get_tables = NULL,
+  genes = NULL,
+  group_by = NULL,
+  groups = NULL
+)
 }
 \arguments{
 \item{db.file}{- a character object specifying the location of the database}

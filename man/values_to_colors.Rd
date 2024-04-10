@@ -4,9 +4,13 @@
 \alias{values_to_colors}
 \title{Convert values to colors along a color ramp}
 \usage{
-values_to_colors(x, min_val = NULL, max_val = NULL,
-  colorset = c("darkblue", "dodgerblue", "gray80", "orange",
-  "orangered"), missing_color = "black")
+values_to_colors(
+  x,
+  min_val = NULL,
+  max_val = NULL,
+  colorset = c("darkblue", "dodgerblue", "gray80", "orange", "orangered"),
+  missing_color = "black"
+)
 }
 \arguments{
 \item{x}{a numeric vector to be converted to colors}

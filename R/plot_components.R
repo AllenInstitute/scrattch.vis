@@ -688,25 +688,25 @@ ggplot_scale_bars <- function(p, n_genes, n_samples, extent = 0.9) {
   p +
     ggplot2::geom_hline(data = scale_bars,
                         ggplot2::aes(yintercept = ymin), 
-                                     size = 0.2) +
+                                     linewidth = 0.2) +
     ggplot2::geom_segment(data = scale_bars, 
                           ggplot2::aes(x = xmin,
                                       xend = xmax,
                                       y = ymid, 
                                       yend = ymid),
-                          size = 0.2) +
+                          linewidth = 0.2) +
     ggplot2::geom_segment(data = scale_bars,
                           ggplot2::aes(x = xmin, 
                                        xend = xmax, 
                                        y = ymax, 
                                        yend = ymax),
-                          size = 0.2) +
+                          linewidth = 0.2) +
     ggplot2::geom_segment(data = scale_bars,
                           ggplot2::aes(x = xmax, 
                                        xend = xmax, 
                                        y = ymin, 
                                        yend = ymax),
-                          size = 0.2)
+                          linewidth = 0.2)
 }
 
 #' Add max value labels to a ggplot

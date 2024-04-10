@@ -1489,14 +1489,17 @@ group_dot_plot <- function(data,
   for(i in 1:length(genes)) {
     gene <- genes[[i]]
     gene_fill <- paste0(gene, "_fill")
-    parsed_gene_fill <- rlang::parse(gene_fill)
+    parsed_gene_fill <- rlang::parse_expr(gene_fill)
     gene_size <- paste0(gene, "_size")
-    parsed_gene_size <- rlang::parse(gene_size)
-    parsed_y <- rlange::parse(i)
+    parsed_gene_size <- rlang::parse_expr(gene_size)
+    
+    plot_data[[paste0(gene,"_y")]] <- i + 0.5
+    parsed_y <- rlang::parse_expr(paste0(gene,"_y"))
+    
     p <- p + 
       ggplot2::geom_point(data = plot_data,
                           ggplot2::aes(x = xpos,
-                                       y = !!parsed_y + 0.5, 
+                                       y = !!parsed_y, 
                                        fill = !!parsed_gene_fill,
                                        size = !!parsed_gene_size),
                           pch = 21)

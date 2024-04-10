@@ -720,10 +720,14 @@ ggplot_scale_bars <- function(p, n_genes, n_samples, extent = 0.9) {
 #' @return a ggplot2 object
 #' 
 ggplot_max_vals <- function(p, n_stats, width_stat = "samples", max_val_dfs, font_size) {
-
+  
+  right_pad <- data.frame(xmin = n_stats[[width_stat]] + 1,
+                          xmax = n_stats[[width_stat]] + max_val_dfs$width)
+  
   p +
-    ggplot2::geom_rect(ggplot2::aes(xmin = n_stats[[width_stat]] + 1,
-                                    xmax = n_stats[[width_stat]] + max_val_dfs$width,
+    ggplot2::geom_rect(data = right_pad,
+                       ggplot2::aes(xmin = xmin,
+                                    xmax = xmax,
                                     ymin = 1,
                                     ymax = 1),
                        fill = "#FFFFFF") +

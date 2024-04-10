@@ -116,7 +116,7 @@ sample_bar_plot <- function(data,
                                        xend = x, 
                                        y = 1, 
                                        yend = n_stats$genes + 1),
-                          size = 0.2, 
+                          linewidth = 0.2, 
                           color = "gray60", 
                           linetype = "dashed")
   
@@ -125,19 +125,21 @@ sample_bar_plot <- function(data,
     
     gene <- genes[i]
     
-    plot_data[[gene]] <- scale_values_plot_space(plot_data[[gene]],
+    plot_data[[paste0(gene, "_min")]] <- i
+    plot_data[[paste0(gene, "_max")]] <- scale_values_plot_space(plot_data[[gene]],
                                                  min_ps = i)
     
     # plot the rectangles for the barplots
-    parsed_i <- rlang::parse_expr(i)
-    parsed_gene <- rlang::parse_expr(gene)
+    parsed_min <- rlang::parse_expr(paste0(gene, "_min"))
+    parsed_max <- rlang::parse_expr(paste0(gene, "_max"))
     parsed_color <- rlang::parse_expr(group_cols$color)
+    
     p <- p + 
       ggplot2::geom_rect(data = plot_data,
                          ggplot2::aes(xmin = xpos - 1,
                                       xmax = xpos,
-                                      ymin = !!parsed_i,
-                                      ymax = !!parsed_gene,
+                                      ymin = !!parsed_min,
+                                      ymax = !!parsed_max,
                                       fill = !!parsed_color))
     
   }

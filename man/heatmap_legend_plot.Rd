@@ -16,9 +16,9 @@ heatmap_legend_plot(
 
 \item{max_val}{numeric, the maximum value in the plot scale (default = 4)}
 
-\item{scale_name}{character, the name for the values displayed (default = "FPKM")}
-
 \item{colorset}{character vector, the colors to interpolate between using colorRampPalette.}
+
+\item{ggplot2::scale_name}{character, the name for the values displayed (default = "FPKM")}
 }
 \value{
 a ggplot2 heatmap legend plot

@@ -17,11 +17,11 @@ point_size_legend_plot(
 
 \item{max_val}{numeric, the maximum value in the plot scale (default = 1)}
 
-\item{max_size}{numeric, the max size of the point scale (default = 6, default for scale_size_area() )}
-
-\item{scale_name}{character, the name for the values displayed (default = "Fraction of cells")}
+\item{max_size}{numeric, the max size of the point scale (default = 6, default for ggplot2::scale_size_area() )}
 
 \item{n_sizes}{numeric, the number of points in the scale from min_val to max_val, inclusive (default = 6)}
+
+\item{ggplot2::scale_name}{character, the name for the values displayed (default = "Fraction of cells")}
 }
 \value{
 a ggplot2 point size legend plot

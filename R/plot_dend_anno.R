@@ -7,14 +7,19 @@
 #' @param bar_variables base name of variables to be represented as bargraphs below dendrogram. Annotation variables need to be represented as \_id, \_label, \_color in anno.
 #' @param nr_hist plotting of cluster size below dend. Default is TRUE.
 #' @param return_type What values to return - can be "plot", "data", or "both". Default is "plot".
-#' @example_data:
-#'  
+#' @examples
+#' # First, load the example data
 #' load("data/dend_anno_example/dend.rda")
 #' load("data/dend_anno_example/anno.df.rda")
-#' 
-#' 
-#' @usage dend.plot <- dend_anno_barplot(anno=anno.df, dend=dend, section_wedges="class", bar_variables=c("sex", "batch"), nr_hist=TRUE)
-#' 
+#'
+#' # Then, run the function with the loaded data
+#' dend.plot <- dend_anno_barplot(
+#'   anno = anno.df,
+#'   dend = dend,
+#'   section_wedges = "class",
+#'   bar_variables = c("sex", "batch"),
+#'   nr_hist = TRUE
+#' )
 dend_anno_barplot <- function(anno,
                               dend,
                               section_wedges=NULL,
@@ -293,13 +298,19 @@ dend_anno_barplot <- function(anno,
 #' @param c_group base name of variables to color the dotplot by. Annotation variables need to be represented as \_id, \_label, \_color in anno.
 #' @param prefix prefix that groups cluster_id/_label/_color. Used in case of mapping to multiple taxonomies. Default is NULL.
 #' @param denom When calculating fraction of either x- or y-axis variables. Input can be "cluster" or y_group. Default is NULL.
-#' @example_data:
-#'  
+#' @examples
+#' # First, load the example data
 #' load("data/dend_anno_example/dend.rda")
 #' load("data/dend_anno_example/anno.df.rda")
-#' 
-#' 
-#' @usage dend_dotplot <- dend_anno_dotplot(plot_anno=anno.df, dend=dend, y_group="genotype", c_group="genotype", denom=NULL)
+#'
+#' # Then, run the function with the loaded data
+#' dend_dotplot <- dend_anno_dotplot(
+#'   plot_anno = anno.df,
+#'   dend = dend,
+#'   y_group = "genotype",
+#'   c_group = "genotype",
+#'   denom = NULL
+#' )
 #' 
 dend_anno_dotplot<- function(anno, 
                              dend, 

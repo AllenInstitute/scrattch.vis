@@ -4,7 +4,18 @@
 \alias{dend_anno_dotplot}
 \title{dend_anno_dotplot}
 \usage{
-dend_dotplot <- dend_anno_dotplot(plot_anno=anno.df, dend=dend, y_group="genotype", c_group="genotype", denom=NULL)
+dend_anno_dotplot(
+  anno,
+  dend,
+  y_group,
+  c_group = "none",
+  prefix = NULL,
+  denom = NULL,
+  xlab.size = 2,
+  ylab.size = 3,
+  panel_width = 0.4,
+  panel_pad = 0.1
+)
 }
 \arguments{
 \item{dend}{Dendrogram object. Needs to be labeled with cluster_label}
@@ -21,4 +32,19 @@ dend_dotplot <- dend_anno_dotplot(plot_anno=anno.df, dend=dend, y_group="genotyp
 }
 \description{
 dend_anno_dotplot
+}
+\examples{
+# First, load the example data
+load("data/dend_anno_example/dend.rda")
+load("data/dend_anno_example/anno.df.rda")
+
+# Then, run the function with the loaded data
+dend_dotplot <- dend_anno_dotplot(
+  plot_anno = anno.df,
+  dend = dend,
+  y_group = "genotype",
+  c_group = "genotype",
+  denom = NULL
+)
+
 }

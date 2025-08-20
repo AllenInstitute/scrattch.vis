@@ -4,7 +4,14 @@
 \alias{dend_anno_barplot}
 \title{dend_anno_barplot}
 \usage{
-dend.plot <- dend_anno_barplot(anno=anno.df, dend=dend, section_wedges="class", bar_variables=c("sex", "batch"), nr_hist=TRUE)
+dend_anno_barplot(
+  anno,
+  dend,
+  section_wedges = NULL,
+  bar_variables = NULL,
+  nr_hist = TRUE,
+  panel_width = 0.2
+)
 }
 \arguments{
 \item{anno}{Sample annotations. The first column should be sample_name, and each annotation should have \_id, \_label, and \_color columns. Requires cluster_id which needs to be sequential in order of the dendrogram.}
@@ -21,4 +28,18 @@ dend.plot <- dend_anno_barplot(anno=anno.df, dend=dend, section_wedges="class", 
 }
 \description{
 dend_anno_barplot
+}
+\examples{
+# First, load the example data
+load("data/dend_anno_example/dend.rda")
+load("data/dend_anno_example/anno.df.rda")
+
+# Then, run the function with the loaded data
+dend.plot <- dend_anno_barplot(
+  anno = anno.df,
+  dend = dend,
+  section_wedges = "class",
+  bar_variables = c("sex", "batch"),
+  nr_hist = TRUE
+)
 }
